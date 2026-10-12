@@ -59,7 +59,6 @@ def test_hn():
                 if isinstance(co,dict) and co.get("type")=="comment" and co.get("text") and not co.get("deleted"):
                     comments.append(dict(id=cid, url=f"https://news.ycombinator.com/item?id={cid}",
                                          excerpt=cleaned(co.get("text"))))
-            if comments: break
         return result(name,"official API stories and comments",status="verified" if sample else "empty",
                       count=len(sample),comments=len(comments),
                       sample={"posts":sample[:5],"comments":comments[:3]},url=origin,
@@ -96,7 +95,7 @@ def test_github():
 
 def test_youtube():
     name="YouTube"
-    url="https://www.youtube.com/feeds/videos.xml?channel_id=UCBR8-60-B28hp2BmDPdntcQ"
+    url="https://www.youtube.com/feeds/videos.xml?channel_id=UCXZCJLdBC09xxGZ6gcdrc6A"
     try:
         status,b,_=load(url)
         root=ET.fromstring(b)
@@ -189,7 +188,8 @@ def test_bluesky():
                   author=(p.get("author") or {}).get("handle"),
                   replies_reported=p.get("replyCount")) for p in posts[:4]]
     comments=[]
-    uri=urllib.parse.quote(posts[0]["uri"],safe="")
+    with_replies=next((p for p in posts if (p.get("replyCount") or 0)>0),posts[0])
+    uri=urllib.parse.quote(with_replies["uri"],safe="")
     thread_url="https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread?uri="+uri+"&depth=2"
     comments_error=None
     try:
