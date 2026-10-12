@@ -1,0 +1,41 @@
+{
+  "description": "These are search-index URL hints only. Never treat as confirmed live posts, verified comments, or creator endorsement.",
+  "seeds": [
+    {
+      "platform": "douyin",
+      "url": "https://www.douyin.com/video/7684673744475955566",
+      "title_hint": "ComfyUI AI 生图入门",
+      "discovery": "public_web_index_unverified"
+    },
+    {
+      "platform": "douyin",
+      "url": "https://www.douyin.com/video/7681682802920854953",
+      "title_hint": "ComfyUI AI 视频工作流",
+      "discovery": "public_web_index_unverified"
+    },
+    {
+      "platform": "douyin",
+      "url": "https://www.douyin.com/video/7687538238902390043",
+      "title_hint": "2026 AI 教程",
+      "discovery": "public_web_index_unverified"
+    },
+    {
+      "platform": "douyin",
+      "url": "https://www.douyin.com/video/7687186885067738377",
+      "title_hint": "AI 漫剧制作流程",
+      "discovery": "public_web_index_unverified"
+    },
+    {
+      "platform": "douyin",
+      "url": "https://www.douyin.com/video/7680099535268052687",
+      "title_hint": "AI 工具 电商设计",
+      "discovery": "public_web_index_unverified"
+    },
+    {
+      "platform": "xiaohongshu",
+      "url": "https://www.xiaohongshu.com/discovery/item/5c67c384000000000d02c57b",
+      "title_hint": "旧笔记，仅用于验证匿名解析；不视为 AI 选题",
+      "discovery": "public_web_index_stale_control"
+    }
+  ]
+}
