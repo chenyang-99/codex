@@ -36,25 +36,38 @@ def try_json(url):
     return json.loads(b),status,real
 
 def indexed(site,term):
-    # Search-engine indexed links, not direct site search. Can fail/rate-limit.
-    query="site:"+DOMAINS[site][0]+" "+term
-    url="https://www.bing.com/search?"+urlencode({"q":query,"format":"rss"})
-    result={"source":"Bing RSS index","platform":site,"query":term,"status":"not_verified","posts":[]}
-    try:
-        code,content,landing=grab(url,timeout=18)
-        root=ET.fromstring(content)
-        items=[]
-        for x in root.findall(".//item")[:12]:
-            title=clean(x.findtext("title"),190)
-            href=(x.findtext("link") or "").strip()
-            desc=clean(x.findtext("description"),300)
-            if title and href.startswith("https://") and (site=="xiaohongshu" and "xiaohongshu.com" in href or site=="douyin" and "douyin.com" in href):
-                items.append({"platform":site,"title":title,"url":href[:600],"excerpt":desc,
-                              "verified_scope":"indexed search snippet only","comments_status":"not_retrieved"})
-        result.update(status="verified" if items else "empty_index_result",posts=items,
-                      http_status=code)
-    except (HTTPError,URLError,TimeoutError,ValueError,ET.ParseError,OSError) as e:
-        result["error"]=type(e).__name__+": "+clean(e,150)
+    # Index snippets from a normal public search results feed.
+    # This is NOT platform-native search or a guaranteed complete index.
+    queries=[
+        "site:"+DOMAINS[site][0]+" "+term,
+        "site:"+("xiaohongshu.com" if site=="xiaohongshu" else "douyin.com")+" "+term,
+    ]
+    result={"source":"Bing RSS index","platform":site,"query":term,
+            "status":"not_verified","posts":[],"attempts":[]}
+    for query in queries:
+        url="https://www.bing.com/search?"+urlencode({"q":query,"format":"rss"})
+        try:
+            status,content,landing=grab(url,timeout=14)
+            root=ET.fromstring(content)
+            items=[]
+            for x in root.findall(".//item")[:16]:
+                title=clean(x.findtext("title"),190)
+                href=(x.findtext("link") or "").strip()
+                desc=clean(x.findtext("description"),300)
+                host=(urlsplit(href).hostname or "").lower()
+                valid=(host=="xiaohongshu.com" or host.endswith(".xiaohongshu.com")) if site=="xiaohongshu" else (host=="douyin.com" or host.endswith(".douyin.com"))
+                if title and href.startswith("https://") and valid:
+                    items.append({"platform":site,"title":title,"url":href[:600],
+                                  "excerpt":desc,"verified_scope":"search engine indexed snippet, NOT native platform search",
+                                  "comments_status":"not_retrieved"})
+            result["attempts"].append({"query":query,"http_status":status,"returned_valid_domain":len(items)})
+            if items:
+                result.update(status="verified",posts=items)
+                break
+            result["status"]="empty_index_result"
+        except (HTTPError,URLError,TimeoutError,ValueError,ET.ParseError,OSError) as e:
+            result["attempts"].append({"query":query,"error":type(e).__name__+": "+clean(e,120)})
+            result["status"]="not_verified" if not result["posts"] else result["status"]
     return result
 
 def v2ex():
