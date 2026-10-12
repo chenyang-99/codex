@@ -55,6 +55,8 @@ jobs:
           PY
       - name: Execute actual anonymous public-data probes
         run: python social-topic-radar/probe.py
+      - name: Discover public X creator posts and sample replies
+        run: python social-topic-radar/discovery.py
       - name: Publish truthful capability report
         if: always()
         uses: actions/upload-artifact@v4
