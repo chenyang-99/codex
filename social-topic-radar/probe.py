@@ -81,10 +81,12 @@ def website_probe(platform, url, keyword):
             valid = final_host.endswith(("douyin.com", "iesdouyin.com"))
             is_generic = title.lower() in ("抖音", "抖音 - 记录美好生活") or "登录" in title
         verified = bool(status == 200 and valid and content_indicators and not is_generic and desc)
+        missing = urlsplit(final_url).path.rstrip("/") == "/404" or "你访问的页面不见了" in title
         base.update(http_status=status, final_url=clean_url(final_url),
-                    content_status="verified" if verified else "partial",
+                    content_status=("not_found" if missing else "verified" if verified else "partial"),
                     title=title, description_excerpt=desc,
-                    note=("Public post metadata parsed; full body, media, and comments unverified." if verified
+                    note=("Public note/video URL redirected to a 404 page; no content retrieved." if missing
+                          else "Public post metadata parsed; full body, media, and comments unverified." if verified
                           else "Page response exists, but this does not verify post-level content."))
         if "captcha" in page[:15000].lower() or "验证码" in page[:15000]:
             base["content_status"] = "blocked"
@@ -111,7 +113,7 @@ def run_x(name, args, timeout=48):
                          text=True, timeout=timeout, check=False)
         payload=json.loads(p.stdout or "{}")
         if p.returncode != 0 or not isinstance(payload,dict) or payload.get("error"):
-            result["content_status"]="blocked" if p.returncode in (4,5) else "error"
+            result["content_status"]="source_unavailable" if p.returncode in (4,5) else "error"
             result["note"]=safe_str(payload.get("error") or p.stderr or f"Exit {p.returncode}",220)
             return result
         if name == "tweet_and_replies":
