@@ -69,6 +69,8 @@ jobs:
         run: python social-topic-radar/domestic_discovery.py
       - name: Test alternate public index routes to XHS and Douyin
         run: python social-topic-radar/domestic_multisearch.py
+      - name: Verify public-index XHS and Douyin permalinks
+        run: python social-topic-radar/domestic_permalink_verification.py
       - name: Aggregate evidence-linked domestic comment pain points
         run: python social-topic-radar/domestic_painpoints.py
       - name: Build evidence-labeled multi-source editorial shortlist
