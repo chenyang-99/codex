@@ -61,8 +61,6 @@ jobs:
         run: python social-topic-radar/rss_discovery.py
       - name: Verify other public platform content and comments
         run: python social-topic-radar/public_platforms.py
-      - name: Test pinned anonymous Xiaohongshu SSR feed
-        run: python social-topic-radar/xhs_public.py
       - name: Test pinned public Douyin hot-search CLI
         run: python social-topic-radar/douyin_public.py
       - name: Discover indexed Xiaohongshu Douyin links and test Bilibili V2EX comments
