@@ -53,9 +53,16 @@ def score(item):
     elif 0<=age<=30: freshness=1
     else: freshness=-4
     creator=WEIGHT.get(item.get("source_type"),0)
-    relevance=2*len(tags)
-    noiselist=[w for w in NOISE if w in text]
-    penalty=min(4,len(noiselist)*2)
+    # Prioritize replicable visual and consumer-AI workflows over generic dev theory.
+    topic_weight={"ai_image":5,"ai_video":5,"tutorial":3,"chatgpt":2,"agent":1}
+    relevance=sum(topic_weight[k] for k in tags)
+    practical=["before and after","step by step","free tool","no-code","prompt template",
+               "image generation","video generation","editing","photoshoot","creative","design"]
+    relevance += 2 if any(x in text for x in practical) else 0
+    technical=["typescript","backend","microservice","sql database","sdk","unit test",
+               "devops","docker","ci/cd","pytorch","python 3.","quant research","protein folding"]
+    noiselist=[w for w in (*NOISE,*technical) if w in text]
+    penalty=min(8,len(noiselist)*3)
     # This is NOT a claim about public engagement or virality.
     total=freshness+creator+relevance-penalty
     return total,tags,age,noiselist
@@ -91,7 +98,14 @@ def main():
         for raw in iterable:
             if not isinstance(raw,dict):continue
             url=raw.get("url")
-            if not url and isinstance(raw.get("uri"),str):url=raw["uri"]
+            if not url and isinstance(raw.get("uri"),str):
+                uri=raw["uri"]
+                if uri.startswith("at://") and "/app.bsky.feed.post/" in uri:
+                    key=uri.rsplit("/",1)[-1]
+                    handle=raw.get("author")
+                    if isinstance(handle,str) and key:
+                        url=f"https://bsky.app/profile/{handle}/post/{key}"
+                else:url=uri
             pool.append({"source":entry.get("platform"),"source_type":"community",
                          "url":url or "", "title":raw.get("title") or raw.get("text") or "",
                          "excerpt":raw.get("text") or "",
