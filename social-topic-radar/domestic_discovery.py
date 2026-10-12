@@ -132,8 +132,28 @@ def bilibili():
         except (HTTPError,URLError,TimeoutError,OSError,ValueError) as e:
             result.setdefault("search_errors",[]).append({"query":term,
                          "error":type(e).__name__+": "+clean(e,100)})
-    result["status"]="verified" if result["posts"] else "not_verified"
-    for p in targets[:9]:
+            if isinstance(e,HTTPError) and e.code in (403,412,429):
+                result["restriction_detected"]=True
+                break  # stop further search; never evade platform access restrictions
+    # Fallback uses previously verified public video IDs; do not mislabel as live search.
+    try:
+        seeds=json.loads((Path(__file__).resolve().parent/"bilibili_seeds.json").read_text(encoding="utf-8"))
+        existing={str(x.get("aid")) for x in result["posts"]}
+        for s in seeds.get("items",[]):
+            if str(s.get("aid")) in existing:continue
+            if not isinstance(s.get("aid"),int):continue
+            entry={"platform":"bilibili","aid":s["aid"],"bvid":s.get("bvid"),
+                   "search_query":"curated_verified_seed","title":clean(s.get("title"),200),
+                   "url":"https://www.bilibili.com/video/"+str(s.get("bvid")),
+                   "verified_scope":"historical public video seed, NOT a fresh search result",
+                   "seed_verified_on":seeds.get("verified_on")}
+            result["posts"].append(entry)
+            targets.append(entry)
+            if len(targets)>=9:break
+    except (OSError,ValueError,TypeError) as e:
+        result.setdefault("seed_errors",[]).append(type(e).__name__)
+    result["status"]="verified" if result["posts"] and any(p.get("verified_scope")=="public Bilibili search result" for p in result["posts"]) else "seed_only" if result["posts"] else "not_verified"
+    for p in targets[:7]:
         url="https://api.bilibili.com/x/v2/reply?"+urlencode({
             "type":1,"oid":p["aid"],"pn":1,"ps":20,"sort":1})
         try:
