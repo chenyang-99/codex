@@ -1,38 +1,55 @@
-# Social Topic Radar — Anonymous, read-only research probes
+# Global AI Topic Radar — free, anonymous, read-only
 
-A **zero-social-account / zero-cookie / zero-paid-API** GitHub Actions experiment.
+A GitHub Actions–hosted discovery and evidence system for AI creators publishing on X and Xiaohongshu. It avoids platform-account login, personal cookies and paid social APIs. **It is not a promise of unrestricted social access.**
 
-## What is deployed
+## Verified production-shaped components
 
-- \`probe.py\`: checks X public search, creator timeline, a real post and up to 5 public replies; checks whether one Xiaohongshu note URL and one Douyin public video URL actually return verifiable post metadata (a generic HTML shell is **not** success).
-- \`discovery.py\`: monitors 6 public X AI creators, gathers up to 8 recent posts per handle, filters for AI topics, ranks by disclosed engagement counts, and samples up to 6 public replies on 2 prioritized posts. The ranking is a **heuristic**, not AI editorial judgment.
-- \`rss_discovery.py\`: anonymously collects recent entries from OpenAI News, Google AI blog, and GitHub blog official RSS feeds, with per-feed success/failure tracking.
-- \`.github/workflows/anonymous-social-probe.yml\`: executes those read-only tests each day around **09:15 Beijing time**, after pushes to this folder, or through manual dispatch. Scheduled timing is best effort.
+| Component | Program | Current behavior |
+|---|---|---|
+| International RSS/Atom discovery | \`rss_discovery.py\` + \`sources.json\` | 24 configured feeds: 21 accessible, 210 recent source entries at 2026-10-13 Beijing test |
+| X AI creator monitoring | \`discovery.py\` | Sampled public creator timelines and up to 6 public replies on two high-priority posts; upstream availability varies |
+| Other public community access | \`public_platforms.py\` | Verified sample posts from GitHub, Hacker News, YouTube, V2EX, Bluesky, Stack Overflow. Reddit returned HTTP 403 from GitHub-hosted cloud |
+| XiaoHongshu public feed | \`xhs_public.py\` | Tested SHA256-verified \`tamnd/xiaohongshu-cli\` v0.2.0; GitHub cloud returned login-required -101, zero notes |
+| Douyin open hot board | \`douyin_public.py\` | Tested SHA256-verified \`tamnd/douyin-cli\` v0.1.1; real 12 hot-search items retrieved, **not** video bodies or comments |
+| Cross-source candidate ranking | \`editorial.py\` | Unifies actually retrieved source rows, canonical-URL dedupe, transparent recency and topical heuristics, source provenance |
+| Actual test diagnostics | \`probe.py\` | Specific X read/search, and domestic public page smoke tests |
 
-## Latest verified behavior (October 13, 2026, Beijing time)
+## How the automation works
 
-Multiple real Actions executions succeeded. X creator availability fluctuated, with 3–5 of 6 tested handles returning posts per run, 7–13 candidate posts, and 12 verified sampled replies. Public RSS sources returned 40 entries on the latest tested run (15 OpenAI, 15 Google AI, 10 GitHub). These are *obtained item counts* rather than guarantees.
+1. GitHub Actions runs \`anonymous-social-probe.yml\` daily around **09:15 China time** (best-effort scheduling) or on manual dispatch.
+2. Each source captures its *actual* response, count, and access status. No login-only page is assumed available.
+3. \`editorial.py\` creates \`editorial-shortlist.json\` and \`editorial-shortlist.md\`, ranking priority for AI visuals, video, prompts, beginner-friendly workflows and ChatGPT changes.
+4. An artifact named \`anonymous-probe-report\` retains output files for **14 days**. This is not yet a permanent cross-day deduplication database.
+5. The shortlisted items are **not publication-ready**. For any chosen topic, verify full original content, actual prompt, cost, media/rights, human usefulness, and local topic saturation before writing.
 
-**Not working or not deployed:** X arbitrary keyword search was reported unavailable by the tested public endpoint; Xiaohongshu example note redirected to 404; Douyin example link returned a shell without verified caption/body; the Xiaohongshu and Douyin comment APIs were not enabled. No claim of complete three-platform coverage should be made.
+### To add more overseas sources
 
-## Open current report
+Edit [sources.json](./sources.json) and add \`{"name":"Source name","url":"https://example.com/feed.xml","kind":"official|creator|media|community|video|research","priority":1}\`. Use a real publicly accessible RSS or Atom URL. A broken, closed or rate-limited feed is logged as an unavailable source, not treated as 0 posts. Avoid paid APIs and account-restricted surfaces.
 
-GitHub → Actions → **Anonymous social content probe** → latest green run → Artifacts → **anonymous-probe-report**. ZIP contains:
+### Where to find reports
 
-- \`report.json\` and \`report.md\`: truthful capability test evidence.
-- \`topic-candidates.json\` and \`topic-candidates.md\`: actual public X candidate content and sample replies.
-- \`public-rss-candidates.json\` and \`public-rss-candidates.md\`: official RSS entries.
+GitHub → **Actions** → **Anonymous social content probe** → most recent successful workflow → **Artifacts / anonymous-probe-report**.
 
-Artifacts expire after 14 days; this is not a persistent history database. The process does **not** automatically post to X, Douyin, Xiaohongshu or send ChatGPT notifications.
+Files:
+- \`editorial-shortlist.*\`: evidence-labeled topical ranking
+- \`public-rss-candidates.*\`: overseas feeds and per-source errors
+- \`topic-candidates.*\`: actually obtained public X creator posts and sampled replies
+- \`public-platforms.*\`: GitHub, Hacker News, YouTube, V2EX, Reddit, Bluesky, Stack Overflow proof of access
+- \`xiaohongshu-public.json\` / \`douyin-public.json\`: domestic smoke test outputs
+- \`report.*\`: baseline platform access diagnostics
 
-## Zero-login boundaries
+## Non-negotiable limitations
 
-No login, cookies, tokens, X API keys, proxies, account creation, captcha bypass, or user-specific browser sessions. The pinned open-source [X-Aggregate-Data](https://github.com/qianyubtc/X-Aggregate-Data) reader is pulled from a fixed Git commit and allowed only read-only operations. GitHub Actions grants \`contents: read\` — it cannot write to the repo.
+- **X**: some author timelines and public replies can be read anonymously; global keyword search failed on the tested interface. Public third-party endpoints can change.
+- **Xiaohongshu**: the anonymous SSR feed project claims access in some environments, but on this GitHub-hosted environment we got \`-101\` requesting a login cookie. Its comment/search endpoints still require login. No account login or security bypass is attempted.
+- **Douyin**: the independent public hot board is accessible. Video/search/comment endpoints can be restricted by platform anti-bot/access controls. A successful hot board probe is **not** proof of video comment access.
+- **Reddit**: HTTP 403 from the tested GitHub cloud. No unauthorized OAuth or credentials.
+- **All sources**: RSS and public snippets are discovery evidence only; do not invent engagement or AI quality. Daily runner is ephemeral and GitHub may postpone a scheduled start.
+- **Cost/privacy**: no extra paid platform API, no platform account credentials. Both pinned community CLI binaries are verified against release SHA256. Anonymous page-session cookies may still be generated by a tool; they are not the user's login cookies. Follow each platform's terms.
 
-A finished GitHub job does **not** establish that the platform yielded content. Explicitly inspect \`content_status\`, \`comments_status\`, source coverage, per-run error fields, and source URLs. Inaccessible posts, protected accounts, deleted items and restricted comments remain inaccessible.
+## What remains to build
 
-## Operations and costs
-
-The public repository uses GitHub's standard hosted Actions runner; standard public repository runs typically incur no additional Actions charges, subject to GitHub policies and fair use. No extra API subscription is configured.
-
-To disable scheduled runs, edit/remove the schedule in the workflow or disable the workflow in GitHub Actions. This is an ephemeral scheduled research probe, not a persistent Docker server or a promise of unrestricted access to three social platforms.
+- Persist a long-term cross-day deduplication store.
+- Fetch full original tutorials/media for the most promising candidates only when publicly authorized.
+- Human-readable creator-specific quality feedback loop and reliable ChatGPT scheduled-report ingestion.
+- Domestic competitor/comment analysis will remain limited without login or authorized data access. It must never fabricate data.
