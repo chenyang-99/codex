@@ -61,6 +61,8 @@ jobs:
         run: python social-topic-radar/rss_discovery.py
       - name: Verify other public platform content and comments
         run: python social-topic-radar/public_platforms.py
+      - name: Test pinned anonymous Xiaohongshu SSR feed
+        run: python social-topic-radar/xhs_public.py
       - name: Publish truthful capability report
         if: always()
         uses: actions/upload-artifact@v4
