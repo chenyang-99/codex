@@ -1,0 +1,65 @@
+name: Anonymous social content probe
+
+on:
+  push:
+    paths:
+      - "social-topic-radar/**"
+      - ".github/workflows/anonymous-social-probe.yml"
+  workflow_dispatch:
+  schedule:
+    # Around 09:15 Beijing time, best-effort (GitHub may delay scheduled runs).
+    - cron: "15 1 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: anonymous-social-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    name: Read-only no-login platform verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify local probe source syntax
+        run: python -m py_compile social-topic-radar/probe.py
+      - name: Fetch pinned upstream X skill (no social credentials)
+        shell: bash
+        run: |
+          python - <<'PY'
+          import pathlib, urllib.request
+          # Immutable Git commit, not a mutable main branch.
+          url = ("https://raw.githubusercontent.com/qianyubtc/X-Aggregate-Data/"
+                 "83f7b430ea4645e5226572649006c41b0ce14dae/"
+                 "skills/x-aggregate-data/scripts/x.py")
+          dest = pathlib.Path("social-topic-radar/x_upstream.py")
+          try:
+              with urllib.request.urlopen(
+                  urllib.request.Request(url, headers={"User-Agent": "social-topic-radar/1.0"}),
+                  timeout=25
+              ) as response:
+                  contents = response.read(120000)
+              if not contents.startswith(b"#!/usr/bin/env python3"):
+                  raise ValueError("Unexpected upstream file header")
+              dest.write_bytes(contents)
+              print("Pinned upstream X reader installed:", len(contents), "bytes")
+          except Exception as error:
+              # Probe continues to report X as unavailable, not "successful".
+              print("Upstream unavailable:", type(error).__name__, str(error)[:150])
+          PY
+      - name: Execute actual anonymous public-data probes
+        run: python social-topic-radar/probe.py
+      - name: Publish truthful capability report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: anonymous-probe-report
+          path: social-topic-radar/output/
+          if-no-files-found: warn
+          retention-days: 14
