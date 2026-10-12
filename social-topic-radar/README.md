@@ -53,3 +53,14 @@ Files:
 - Fetch full original tutorials/media for the most promising candidates only when publicly authorized.
 - Human-readable creator-specific quality feedback loop and reliable ChatGPT scheduled-report ingestion.
 - Domestic competitor/comment analysis will remain limited without login or authorized data access. It must never fabricate data.
+
+
+## Domestic public discovery: additional index experiments (2026-10-13)
+
+- \`domestic_multisearch.py\` probes **Google News RSS, DuckDuckGo HTML, Mojeek and Sogou** against public \`site:...\` queries for Xiaohongshu/Douyin, without login or access restriction bypass. First actual GitHub Actions verification: **16 checks, 0 valid direct note/video links, 4 index-provider access blocks**. These are test results, not a platform-wide absence claim.
+- Separately, an **on-demand connected public web search in ChatGPT** located multiple Douyin \`/video/<id>\` permalink search results. This works for discovering public indexed titles/links/snippets but is **not** deployed as an automatic GitHub Actions API and does not grant native post or comment access. Two subsequent direct video fetch attempts timed out.
+- The same on-demand index search did **not** return a usable individual Xiaohongshu note permalink; only a generic \`/explore\` landing page.
+- The third-party search plugin **Exa had no remaining credits** when tested; Firecrawl credits were already exhausted. These are not configured as paid ongoing dependencies; no purchase is necessary.
+- Native platform comment collection is **not** solved under zero-login constraints. Keep using source-labeled Bilibili/V2EX public reply evidence for domestic user questions.
+- Official Douyin **keyword video / comment** management API exists, but restricted keyword applications must directly relate to the applicant's own business (not general AI categories or competitors) and require application approval; it is not a general anonymous social listening API. See: https://open.douyin.com/platform/resource/docs/ability/search-management/video/
+- The public Xiaohongshu openaccount OAuth scope inventory does not list general note search/comment collection. See: https://openaccount.xiaohongshu.com/docs/scope
