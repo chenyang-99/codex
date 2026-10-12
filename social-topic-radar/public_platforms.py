@@ -160,8 +160,86 @@ def test_reddit():
         return result(name,"single public HTML page only",url=url,error=e,
                       note="Reddit Data API requires OAuth and provider-IP access may be restricted.")
 
+def test_bluesky():
+    name="Bluesky"
+    import urllib.parse
+    # Bluesky's open AppView has anonymous GET endpoints. Search may be rate limited.
+    search="https://api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=AI%20image&limit=5"
+    author="https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=bsky.app&limit=5"
+    posts=[]
+    error=None
+    source=None
+    for url in [search, author]:
+        try:
+            _, raw, _=load(url)
+            body=json.loads(raw)
+            if not isinstance(body,dict):continue
+            views=body.get("posts") if "posts" in body else [
+                x.get("post") for x in body.get("feed",[]) if isinstance(x,dict)]
+            posts=[p for p in views if isinstance(p,dict) and p.get("uri") and
+                   isinstance(p.get("record"),dict) and p["record"].get("text")]
+            if posts:
+                source=url
+                break
+        except (HTTPError,URLError,TimeoutError,ValueError,OSError) as exc:
+            error=type(exc).__name__+": "+str(exc)[:100]
+    if not posts:
+        return result(name,"anonymous public feed/search and reply tree",url=search,error=error or "No structured posts")
+    samples=[dict(uri=p.get("uri"),text=cleaned(p.get("record",{}).get("text"),280),
+                  author=(p.get("author") or {}).get("handle"),
+                  replies_reported=p.get("replyCount")) for p in posts[:4]]
+    comments=[]
+    uri=urllib.parse.quote(posts[0]["uri"],safe="")
+    thread_url="https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread?uri="+uri+"&depth=2"
+    comments_error=None
+    try:
+        _, raw, _=load(thread_url)
+        thread=json.loads(raw).get("thread") or {}
+        replies=thread.get("replies") if isinstance(thread,dict) else []
+        for rr in (replies or [])[:4]:
+            obj=rr.get("post") if isinstance(rr,dict) else None
+            if isinstance(obj,dict) and isinstance(obj.get("record"),dict) and obj["record"].get("text"):
+                comments.append({"uri":obj.get("uri"),"text_excerpt":cleaned(obj["record"]["text"],300)})
+    except (HTTPError,URLError,TimeoutError,ValueError,OSError) as exc:
+        comments_error=type(exc).__name__+": "+str(exc)[:100]
+    return result(name,"anonymous public feed/search and reply tree",
+                  status="verified",count=len(samples),comments=len(comments),
+                  sample={"posts":samples,"comments":comments},url=source,
+                  note="First page only, public posts only; reply retrieval may be empty or restricted.",
+                  error=comments_error)
+
+def test_stackexchange():
+    name="Stack Overflow"
+    base="https://api.stackexchange.com/2.3/questions?site=stackoverflow&pagesize=8&sort=hot"
+    try:
+        _,raw,_=load(base)
+        response=json.loads(raw)
+        entries=response.get("items",[]) if isinstance(response,dict) else []
+        if not entries:raise ValueError("No structured question records")
+        samples=[]
+        comments=[]
+        for q in entries[:6]:
+            if not isinstance(q,dict) or not q.get("question_id"):continue
+            samples.append(dict(id=q["question_id"],title=cleaned(q.get("title"),170),
+                                url=q.get("link"),answers_reported=q.get("answer_count")))
+            if len(comments)==0:
+                url="https://api.stackexchange.com/2.3/questions/"+str(q["question_id"])+"/comments?site=stackoverflow&pagesize=3"
+                try:
+                    _, cb, _=load(url)
+                    items=json.loads(cb).get("items",[])
+                    comments=[dict(id=x.get("comment_id"),excerpt=cleaned(x.get("body","")),
+                                   posted_at=x.get("creation_date")) for x in items if isinstance(x,dict)][:3]
+                except (HTTPError,URLError,TimeoutError,ValueError,OSError):
+                    pass
+        return result(name,"anonymous Stack Exchange API questions/comments",
+                      status="verified" if samples else "empty",count=len(samples),
+                      comments=len(comments),sample={"questions":samples,"comments":comments},
+                      url=base,note="Community Q&A; answers and question comments are distinct. Free anonymous API is rate-limited.")
+    except (HTTPError,URLError,TimeoutError,ValueError,OSError) as e:
+        return result(name,"anonymous Stack Exchange API questions/comments",url=base,error=e)
+
 def main():
-    tests=[test_hn,test_github,test_youtube,test_v2ex,test_reddit]
+    tests=[test_hn,test_github,test_youtube,test_v2ex,test_reddit,test_bluesky,test_stackexchange]
     rows=[]
     for fn in tests:
         try:rows.append(fn())
