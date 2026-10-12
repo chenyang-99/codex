@@ -75,6 +75,8 @@ jobs:
         run: python social-topic-radar/domestic_painpoints.py
       - name: Build evidence-labeled multi-source editorial shortlist
         run: python social-topic-radar/editorial.py
+      - name: Consolidate source-specific domestic search and comment access status
+        run: python social-topic-radar/domestic_status.py
       - name: Publish truthful capability report
         if: always()
         uses: actions/upload-artifact@v4
