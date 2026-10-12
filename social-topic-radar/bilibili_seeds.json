@@ -1,0 +1,36 @@
+{
+  "description": "Fallback to previously verified public Bilibili AI video IDs when anonymous search is temporarily restricted. These entries are historical seeds, not fresh search results.",
+  "verified_on": "2026-10-13",
+  "items": [
+    {
+      "aid": 117415077809133,
+      "bvid": "BV1Hdpv6wEkM",
+      "title": "Github 宝藏应用：手机端纯本地 AI 生图"
+    },
+    {
+      "aid": 117426654021388,
+      "bvid": "BV1KppR6xEwi",
+      "title": "即梦 AI 图片和视频生成教程"
+    },
+    {
+      "aid": 117428432406122,
+      "bvid": "BV1XDpR6KEcy",
+      "title": "AI 图片和视频生成工具"
+    },
+    {
+      "aid": 117424674308488,
+      "bvid": "BV1QypD69EM3",
+      "title": "GPT Image 2.5 中文生图教程"
+    },
+    {
+      "aid": 117187746530599,
+      "bvid": "BV15otx6MEKs",
+      "title": "AI 生图软件评价"
+    },
+    {
+      "aid": 117427945871354,
+      "bvid": "BV1brpd6wEe6",
+      "title": "Qwen Image 2.1 Turbo 图片编辑教程"
+    }
+  ]
+}
