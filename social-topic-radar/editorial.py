@@ -63,6 +63,18 @@ def score(item):
                "devops","docker","ci/cd","pytorch","python 3.","quant research","protein folding"]
     noiselist=[w for w in (*NOISE,*technical) if w in text]
     penalty=min(8,len(noiselist)*3)
+    # General dev feeds are useful for research but not the user's primary
+    # visual, non-coding tutorial remit. Don't let common jargon crowd out
+    # demos and creator workflows.
+    origin=(item.get("source") or "").lower()
+    if origin.startswith("dev "):penalty+=7
+    elif origin in ("github","stack overflow"):penalty+=5
+    if "ai_image" in tags or "ai_video" in tags:
+        relevance+=3
+    if item.get("likes_verified") and item.get("likes") is not None:
+        try:
+            if int(item["likes"])>=100:relevance+=2
+        except (ValueError,TypeError):pass
     # This is NOT a claim about public engagement or virality.
     total=freshness+creator+relevance-penalty
     return total,tags,age,noiselist
