@@ -83,6 +83,7 @@ def main():
     rss=read("public-rss-candidates.json")
     social=read("topic-candidates.json")
     public=read("public-platforms.json")
+    domestic=read("domestic-painpoints.json")
     pool=[]
     for item in rss.get("items",[]):
         pool.append({"source":item.get("source"),"source_type":item.get("source_type"),
@@ -149,6 +150,12 @@ def main():
                                   "x_verified_creators":sum(a.get("status")=="verified" for a in social.get("watchlist",[])),
                                   "public_platforms_verified":[r.get("platform") for r in public.get("results",[]) if r.get("status")=="verified"]},
             "shortlist":ranked[:40],
+            "domestic_demand_evidence":{
+                "actual_community_reply_sample_count":domestic.get("actual_domestic_comment_count",0),
+                "observed_themes":domestic.get("observed_themes",[])[:8],
+                "xiaohongshu_douyin_index_links":domestic.get("domestic_indexed_link_count",0),
+                "provenance_warning":"Bilibili/V2EX comments do not represent Xiaohongshu/Douyin comments; samples not necessarily representative."
+            },
             "missing_steps":["Fetch and verify original full tutorial or prompt for finalists.",
                              "Cross-check author's date, demonstration, license and tool availability.",
                              "Check domestic topic saturation using actual accessible sources.",
@@ -164,6 +171,13 @@ def main():
                       f"Source: {item['source']} | score: {item['rank_score']} | tags: {', '.join(item['theme_tags'])}",
                       f"URL: {item['url']}",
                       f"Actually verified: {item['verified_scope']}; complete tutorial NOT verified.",""])
+    demand=report["domestic_demand_evidence"]
+    lines.extend(["","## Domestic demand observation (separate evidence, not automatic cross-topic proof)",
+        f"Actually fetched public Chinese comments: {demand['actual_community_reply_sample_count']}",
+        f"Indexed Xiaohongshu/Douyin links: {demand['xiaohongshu_douyin_index_links']}"])
+    for entry in demand["observed_themes"][:6]:
+        lines.append(f"- {entry['theme']}: {entry['matched_reply_count']} sampled comments; see domestic-painpoints.md for exact source links")
+    lines.append("Bilibili/V2EX comments must not be attributed to Xiaohongshu or Douyin users.")
     (OUT/"editorial-shortlist.md").write_text("\n".join(lines),encoding="utf-8")
     print(json.dumps({"status":"shortlist_complete","raw_candidates":len(pool),
                       "unique_relevant":len(ranked),"top":len(ranked[:40])},ensure_ascii=False))
