@@ -17,7 +17,7 @@ FEEDS={
  "GitHub blog":"https://github.blog/feed/",
 }
 NS={"atom":"http://www.w3.org/2005/Atom"}
-MAX_SIZE=800_000
+MAX_SIZE=3_500_000
 def clean(v,n=340):
     return re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]+>"," ",v or ""))).strip()[:n]
 def atom_or_child_text(item,tag):
