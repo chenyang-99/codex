@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "purpose": "Broad AI creator and tool discovery, metadata only; failures reported individually.",
+  "feeds": [
+    {
+      "name": "OpenAI News",
+      "url": "https://openai.com/news/rss.xml",
+      "kind": "official",
+      "priority": 5
+    },
+    {
+      "name": "Google AI Blog",
+      "url": "https://blog.google/technology/ai/rss/",
+      "kind": "official",
+      "priority": 5
+    },
+    {
+      "name": "GitHub Blog",
+      "url": "https://github.blog/feed/",
+      "kind": "official",
+      "priority": 4
+    },
+    {
+      "name": "Google Research",
+      "url": "https://research.google/blog/rss/",
+      "kind": "official",
+      "priority": 4
+    },
+    {
+      "name": "Microsoft Research",
+      "url": "https://www.microsoft.com/en-us/research/feed/",
+      "kind": "official",
+      "priority": 4
+    },
+    {
+      "name": "Hugging Face Blog",
+      "url": "https://huggingface.co/blog/feed.xml",
+      "kind": "community",
+      "priority": 5
+    },
+    {
+      "name": "Simon Willison",
+      "url": "https://simonwillison.net/atom/everything/",
+      "kind": "creator",
+      "priority": 5
+    },
+    {
+      "name": "Cloudflare Blog",
+      "url": "https://blog.cloudflare.com/rss/",
+      "kind": "official",
+      "priority": 3
+    },
+    {
+      "name": "Anthropic News",
+      "url": "https://www.anthropic.com/news/rss.xml",
+      "kind": "official",
+      "priority": 5
+    },
+    {
+      "name": "Google DeepMind",
+      "url": "https://deepmind.google/discover/blog/rss.xml",
+      "kind": "official",
+      "priority": 4
+    },
+    {
+      "name": "Latent Space",
+      "url": "https://www.latent.space/feed",
+      "kind": "creator",
+      "priority": 4
+    },
+    {
+      "name": "Replicate Blog",
+      "url": "https://replicate.com/blog/rss",
+      "kind": "creator",
+      "priority": 5
+    },
+    {
+      "name": "TechCrunch AI",
+      "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+      "kind": "media",
+      "priority": 3
+    },
+    {
+      "name": "The Verge AI",
+      "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+      "kind": "media",
+      "priority": 3
+    },
+    {
+      "name": "MIT Technology Review",
+      "url": "https://www.technologyreview.com/feed/",
+      "kind": "media",
+      "priority": 3
+    },
+    {
+      "name": "DEV AI",
+      "url": "https://dev.to/feed/tag/ai",
+      "kind": "community",
+      "priority": 3
+    },
+    {
+      "name": "DEV Prompt Engineering",
+      "url": "https://dev.to/feed/tag/promptengineering",
+      "kind": "community",
+      "priority": 3
+    },
+    {
+      "name": "Hacker News Show",
+      "url": "https://hnrss.org/show",
+      "kind": "community",
+      "priority": 3
+    },
+    {
+      "name": "Hacker News Front",
+      "url": "https://hnrss.org/frontpage",
+      "kind": "community",
+      "priority": 3
+    },
+    {
+      "name": "Lobsters",
+      "url": "https://lobste.rs/rss",
+      "kind": "community",
+      "priority": 2
+    },
+    {
+      "name": "arXiv Computer Vision",
+      "url": "https://rss.arxiv.org/rss/cs.CV",
+      "kind": "research",
+      "priority": 3
+    },
+    {
+      "name": "arXiv Artificial Intelligence",
+      "url": "https://rss.arxiv.org/rss/cs.AI",
+      "kind": "research",
+      "priority": 3
+    },
+    {
+      "name": "YouTube OpenAI Channel",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCXZCJLdBC09xxGZ6gcdrc6A",
+      "kind": "video",
+      "priority": 5
+    },
+    {
+      "name": "Product Hunt",
+      "url": "https://www.producthunt.com/feed",
+      "kind": "community",
+      "priority": 3
+    }
+  ]
+}
