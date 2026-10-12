@@ -58,40 +58,43 @@ def indexed(site,term):
     return result
 
 def v2ex():
-    result={"source":"V2EX public API","platform":"v2ex","status":"not_verified",
-            "posts":[],"comments":[]}
-    endpoints=[("ai","https://www.v2ex.com/api/topics/show.json?node_name=ai"),
-               ("chatgpt","https://www.v2ex.com/api/topics/show.json?node_name=chatgpt")]
-    for node,url in endpoints:
+    result={"source":"V2EX public hot/latest topic API","platform":"v2ex",
+            "status":"not_verified","posts":[],"comments":[]}
+    # Legacy node-scoped V1 endpoint now returns 404; V2 node API requires PAT.
+    # Only use public hot/latest endpoints and filter actually relevant posts.
+    terms=("ai","gpt","chatgpt","大模型","生图","ai视频","豆包","提示词","comfyui","sora")
+    seen=set()
+    for label,url in [("hot","https://www.v2ex.com/api/topics/hot.json"),
+                      ("latest","https://www.v2ex.com/api/topics/latest.json")]:
         try:
             posts,status,_=try_json(url)
             if not isinstance(posts,list):raise ValueError("unexpected topic shape")
-            for p in posts[:12]:
+            for p in posts[:40]:
                 if not isinstance(p,dict) or not p.get("id") or not p.get("title"):continue
+                title=clean(p["title"],220)
+                if p["id"] in seen or not any(t in title.lower() for t in terms):continue
+                seen.add(p["id"])
                 result["posts"].append({"platform":"v2ex","topic_id":p["id"],
-                    "title":clean(p["title"],220),
-                    "url":p.get("url") or f"https://www.v2ex.com/t/{p['id']}",
-                    "reply_count_reported":p.get("replies"),
-                    "created":p.get("created"),
+                    "title":title,"url":p.get("url") or f"https://www.v2ex.com/t/{p['id']}",
+                    "reply_count_reported":p.get("replies"),"created":p.get("created"),
                     "verified_scope":"public V2EX topic JSON"})
             result["status"]="verified" if result["posts"] else "empty"
         except (HTTPError,URLError,TimeoutError,OSError,ValueError) as e:
-            result.setdefault("errors",[]).append({"node":node,"error":type(e).__name__+": "+clean(e,100)})
-    chosen=[p for p in result["posts"] if p.get("reply_count_reported",0)>0][:3]
-    for p in chosen:
-        url="https://www.v2ex.com/api/replies/show.json?"+urlencode({"topic_id":p["topic_id"],"page":1})
+            result.setdefault("errors",[]).append({"source":label,"error":type(e).__name__+": "+clean(e,100)})
+    for p in [p for p in result["posts"] if p.get("reply_count_reported",0)>0][:2]:
+        url="https://www.v2ex.com/api/replies/show.json?"+urlencode({"topic_id":p["topic_id"]})
         try:
             rows,_,_=try_json(url)
             if not isinstance(rows,list):raise ValueError("unexpected reply shape")
-            for c in rows[:12]:
-                text=clean(c.get("content_rendered") or c.get("content"),450) if isinstance(c,dict) else ""
-                if text:
+            for v in rows[:12]:
+                content=clean(v.get("content_rendered") or v.get("content"),450) if isinstance(v,dict) else ""
+                if content:
                     result["comments"].append({"platform":"v2ex","topic_url":p["url"],
-                                                "url":p["url"]+"#reply"+str(c.get("id","")),
-                                                "text_excerpt":text,"reply_id":c.get("id"),
-                                                "verified_scope":"actual public reply JSON"})
+                                               "url":p["url"]+"#reply"+str(v.get("id","")),
+                                               "text_excerpt":content,"reply_id":v.get("id"),
+                                               "verified_scope":"actual public reply JSON"})
         except (HTTPError,URLError,TimeoutError,OSError,ValueError) as e:
-            result.setdefault("comments_errors",[]).append(type(e).__name__+": "+clean(e,100))
+            result.setdefault("comment_errors",[]).append(type(e).__name__+": "+clean(e,100))
     result["post_count"]=len(result["posts"])
     result["comments_returned"]=len(result["comments"])
     return result
@@ -99,49 +102,62 @@ def v2ex():
 def bilibili():
     result={"source":"Bilibili public search/replies","platform":"bilibili",
             "status":"not_verified","posts":[],"comments":[]}
-    search="https://api.bilibili.com/x/web-interface/search/type?"+urlencode({
-        "search_type":"video","keyword":"AI生图","page":1,"page_size":10})
-    try:
-        obj,_,_=try_json(search)
-        code=obj.get("code")
-        if code!=0:
-            result["status"]="platform_restricted"
-            result["error"]="search returned API code "+str(code)+": "+clean(obj.get("message"),100)
-        else:
+    # Multiple consumer-AI topic areas; bounded to 3 searches / 9 comment pages.
+    terms=("AI生图","AI视频生成","ChatGPT教程")
+    seen=set()
+    targets=[]
+    for term in terms:
+        search="https://api.bilibili.com/x/web-interface/search/type?"+urlencode({
+            "search_type":"video","keyword":term,"page":1,"page_size":10})
+        try:
+            obj,_,_=try_json(search)
+            if obj.get("code")!=0:
+                result.setdefault("search_errors",[]).append({"query":term,
+                    "api_code":obj.get("code"),"note":clean(obj.get("message"),100)})
+                continue
             items=(obj.get("data") or {}).get("result") or []
+            candidates=[]
             for p in items[:10]:
                 aid=p.get("aid")
-                if not aid:continue
-                result["posts"].append({"platform":"bilibili","aid":aid,
-                    "bvid":p.get("bvid"),"title":clean(p.get("title"),220),
-                    "url":p.get("arcurl") or ("https://www.bilibili.com/video/"+str(p.get("bvid"))),
-                    "description":clean(p.get("description"),250),
-                    "verified_scope":"public Bilibili search result"})
-            result["status"]="verified" if result["posts"] else "empty"
-    except (HTTPError,URLError,TimeoutError,OSError,ValueError) as e:
-        result["error"]=type(e).__name__+": "+clean(e,150)
-    if result["posts"]:
-        for p in result["posts"][:3]:
-            url="https://api.bilibili.com/x/v2/reply?"+urlencode({"type":1,"oid":p["aid"],"pn":1,"ps":10})
-            try:
-                obj,_,_=try_json(url)
-                if obj.get("code")!=0:
-                    result.setdefault("comment_errors",[]).append("API code "+str(obj.get("code")))
-                    continue
-                data=obj.get("data") or {}
-                rows=data.get("replies") or []
-                for x in rows[:8]:
-                    if not isinstance(x,dict):continue
-                    body=clean((x.get("content") or {}).get("message"),450)
-                    if body:
-                        result["comments"].append({"platform":"bilibili",
-                            "url":p["url"]+"#reply"+str(x.get("rpid_str") or x.get("rpid") or ""),
-                            "post_url":p["url"],"text_excerpt":body,
-                            "likes":x.get("like"),"verified_scope":"actual public video reply"})
-            except (HTTPError,URLError,TimeoutError,OSError,ValueError) as e:
-                result.setdefault("comment_errors",[]).append(type(e).__name__+": "+clean(e,100))
+                if not aid or str(aid) in seen:continue
+                seen.add(str(aid))
+                entry={"platform":"bilibili","aid":aid,"bvid":p.get("bvid"),
+                       "search_query":term,"title":clean(p.get("title"),220),
+                       "url":p.get("arcurl") or ("https://www.bilibili.com/video/"+str(p.get("bvid"))),
+                       "description":clean(p.get("description"),250),
+                       "verified_scope":"public Bilibili search result"}
+                result["posts"].append(entry)
+                candidates.append(entry)
+            targets += candidates[:3]
+        except (HTTPError,URLError,TimeoutError,OSError,ValueError) as e:
+            result.setdefault("search_errors",[]).append({"query":term,
+                         "error":type(e).__name__+": "+clean(e,100)})
+    result["status"]="verified" if result["posts"] else "not_verified"
+    for p in targets[:9]:
+        url="https://api.bilibili.com/x/v2/reply?"+urlencode({
+            "type":1,"oid":p["aid"],"pn":1,"ps":20,"sort":1})
+        try:
+            obj,_,_=try_json(url)
+            if obj.get("code")!=0:
+                result.setdefault("comment_errors",[]).append({
+                    "video_id":p["aid"],"api_code":obj.get("code")})
+                continue
+            data=obj.get("data") or {}
+            for entry in (data.get("replies") or [])[:20]:
+                if not isinstance(entry,dict):continue
+                body=clean((entry.get("content") or {}).get("message"),550)
+                if not body:continue
+                result["comments"].append({"platform":"bilibili","search_query":p["search_query"],
+                    "post_title":p["title"],"url":p["url"]+"#reply"+
+                    str(entry.get("rpid_str") or entry.get("rpid") or ""),
+                    "post_url":p["url"],"text_excerpt":body,"likes":entry.get("like"),
+                    "verified_scope":"actual public video reply"})
+        except (HTTPError,URLError,TimeoutError,OSError,ValueError) as e:
+            result.setdefault("comment_errors",[]).append({
+                "video_id":p["aid"],"error":type(e).__name__+": "+clean(e,110)})
     result["post_count"]=len(result["posts"])
     result["comments_returned"]=len(result["comments"])
+    result["videos_with_replies"]=len({x["post_url"] for x in result["comments"]})
     return result
 
 def main():
