@@ -42,6 +42,16 @@ def normalized(url):
     except ValueError:return url
 def classify(comment):
     text=(comment.get("text_excerpt") or "").lower()
+    # Do not classify marketing spam or low-information applause as pain points.
+    promotional=("需要的自取","私信领取","免费领取","扫码领取","添加微信",
+                 "联系我","可协助比对","专业度可以给到顶级","最新的gpt image2.5 flare")
+    if any(m in text for m in promotional):
+        return []
+    applause=("三连支持","三连走起","已三连","大佬威武","打call","前排前排",
+              "谢谢up","感谢up","支持支持","666","好看爱看")
+    if any(m in text for m in applause) and not any(q in text for q in
+                       ("求整合包","求一份","求教程","求模型","求链接","怎么","哪里")):
+        return []
     return [k for k,words in SIGNALS.items() if any(w.lower() in text for w in words)]
 def main():
     domestic=read("domestic-discovery.json")
@@ -82,7 +92,8 @@ def main():
             "domestic_indexed_link_count":len(indexed),
             "domestic_indexed_links":indexed[:35],
             "observed_themes":themes,
-            "unclassified_comment_count":sum(not classify(x) for x in unique),
+            "classified_distinct_comment_count":sum(bool(classify(x)) for x in unique),
+        "unclassified_comment_count":sum(not classify(x) for x in unique),
             "limitations":["Indexed Xiaohongshu/Douyin URLs are search snippets; body/comments unverified.",
                            "All pain-point examples come from V2EX/Bilibili unless new permitted sources added.",
                            "Keyword matching cannot replace contextual interpretation or verify representative prevalence.",
