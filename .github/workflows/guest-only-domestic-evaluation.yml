@@ -10,6 +10,29 @@ permissions:
   contents: read
 
 jobs:
+  guest-browser:
+    name: Render XHS and Douyin public search without accounts
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated Playwright browser
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Read only publicly visible guest search pages
+        run: python social-topic-radar/guest_visible_browser.py
+      - name: Upload access evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guest-visible-search-evidence
+          path: social-topic-radar/output/guest-visible-browser.json
+          if-no-files-found: warn
+          retention-days: 7
   xhs-guest:
     name: Xiaohongshu guest-feed read-only smoke test
     runs-on: ubuntu-latest
