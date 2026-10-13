@@ -17,7 +17,7 @@ import urllib.request
 
 HOST="https://demo.douyin.wtf"
 OUT=pathlib.Path(__file__).resolve().parent/"output"/"douyin-public-demo.json"
-VIDEO="7667225486396886315"  # public index: AI零基础生图工具热门教程
+VIDEO="7690880734421326975"  # discovered from real public AI creator latest videos with 16 reported comments
 
 class HTTP:
     def __init__(self):
@@ -65,7 +65,7 @@ def main():
        "no_douyin_account_used":True,
        "no_user_credentials_used":True,
        "one_video_id":VIDEO,
-       "discovered_via":"public web search index for AI生图教程; this is not platform-native keyword search",
+       "discovered_via":"actual verified public AI creator feed; not native platform keyword search",
        "platform_keyword_search":"not_supported_by_public_demo_contract",
        "comments":{"state":"not_tested","count":0},
        "replies":{"state":"not_tested","count":0}}
