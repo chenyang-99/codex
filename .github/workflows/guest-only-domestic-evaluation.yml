@@ -5,6 +5,8 @@ on:
   push:
     paths:
       - '.github/workflows/guest-only-domestic-evaluation.yml'
+      - 'guest-crawler-pilot/**'
+      - 'social-topic-radar/public_douyin_demo_test.py'
       - 'social-topic-radar/guest_visible_browser.py'
 
 permissions:
