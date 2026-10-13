@@ -52,6 +52,8 @@ def inspect(context,platform,url):
         body=safe(p.locator("body").inner_text(timeout=8000),2000)
         has_login=any(x in body for x in LOGIN_SIGNALS)
         r["login_or_challenge_visible"]=has_login
+        r["guest_visible_body_excerpt"]=body[:450]
+        r["guest_visible_body_chars"]=len(body)
         rendered=p.locator("a[href]").evaluate_all("""els =>
           els.filter(a => a.getClientRects().length && getComputedStyle(a).visibility !== 'hidden')
              .slice(0, 250).map(a => ({url:a.href,title:(a.innerText || a.title || '').trim().slice(0,130)}))""")
@@ -62,6 +64,7 @@ def inspect(context,platform,url):
             if not relevant_work(href,platform) or href in seen:continue
             seen.add(href)
             links.append({"url":safe(href,450),"visible_link_text":safe(item.get("title"),130)})
+        r["total_visible_anchors"]=len(rendered)
         r["visible_post_links"]=len(links)
         r["sample"]=links[:5]
         if response and response.status in (401,403,412,429):
@@ -116,5 +119,8 @@ def main():
     (OUTPUT/"guest-visible-browser.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
     print(json.dumps({"guest_browser_probe_complete":[{"platform":x["platform"],"status":x["status"],
         "visible_post_links":x["visible_post_links"],"actual_comments":x["actual_comments"],
-        "http_status":x.get("http_status")} for x in rows]},ensure_ascii=False))
+        "http_status":x.get("http_status"),"title":x.get("page_title"),
+        "visible_body":x.get("guest_visible_body_excerpt"),
+        "visible_anchors":x.get("total_visible_anchors"),
+        "login_or_challenge":x.get("login_or_challenge_visible")} for x in rows]},ensure_ascii=False))
 if __name__=="__main__":main()
