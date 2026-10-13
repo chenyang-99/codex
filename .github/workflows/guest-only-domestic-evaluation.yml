@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   douyin-free-demo:
-    name: Verify Douyin post and comments on public free demo
+    name: Verify actual AI tutorial post and comments on free Douyin demo
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
