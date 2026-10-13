@@ -20,6 +20,7 @@ def main():
     domestic=read("domestic-discovery.json")
     pain=read("domestic-painpoints.json")
     douyin_creator=read("douyin-creator-discovery.json")
+    reply_preview_count=douyin_creator.get("actual_reply_preview_texts",0)
     v2=next((x for x in domestic.get("tests",[]) if x.get("platform")=="v2ex"),{})
     bili=next((x for x in domestic.get("tests",[]) if x.get("platform")=="bilibili"),{})
     tests=[
@@ -40,6 +41,7 @@ def main():
                     "Native Douyin platform-wide keyword search and second-level replies remain unverified; only a bounded sample of public first-level comments from a free demo was actually retrieved.",
                     "Search engine snippets and invalid permalink redirects are not content or comments.",
                     "Bilibili and V2EX comments are not Xiaohongshu/Douyin user comments."],
+            "actual_douyin_inline_reply_previews":reply_preview_count,
             "automated_status":"Code execution success does NOT imply data-source success."}
     HERE.mkdir(parents=True,exist_ok=True)
     (HERE/"domestic-status.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
