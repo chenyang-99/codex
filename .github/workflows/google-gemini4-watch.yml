@@ -1,0 +1,63 @@
+name: Google Gemini 4 official monitor
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "social-topic-radar/google_gemini4_watch.py"
+      - ".github/workflows/google-gemini4-watch.yml"
+  schedule:
+    # Hourly UTC, best-effort: GitHub Actions schedules may be delayed.
+    - cron: "11 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: google-gemini4-official-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    name: Public Google X and official RSS evidence scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned read-only public X reader
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+          url = ("https://raw.githubusercontent.com/qianyubtc/X-Aggregate-Data/"
+                 "83f7b430ea4645e5226572649006c41b0ce14dae/"
+                 "skills/x-aggregate-data/scripts/x.py")
+          target = Path("social-topic-radar/x_upstream.py")
+          try:
+              with urlopen(Request(url, headers={"User-Agent": "gemini4-watch/1.0"}), timeout=25) as response:
+                  body = response.read(120000)
+              if not body.startswith(b"#!/usr/bin/env python3"):
+                  raise ValueError("Unexpected X reader")
+              target.write_bytes(body)
+              print("Pinned X reader installed", len(body), "bytes")
+          except Exception as exc:
+              print("X upstream unavailable; report will disclose:", type(exc).__name__, str(exc)[:120])
+          PY
+      - name: Verify monitor syntax
+        run: python -m py_compile social-topic-radar/google_gemini4_watch.py
+      - name: Collect Google X accounts and official RSS feeds
+        run: python social-topic-radar/google_gemini4_watch.py
+      - name: Upload evidence report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: google-gemini4-public-evidence
+          path: |
+            social-topic-radar/output/google-gemini4-watch.json
+            social-topic-radar/output/google-gemini4-watch.md
+          if-no-files-found: warn
+          retention-days: 7
