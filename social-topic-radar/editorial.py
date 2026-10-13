@@ -167,6 +167,8 @@ def main():
             "douyin_public_creator_evidence":{
                 "verified_recent_creator_videos":douyin.get("actual_relevant_video_count",0),
                 "sampled_actual_comment_texts":douyin.get("actual_comment_texts",0),
+                "sampled_second_level_reply_previews":douyin.get("actual_reply_preview_texts",0),
+                "second_level_scope":"inline previews only, NOT complete nested comment pages",
                 "comment_status":douyin.get("comments_status","not_tested"),
                 "comment_video":douyin.get("comment_source_video_url"),
                 "comment_samples":douyin.get("comment_samples",[])[:6],
@@ -196,6 +198,7 @@ def main():
     observed=report["douyin_public_creator_evidence"]
     lines.extend(["","## Verified Douyin public AI creator candidate feed",
         f"Creator posts: {observed['verified_recent_creator_videos']}. Actual comment samples: {observed['sampled_actual_comment_texts']}.",
+        f"Actual inline second-level reply previews: {observed['sampled_second_level_reply_previews']} (not full reply thread).",
         f"Comment status: {observed['comment_status']}; original video: {observed['comment_video'] or 'not available'}.",
         "Only actual collected samples are evidence; public demo remains unstable and not platform-wide."])
     for sample in observed["comment_samples"][:4]:
