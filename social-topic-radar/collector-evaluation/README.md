@@ -1,30 +1,29 @@
-# 国内赛道热门内容与评论：开源采集器部署预检
+# 国内采集工具严格免登录审查（2026-10-13）
 
-## 目的
-比较在合法授权范围内支持小红书/抖音关键词搜索、作品详情、评论及二级回复的现有源码。**这里部署的是无需账号的安装与 CLI 健康测试，不是声称已拿到真实两平台评论。**
+**强制约束**：不登录小红书/抖音账号、不扫码、不读取/导入个人或访客 Cookie/Token、不调用收费第三方 API、不绕过登录/验证码/访问限制。目标：搜索关键词、赛道热门作品、实际一级与二级评论。
 
-## 候选方案与许可证
+## 对候选项目的源码级结论
 
-1. **MediaCrawler**: https://github.com/NanmiCoder/MediaCrawler — 一体支持 XHS、抖音、关键词、详情、主页、一级/二级评论；但使用登录态、浏览器，且 `NON-COMMERCIAL LEARNING LICENSE 1.1` 禁止未经许可的商业使用。不要直接投入商业选题监测；本仓库不复制或运行其爬虫代码。
-2. **redbook-cli**: https://github.com/Youhai020616/xiaohongshu — MIT；小红书搜索（可按点赞排序）、笔记详情及评论；需要 MCP/浏览器扫码登录，CLI 本身不具备免登录抓取功能。
-3. **douyin-cli**: https://github.com/Yht20927/douyin-cli — MIT；抖音关键词搜索、视频评论、楼中楼，但需要用户已经登录的浏览器、Tampermonkey 脚本和本地 Bridge 服务。项目设计主要用于自有账号运营，需要先评估使用条款与账号风险。
+| 项目 | 开源源码 | 零账号登录 | 零 Cookie/Token | 关键词搜索与评论 |
+|---|---|---|---|---|
+| [MediaCrawler](https://github.com/NanmiCoder/MediaCrawler) | 是，非商用学习许可证 | 否，使用浏览器登录态 | 否 | 声明支持，但不符合本项目 |
+| [redbook-cli](https://github.com/Youhai020616/xiaohongshu) | 是，MIT | 否，需扫码登录 | 否 | 声明支持，但不符合本项目 |
+| [douyin-cli](https://github.com/Yht20927/douyin-cli) | 是，MIT | 否，需登录浏览器及 Bridge | 否 | 声明支持，但不符合本项目 |
+| [feedgrab](https://github.com/iBigQiang/feedgrab) | 是 | README 称 xhs-so 无需登录 | **否**：`feedgrab/fetchers/xhs_api.py` 的 `is_api_available()` 依赖 `sessions/xhs.json`；`_extract_cookies_from_session()` 要求 `a1`，缺失则提示 `feedgrab login xhs` | 不得将 README 宣称解释为真正零会话验证 |
+| [xhshow](https://github.com/Cloxl/xhshow) | 是 | 文档示例可生成游客标识 | **否**：签名仍需要 `a1` 等 Cookie | 不是完整独立爬虫 |
+| [XHS-Downloader](https://github.com/JoeanAmier/XHS-Downloader) | 是 | 部分作品解析可能不登录 | 可选 Cookie，但功能有局限 | 不是已验证的免登录全站搜索+评论 |
+| [Douyin_TikTok_Download_API](https://github.com/Evil0ctal/Douyin_TikTok_Download_API) | 是 | 官方文档说游客身份无需个人账号 | **否**：游客身份池依赖 `ttwid` 等 Cookie；且浏览器/代理/独立服务可能需要成本 | 不满足本次严格条件 |
 
-## GitHub Actions 云端能做什么
+**现场采集证据**：此前 GitHub Actions 匿名小红书信息流返回 `-101`，没有任何笔记；抖音匿名热榜成功获取 12 条，但不等于关键词搜索与评论；四种搜索索引 16 组测试未取得有效帖子；B 站和 V2EX 可取得真实公开评论，来源不能冒充小红书/抖音。
 
-新增 `Domestic collector read-only preflight` 工作流：在临时的 GitHub Linux 运行器中拉取**固定提交版本**的两个 MIT 工具，安装依赖并执行 CLI 帮助/语法健康检查。没有平台登录、没有 Cookie、没有 GitHub Secrets、没有采集或发布操作。运行器结束后程序不会永久驻留。
+## 实际部署状态
 
-**重要：** 此预检成功只代表工具能在临时云端安装并启动 CLI，并不说明小红书/抖音采集接口可用，也不表示存在已登录浏览器。
+**未部署、不自动启动**任何要求登录、个人 Cookie 或游客 Cookie 的 XHS/抖音爬虫。没有新建“已安装两个 CLI”的 workflow；本目录是源码审查而非虚构完成安装。继续运行旧版 `anonymous-social-probe.yml` 进行已验证的公开数据源监测与诊断。
 
-如果以后放宽“完全不登录”的条件，并确认实际用途符合平台规则，才可在授权的**独立、持久化主机**上配置浏览器登录及本地数据存储。不得把个人账户 Cookie 或评论明细提交到当前公开 GitHub 仓库。VPS/托管服务器不在此前连接的 GitHub Actions 资源中，也未购买或部署。
+## 严格验收门槛
 
-## 目标赛道和选题排序
+任何新候选必须同时做到：① 无账号登录、验证码/风控绕行、个人或游客 Cookie/Token；② 不依赖收费 API；③ GitHub 云端实际返回指定 AI 关键词的作品及可核对发布时间/热度；④ 实际获取这些作品的公开一级评论和部分二级回复；⑤ 清楚记录来源、取得条数和不能获取的部分；⑥ 适用许可证容许预期用途。
 
-`sector-watchlist.json` 列出了需按受众持续研究的赛道关键词、热门作品候选判定字段、真实评论中的需求痛点分类。它是配置模板，不会神奇开启受限制的平台 API。
+没有符合门槛的实测结果，就不能声称全链路成功。
 
-每个真实作品需要 `platform,keyword,url,published_at,likes,comments_count,collects,shares`（只填写确实取得的字段）；根据作品发布时间做 7 天/30 天分组；避免将不同平台的绝对互动量直接比较。评论必须保留原帖 URL、样本数量和采集时间，匿名化处理个人信息。
-
-## 现阶段运行方式
-
-GitHub -> Actions -> `Domestic collector read-only preflight` -> Run workflow。查看 `xhs` 与 `douyin` 两个 Job 的运行日志；没有登录成功与评论实际返回的证据，不得宣传部署已打通。
-
-若坚持**零平台账号登录、零额外付费**，目前没有在 GitHub 数据中心已实测通过的“任意关键词检索 + 全部评论”开源组合。已实际跑通的 B 站和 V2EX 评论仍由原选题雷达工作流负责。
+如果用户之后**明确允许仅限临时匿名访客 Cookie**，可以单独重新评估不绑定真实账号的方案；这与本次严格“无 Cookie”条件不同，不可擅自放宽。
