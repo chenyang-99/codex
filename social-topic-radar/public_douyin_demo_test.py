@@ -17,7 +17,7 @@ import urllib.request
 
 HOST="https://demo.douyin.wtf"
 OUT=pathlib.Path(__file__).resolve().parent/"output"/"douyin-public-demo.json"
-VIDEO="7675505205047348543"
+VIDEO="7688717725015404726"  # public index: 千问 AI 生图教程，2026-09-23
 
 class HTTP:
     def __init__(self):
@@ -65,6 +65,7 @@ def main():
        "no_douyin_account_used":True,
        "no_user_credentials_used":True,
        "one_video_id":VIDEO,
+       "discovered_via":"public web search index for AI生图教程; this is not platform-native keyword search",
        "platform_keyword_search":"not_supported_by_public_demo_contract",
        "comments":{"state":"not_tested","count":0},
        "replies":{"state":"not_tested","count":0}}
@@ -91,6 +92,9 @@ def main():
             # Metadata only, no user identity, no large media.
             o["post"]["description_excerpt"]=scrub(
                 d.get("description") or d.get("desc"),240)
+            s=d.get("stats") or {}
+            if isinstance(s,dict):
+                o["post"]["actual_stats"]={k:v for k,v in s.items() if k in ("likes","comments","shares","favorites","digg_count","comment_count","share_count","collect_count")}
         if not (status==200 and post.get("success")):
             o["comments"]["state"]="not_tested_after_post_failure";return o
         params=urllib.parse.urlencode({"aweme_id":VIDEO,"count":5,"wait":20})
@@ -112,13 +116,15 @@ def main():
             message=c.get("text") or c.get("content") or c.get("comment_text")
             if not isinstance(message,str) or not message.strip():continue
             found.append({"sample_excerpt":scrub(message,150),
+                          "reply_count_reported":c.get("reply_comment_total") or c.get("reply_count") or c.get("reply_comment_count") or 0,
                           "comment_id":str(c.get("cid") or c.get("comment_id") or c.get("id") or "")[:35]})
         o["comments"]["count"]=len(found)
         o["comments"]["samples"]=found[:3]
         o["comments"]["state"]="verified_actual_comment_text" if found else "no_actual_comment_text_verified"
         if not found or not found[0]["comment_id"]:return o
+        target=next((x for x in found if x["reply_count_reported"] and x["comment_id"]),found[0])
         params=urllib.parse.urlencode({"aweme_id":VIDEO,
-                     "comment_id":found[0]["comment_id"],"count":5,"wait":20})
+                     "comment_id":target["comment_id"],"count":5,"wait":20})
         status,replies=http.request("GET","/api/v1/douyin/video/comments/replies?"+params,timeout=26)
         o["replies"].update(describe(status,replies))
         d=replies.get("data") if isinstance(replies,dict) else None
