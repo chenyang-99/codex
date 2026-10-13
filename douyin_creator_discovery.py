@@ -53,7 +53,9 @@ def main():
         "seed_verification":[],"verified_author_feeds":0,
         "actual_relevant_video_count":0,"candidate_videos":[],
         "comment_pages_tested":0,"actual_comment_texts":0,
-        "comment_samples":[],"comments_status":"not_tested"}
+        "comment_samples":[],"comments_status":"not_tested",
+        "actual_reply_preview_texts":0,"reply_preview_samples":[],
+        "direct_nested_reply_access":"not_called_due_to_upstream_risk_control"}
     try:
         cfg=json.loads(SEED_FILE.read_text(encoding="utf-8"))
         seed_ids=[str(s["video_id"]) for s in cfg["seeds"][:MAX_CREATORS]
@@ -116,7 +118,9 @@ def main():
         report["comments_status"]="no_verifiable_video_with_reported_comments" if not targets else "tested_no_comment_text"
         for post in targets:
             vid=post["video_url"].rsplit("/",1)[-1]
-            params=urllib.parse.urlencode({"aweme_id":vid,"count":8,"wait":20})
+            # Raw may contain inline reply_comment previews from the same
+            # permitted top-level response; no separate blocked reply request.
+            params=urllib.parse.urlencode({"aweme_id":vid,"count":8,"wait":20,"include_raw":"true"})
             status,comment_resp=api.request("GET","/api/v1/douyin/video/comments?"+params,timeout=28)
             report["comment_pages_tested"]+=1
             if status!=200 or not isinstance(comment_resp,dict) or not comment_resp.get("success"):
@@ -129,13 +133,38 @@ def main():
                 if not isinstance(entry,dict):continue
                 msg=entry.get("text") or entry.get("content")
                 if not isinstance(msg,str) or not msg.strip():continue
+                raw=entry.get("raw") or {}
+                if not isinstance(raw,dict):raw={}
+                comment_id=str(entry.get("comment_id") or entry.get("cid") or raw.get("cid") or "")
                 report["comment_samples"].append({
                     "platform":"douyin","post_url":post["video_url"],
                     "text_excerpt":scrub(msg,450),
-                    "reported_reply_count":to_int(entry.get("reply_count") or entry.get("reply_comment_total")),
+                    "comment_id":comment_id[:42],
+                    "reported_reply_count":to_int(entry.get("reply_count") or raw.get("reply_comment_total")),
                     "verified_scope":"actual public first-level comment body",
                     "second_level_retrieved":False})
+                inline=raw.get("reply_comment") or entry.get("reply_comment") or []
+                if not isinstance(inline,list):continue
+                for r in inline[:5]:
+                    if not isinstance(r,dict):continue
+                    content=r.get("text") or r.get("content")
+                    if not isinstance(content,str) or not content.strip():continue
+                    reply_id=str(r.get("cid") or r.get("comment_id") or r.get("id") or "")
+                    report["reply_preview_samples"].append({
+                        "platform":"douyin","post_url":post["video_url"],
+                        "text_excerpt":scrub(content,450),
+                        "parent_comment_id":comment_id[:42],
+                        "reply_id":reply_id[:42],
+                        "verified_scope":"actual inline reply_comment preview from first-level API raw",
+                        "is_full_thread":False})
+            # Inlined reply previews are real second-level texts but not the
+            # complete reply thread, which remains inaccessible independently.
+
         report["actual_comment_texts"]=len(report["comment_samples"])
+        report["reply_preview_samples"]=list({
+            (r["post_url"],r["parent_comment_id"],r["reply_id"],r["text_excerpt"]):r
+            for r in report["reply_preview_samples"]}.values())
+        report["actual_reply_preview_texts"]=len(report["reply_preview_samples"])
         if report["actual_comment_texts"]:
             report["comments_status"]="verified_first_level_comment_text"
         return report
