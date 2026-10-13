@@ -7,6 +7,7 @@ on:
       - '.github/workflows/guest-only-domestic-evaluation.yml'
       - 'guest-crawler-pilot/**'
       - 'social-topic-radar/public_douyin_demo_test.py'
+      - 'social-topic-radar/douyin_reply_diagnostic.py'
       - 'douyin_creator_discovery.py'
       - 'social-topic-radar/guest_visible_browser.py'
 
@@ -80,6 +81,8 @@ jobs:
         run: python social-topic-radar/public_douyin_demo_test.py
       - name: Discover verified recent AI creator posts on free Douyin demo
         run: python douyin_creator_discovery.py
+      - name: Diagnose single real nested Douyin comment using a replied-to parent
+        run: python social-topic-radar/douyin_reply_diagnostic.py
       - name: Upload sanitized real read-only demo evidence
         if: always()
         uses: actions/upload-artifact@v4
