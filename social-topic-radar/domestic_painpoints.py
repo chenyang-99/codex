@@ -90,6 +90,22 @@ def main():
                  "classification_basis":"actual first-level Douyin comment body from public demo",
                  "is_xiaohongshu_or_douyin_comment":True,
                  "second_level_retrieved":False})
+    # Inline replies obtained from a permitted first-level Douyin comments
+    # response. These are genuine reply previews, not complete nested threads.
+    if douyin.get("actual_reply_preview_texts",0)>0:
+        for child in douyin.get("reply_preview_samples",[]):
+            if not isinstance(child,dict):continue
+            body,url=child.get("text_excerpt"),child.get("post_url")
+            if not isinstance(body,str) or not body.strip() or not isinstance(url,str) or not url.startswith("https://www.douyin.com/video/"):
+                continue
+            sources.append({"platform":"douyin","url":url,"post_url":url,
+                "text_excerpt":body,
+                "comment_level":"second_level_inline_preview",
+                "parent_comment_id":child.get("parent_comment_id"),
+                "classification_basis":"actual reply_comment preview inside public first-level response; partial",
+                "is_xiaohongshu_or_douyin_comment":True,
+                "second_level_retrieved":True,
+                "is_full_thread":False})
     known=set()
     unique=[]
     for row in sources:
@@ -110,6 +126,7 @@ def main():
             "comment_platforms":sorted({x["platform"] for x in unique}),
             "actual_comment_platform_counts":{p:sum(x["platform"]==p for x in unique) for p in sorted({x["platform"] for x in unique})},
             "verified_douyin_comment_count":sum(x["platform"]=="douyin" for x in unique),
+            "verified_douyin_inline_reply_preview_count":sum(x.get("comment_level")=="second_level_inline_preview" for x in unique),
             "verified_xiaohongshu_comment_count":0,
             "domestic_indexed_link_count":len(indexed),
             "domestic_indexed_links":indexed[:35],
@@ -119,7 +136,7 @@ def main():
             "limitations":["Indexed Xiaohongshu/Douyin URLs are search snippets; body/comments unverified.",
                            "Sources are only public V2EX/Bilibili replies and actual verified Douyin public-demo replies (when available); no XHS comments.",
                            "Keyword matching cannot replace contextual interpretation or verify representative prevalence.",
-                           "Douyin verified comments are first-level only; no second-level replies obtained.",
+                           "Douyin second-level text is only inline reply previews where supplied; no complete second-level pagination has been obtained.",
                            "No Xiaohongshu comment was acquired by this script."]}
     OUT.mkdir(exist_ok=True,parents=True)
     (OUT/"domestic-painpoints.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
