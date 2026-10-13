@@ -19,11 +19,13 @@ def main():
     permalink=read("domestic-permalink-verification.json")
     domestic=read("domestic-discovery.json")
     pain=read("domestic-painpoints.json")
+    douyin_creator=read("douyin-creator-discovery.json")
     v2=next((x for x in domestic.get("tests",[]) if x.get("platform")=="v2ex"),{})
     bili=next((x for x in domestic.get("tests",[]) if x.get("platform")=="bilibili"),{})
     tests=[
         {"platform":"Xiaohongshu","surface":"anonymous public feed","status":xhs.get("status","not_tested"),"verified_items":xhs.get("records_returned",0),"actual_comments":0},
         {"platform":"Douyin","surface":"anonymous public hot board ONLY","status":dy.get("status","not_tested"),"verified_items":dy.get("records_returned",0),"actual_comments":0},
+        {"platform":"Douyin","surface":"public AI creator video feed + actual first-level comments via free demo","status":douyin_creator.get("comments_status","not_tested"),"verified_items":douyin_creator.get("actual_relevant_video_count",0),"actual_comments":douyin_creator.get("actual_comment_texts",0)},
         {"platform":"XHS + Douyin","surface":"4 public search indexes, 16 sampled queries","status":"indexed" if index.get("unique_indexed_urls") else "no_direct_links_confirmed","verified_items":len(index.get("unique_indexed_urls",[])),"actual_comments":0},
         {"platform":"XHS + Douyin","surface":"verify indexed permalinks really open as intended","status":"verified" if permalink.get("verified_public_post_metadata") else "no_post_metadata_verified","verified_items":permalink.get("verified_public_post_metadata",0),"actual_comments":0},
         {"platform":"Bilibili","surface":"public search or confirmed historical seeds; public video replies","status":bili.get("status","not_tested"),"verified_items":len(bili.get("posts",[])),"actual_comments":len(bili.get("comments",[]))},
@@ -35,7 +37,7 @@ def main():
             "tests":tests,"distinct_domestic_comment_samples":total,
             "comment_platforms":pain.get("comment_platforms",[]),
             "gaps":["Native Xiaohongshu search and comments remain unavailable without authorization.",
-                    "Native Douyin video search and comments remain unavailable without authorization.",
+                    "Native Douyin platform-wide keyword search and second-level replies remain unverified; only a bounded sample of public first-level comments from a free demo was actually retrieved.",
                     "Search engine snippets and invalid permalink redirects are not content or comments.",
                     "Bilibili and V2EX comments are not Xiaohongshu/Douyin user comments."],
             "automated_status":"Code execution success does NOT imply data-source success."}
