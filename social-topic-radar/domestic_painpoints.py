@@ -42,6 +42,10 @@ def normalized(url):
     except ValueError:return url
 def classify(comment):
     text=(comment.get("text_excerpt") or "").lower()
+    # Drop pure emoji shortcode strings and non-linguistic applause.
+    without_emojis=re.sub(r"\[[^\[\]]{1,35}\]", "", text).strip()
+    if len(re.findall(r"[一-鿿a-zA-Z]",without_emojis)) < 2:
+        return []
     # Do not classify marketing spam or low-information applause as pain points.
     promotional=("需要的自取","私信领取","免费领取","扫码领取","添加微信",
                  "联系我","可协助比对","专业度可以给到顶级","最新的gpt image2.5 flare")
@@ -55,6 +59,7 @@ def classify(comment):
     return [k for k,words in SIGNALS.items() if any(w.lower() in text for w in words)]
 def main():
     domestic=read("domestic-discovery.json")
+    douyin=read("douyin-creator-discovery.json")
     sources=[]
     indexed=[]
     for block in domestic.get("tests",[]):
@@ -71,6 +76,20 @@ def main():
                    "classification_basis":"actual reply text",
                    "is_xiaohongshu_or_douyin_comment":False}
             sources.append(entry)
+    # Douyin samples are actual text returned by the public developer demo,
+    # not search-engine snippets, nor Bilibili/V2EX substitutes.
+    if douyin.get("comments_status")=="verified_first_level_comment_text":
+        for comment in douyin.get("comment_samples",[]):
+            if not isinstance(comment,dict):continue
+            body=comment.get("text_excerpt")
+            url=comment.get("post_url")
+            if not isinstance(body,str) or not body.strip() or not isinstance(url,str) or not url.startswith("https://www.douyin.com/video/"):
+                continue
+            sources.append({"platform":"douyin","url":url,
+                 "post_url":url,"text_excerpt":body,
+                 "classification_basis":"actual first-level Douyin comment body from public demo",
+                 "is_xiaohongshu_or_douyin_comment":True,
+                 "second_level_retrieved":False})
     known=set()
     unique=[]
     for row in sources:
@@ -89,22 +108,26 @@ def main():
             "description":"Observed vocabulary, not diagnosis of a platform's entire user base",
             "actual_domestic_comment_count":len(unique),
             "comment_platforms":sorted({x["platform"] for x in unique}),
+            "actual_comment_platform_counts":{p:sum(x["platform"]==p for x in unique) for p in sorted({x["platform"] for x in unique})},
+            "verified_douyin_comment_count":sum(x["platform"]=="douyin" for x in unique),
+            "verified_xiaohongshu_comment_count":0,
             "domestic_indexed_link_count":len(indexed),
             "domestic_indexed_links":indexed[:35],
             "observed_themes":themes,
             "classified_distinct_comment_count":sum(bool(classify(x)) for x in unique),
         "unclassified_comment_count":sum(not classify(x) for x in unique),
             "limitations":["Indexed Xiaohongshu/Douyin URLs are search snippets; body/comments unverified.",
-                           "All pain-point examples come from V2EX/Bilibili unless new permitted sources added.",
+                           "Sources are only public V2EX/Bilibili replies and actual verified Douyin public-demo replies (when available); no XHS comments.",
                            "Keyword matching cannot replace contextual interpretation or verify representative prevalence.",
-                           "No user comment on Xiaohongshu or Douyin was acquired by this script."]}
+                           "Douyin verified comments are first-level only; no second-level replies obtained.",
+                           "No Xiaohongshu comment was acquired by this script."]}
     OUT.mkdir(exist_ok=True,parents=True)
     (OUT/"domestic-painpoints.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     md=["# 国内 AI 需求痛点：真实评论证据清单","",
        f"生成时间 UTC：{report['created_at_utc']}",
        f"本轮合法读取到的国内公开社区回复：{len(unique)} 条",
        f"搜索引擎收录的小红书/抖音候选链接：{len(indexed)} 条",
-       "","**注意**：V2EX/B站评论并不代表小红书/抖音用户评论；关键词统计不代表人群占比。",""]
+       "","**注意**：B站/V2EX来源与抖音评论分别注明；没有取得小红书评论。关键词统计不代表人群占比。",""]
     for theme in themes:
         md.append(f"## {theme['theme']}（命中 {theme['matched_reply_count']} 条）")
         for x in theme["actual_reply_examples"][:3]:
