@@ -17,7 +17,7 @@ import urllib.request
 
 HOST="https://demo.douyin.wtf"
 OUT=pathlib.Path(__file__).resolve().parent/"output"/"douyin-public-demo.json"
-VIDEO="7688717725015404726"  # public index: 千问 AI 生图教程，2026-09-23
+VIDEO="7667225486396886315"  # public index: AI零基础生图工具热门教程
 
 class HTTP:
     def __init__(self):
@@ -97,7 +97,7 @@ def main():
                 o["post"]["actual_stats"]={k:v for k,v in s.items() if k in ("likes","comments","shares","favorites","digg_count","comment_count","share_count","collect_count")}
         if not (status==200 and post.get("success")):
             o["comments"]["state"]="not_tested_after_post_failure";return o
-        params=urllib.parse.urlencode({"aweme_id":VIDEO,"count":5,"wait":20})
+        params=urllib.parse.urlencode({"aweme_id":VIDEO,"count":12,"wait":20})
         status,comments=http.request("GET",
                            "/api/v1/douyin/video/comments?"+params,timeout=28)
         o["comments"].update(describe(status,comments))
@@ -111,7 +111,7 @@ def main():
             arr=next((v for k,v in d.items() if k in ("comments","comment_list","items")
                        and isinstance(v,list)),[])
         found=[]
-        for c in arr[:5]:
+        for c in arr[:12]:
             if not isinstance(c,dict):continue
             message=c.get("text") or c.get("content") or c.get("comment_text")
             if not isinstance(message,str) or not message.strip():continue
@@ -119,7 +119,7 @@ def main():
                           "reply_count_reported":c.get("reply_comment_total") or c.get("reply_count") or c.get("reply_comment_count") or 0,
                           "comment_id":str(c.get("cid") or c.get("comment_id") or c.get("id") or "")[:35]})
         o["comments"]["count"]=len(found)
-        o["comments"]["samples"]=found[:3]
+        o["comments"]["samples"]=found[:6]
         o["comments"]["state"]="verified_actual_comment_text" if found else "no_actual_comment_text_verified"
         if not found or not found[0]["comment_id"]:return o
         target=next((x for x in found if x["reply_count_reported"] and x["comment_id"]),found[0])
