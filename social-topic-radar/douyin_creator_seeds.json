@@ -1,0 +1,21 @@
+{
+  "description": "Candidate Douyin public AI video URLs; only APIs confirming valid creator identifiers count as verified. Different seed videos can belong to same creator and will be deduplicated.",
+  "updated_utc": "2026-10-13T03:14:00Z",
+  "seeds": [
+    {
+      "video_id": "7688717725015404726",
+      "topic": "千问 AI 生图教程",
+      "evidence": "previous public-Douyin-demo post detail confirmed"
+    },
+    {
+      "video_id": "7667225486396886315",
+      "topic": "AI 生图工具教程",
+      "evidence": "previous public-Douyin-demo post detail confirmed"
+    },
+    {
+      "video_id": "7687186885067738377",
+      "topic": "即梦 豆包 AI 漫剧教程",
+      "evidence": "public search index only; pending actual validation"
+    }
+  ]
+}
