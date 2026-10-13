@@ -98,6 +98,15 @@ def main():
                 result["search_status"]="verified_public_post_rows" if posts else "no_structured_posts_verified"
                 if not posts:
                     result["response_type"]=type(data).__name__
+                    if isinstance(data,dict):
+                        result["response_top_level_keys"]=list(data.keys())[:18]
+                        result["response_ok"]=data.get("success")
+                        result["response_error_type"]=safe(data.get("code") or data.get("error") or data.get("status"),90)
+                        if isinstance(data.get("message"),str):
+                            result["response_message_excerpt"]=safe(data["message"],170)
+                    # No notes: do not make a second access attempt to fetch more XHS data.
+                    result["hot_search_status"]="not_attempted_after_empty_keyword_search"
+                    break
             else:
                 arr=collection(data,["items","data","hotSearch","hot_search","list","keywords","trends"])
                 valid=[x for x in arr if isinstance(x,dict) and
