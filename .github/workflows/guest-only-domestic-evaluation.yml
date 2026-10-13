@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - '.github/workflows/guest-only-domestic-evaluation.yml'
+      - 'social-topic-radar/guest_visible_browser.py'
 
 permissions:
   contents: read
