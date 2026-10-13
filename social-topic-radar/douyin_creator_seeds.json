@@ -1,6 +1,6 @@
 {
-  "description": "Candidate Douyin public AI video URLs; only APIs confirming valid creator identifiers count as verified. Different seed videos can belong to same creator and will be deduplicated.",
-  "updated_utc": "2026-10-13T03:14:00Z",
+  "description": "Candidate Douyin public AI video URLs; only APIs confirming valid creator identifiers count as verified. Different seed videos can belong to same creator and will be deduplicated. Day-rotated public-index candidates are NEVER assumed live until the actual public demo API validates their video details. Ranking only within returned creator videos.",
+  "updated_utc": "2026-10-13T11:20:00Z",
   "seeds": [
     {
       "video_id": "7688717725015404726",
@@ -16,6 +16,51 @@
       "video_id": "7687186885067738377",
       "topic": "即梦 豆包 AI 漫剧教程",
       "evidence": "public search index only; pending actual validation"
+    },
+    {
+      "video_id": "7694479399420169535",
+      "topic": "10月9日 零基础AI智能工作流",
+      "evidence": "public web-index discovery only; pending actual public demo API validation"
+    },
+    {
+      "video_id": "7693385247785848083",
+      "topic": "10月6日 7步搭好AI短视频工作流",
+      "evidence": "public web-index discovery only; pending actual public demo API validation"
+    },
+    {
+      "video_id": "7693437352038944019",
+      "topic": "10月6日 红果AI漫剧教程",
+      "evidence": "public web-index discovery only; pending actual public demo API validation"
+    },
+    {
+      "video_id": "7692334893111463222",
+      "topic": "10月5日 小白AI工作流",
+      "evidence": "public web-index discovery only; pending actual public demo API validation"
+    },
+    {
+      "video_id": "7691053032909376794",
+      "topic": "9月30日 AI漫剧十分钟制作",
+      "evidence": "public web-index discovery only; pending actual public demo API validation"
+    },
+    {
+      "video_id": "7691281755365559587",
+      "topic": "9月30日 AI视频全流程",
+      "evidence": "public web-index discovery only; pending actual public demo API validation"
+    },
+    {
+      "video_id": "7683153591653771739",
+      "topic": "9月8日 Seedance AI生视频工作流",
+      "evidence": "public web-index discovery only; pending actual public demo API validation"
+    },
+    {
+      "video_id": "7629235002428968232",
+      "topic": "4月16日 AI生图提示词底层逻辑",
+      "evidence": "public web-index discovery only; pending actual public demo API validation"
+    },
+    {
+      "video_id": "7676057077647939315",
+      "topic": "8月20日 AI天宫图生视频",
+      "evidence": "public web-index discovery only; pending actual public demo API validation"
     }
   ]
 }
