@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "social-topic-radar/**"
+      - "douyin_creator_discovery.py"
       - ".github/workflows/anonymous-social-probe.yml"
   workflow_dispatch:
   schedule:
@@ -71,6 +72,8 @@ jobs:
         run: python social-topic-radar/domestic_permalink_verification.py
       - name: Aggregate evidence-linked domestic comment pain points
         run: python social-topic-radar/domestic_painpoints.py
+      - name: Discover actual AI creator videos and sample comments via public free Douyin demo
+        run: python douyin_creator_discovery.py
       - name: Build evidence-labeled multi-source editorial shortlist
         run: python social-topic-radar/editorial.py
       - name: Consolidate source-specific domestic search and comment access status
