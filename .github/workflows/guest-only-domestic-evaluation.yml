@@ -2,6 +2,9 @@ name: Guest-only domestic collector evaluation
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/guest-only-domestic-evaluation.yml'
 
 permissions:
   contents: read
