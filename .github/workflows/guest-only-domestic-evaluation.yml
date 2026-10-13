@@ -36,6 +36,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/openweb-empty-home/.config/google-chrome/Default" "$RUNNER_TEMP/openweb-public-xhs"
+          echo '{"timeout":55000,"browser":{"headless":true}}' > "$RUNNER_TEMP/openweb-public-xhs/config.json"
           HOME="$RUNNER_TEMP/openweb-empty-home" OPENWEB_HOME="$RUNNER_TEMP/openweb-public-xhs" python guest-crawler-pilot/openweb_xhs_smoke.py
       - name: Upload sanitized public Xiaohongshu evidence
         if: always()
