@@ -1,6 +1,6 @@
 {
   "description": "Candidate Douyin public AI video URLs; only APIs confirming valid creator identifiers count as verified. Different seed videos can belong to same creator and will be deduplicated. Day-rotated public-index candidates are NEVER assumed live until the actual public demo API validates their video details. Ranking only within returned creator videos.",
-  "updated_utc": "2026-10-13T11:20:00Z",
+  "updated_utc": "2026-10-13T11:27:00Z",
   "seeds": [
     {
       "video_id": "7688717725015404726",
@@ -61,6 +61,24 @@
       "video_id": "7676057077647939315",
       "topic": "8月20日 AI天宫图生视频",
       "evidence": "public web-index discovery only; pending actual public demo API validation"
+    },
+    {
+      "video_id": "7694673473267961088",
+      "topic": "2026-10-10 AI漫剧完整流程 即梦豆包剪映",
+      "evidence": "2026-10-13 public search indexed original video permalink; not yet validated by actual public demo API",
+      "source_url": "https://www.douyin.com/video/7694673473267961088"
+    },
+    {
+      "video_id": "7694272342450033326",
+      "topic": "2026-10-09 AI漫剧人物一致性与配音剪辑",
+      "evidence": "2026-10-13 public search indexed original video permalink; not yet validated by actual public demo API",
+      "source_url": "https://www.douyin.com/video/7694272342450033326"
+    },
+    {
+      "video_id": "7694244450955988262",
+      "topic": "2026-10-08 AI漫剧0-1脚本到发布",
+      "evidence": "2026-10-13 public search indexed original video permalink; not yet validated by actual public demo API",
+      "source_url": "https://www.douyin.com/video/7694244450955988262"
     }
   ]
 }
