@@ -1,0 +1,3 @@
+[submodule "vendor/punk-skill"]
+	path = vendor/punk-skill
+	url = https://github.com/adrianpunk/Punk-Skill.git
