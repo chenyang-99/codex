@@ -9,6 +9,7 @@ on:
       - 'social-topic-radar/public_douyin_demo_test.py'
       - 'social-topic-radar/douyin_reply_diagnostic.py'
       - 'social-topic-radar/douyin_reply_async_diagnostic.py'
+      - 'social-topic-radar/douyin_reply_previews.py'
       - 'social-topic-radar/douyin_reply_diagnostic.py'
       - 'douyin_creator_discovery.py'
       - 'social-topic-radar/guest_visible_browser.py'
@@ -87,6 +88,8 @@ jobs:
         run: python social-topic-radar/douyin_reply_diagnostic.py
       - name: Discover verified recent AI creator posts on free Douyin demo
         run: python douyin_creator_discovery.py
+      - name: Check inline second-level reply previews inside permitted top-level comment response
+        run: python social-topic-radar/douyin_reply_previews.py
       - name: Diagnose single real nested Douyin comment using a replied-to parent
         run: python social-topic-radar/douyin_reply_diagnostic.py
       - name: Upload sanitized real read-only demo evidence
@@ -97,6 +100,7 @@ jobs:
           path: |
             social-topic-radar/output/douyin-public-demo.json
             social-topic-radar/output/douyin-reply-diagnostic.json
+            social-topic-radar/output/douyin-reply-previews.json
             social-topic-radar/output/douyin-async-reply-root-cause.json
             social-topic-radar/output/douyin-creator-discovery.json
           if-no-files-found: warn
