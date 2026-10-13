@@ -84,6 +84,7 @@ def main():
     social=read("topic-candidates.json")
     public=read("public-platforms.json")
     domestic=read("domestic-painpoints.json")
+    douyin=read("douyin-creator-discovery.json")
     pool=[]
     for item in rss.get("items",[]):
         pool.append({"source":item.get("source"),"source_type":item.get("source_type"),
@@ -125,6 +126,19 @@ def main():
                          "published_utc":raw.get("created_at") or raw.get("published"),
                          "verified_scope":"Actual returned public API record",
                          "comments_verified":False,"likes_verified":False})
+    for p in douyin.get("candidate_videos",[]):
+        if not isinstance(p,dict) or not p.get("video_url"):continue
+        st=p.get("stats") or {}
+        pool.append({"source":"Douyin verified public AI creator feed",
+            "source_type":"creator", "url":p.get("video_url"),
+            "title":p.get("title") or "", "excerpt":p.get("title") or "",
+            "published_utc":p.get("published_at"),
+            "verified_scope":"Actual public Douyin creator video list + returned stats, not full transcript",
+            "comments_verified":False,
+            "likes_verified":st.get("digg_count") is not None,
+            "likes":st.get("digg_count"),
+            "comment_count_reported":st.get("comment_count"),
+            "verification_note":"One-source candidate; no platform-wide keyword search"})
     seen=set()
     ranked=[]
     for item in pool:
@@ -150,6 +164,14 @@ def main():
                                   "x_verified_creators":sum(a.get("status")=="verified" for a in social.get("watchlist",[])),
                                   "public_platforms_verified":[r.get("platform") for r in public.get("results",[]) if r.get("status")=="verified"]},
             "shortlist":ranked[:40],
+            "douyin_public_creator_evidence":{
+                "verified_recent_creator_videos":douyin.get("actual_relevant_video_count",0),
+                "sampled_actual_comment_texts":douyin.get("actual_comment_texts",0),
+                "comment_status":douyin.get("comments_status","not_tested"),
+                "comment_video":douyin.get("comment_source_video_url"),
+                "comment_samples":douyin.get("comment_samples",[])[:6],
+                "limitations":"Public creator-only sample, not native platform-wide keyword search or exhaustive comments."
+            },
             "domestic_demand_evidence":{
                 "actual_community_reply_sample_count":domestic.get("actual_domestic_comment_count",0),
                 "observed_themes":domestic.get("observed_themes",[])[:8],
@@ -171,6 +193,13 @@ def main():
                       f"Source: {item['source']} | score: {item['rank_score']} | tags: {', '.join(item['theme_tags'])}",
                       f"URL: {item['url']}",
                       f"Actually verified: {item['verified_scope']}; complete tutorial NOT verified.",""])
+    observed=report["douyin_public_creator_evidence"]
+    lines.extend(["","## Verified Douyin public AI creator candidate feed",
+        f"Creator posts: {observed['verified_recent_creator_videos']}. Actual comment samples: {observed['sampled_actual_comment_texts']}.",
+        f"Comment status: {observed['comment_status']}; original video: {observed['comment_video'] or 'not available'}.",
+        "Only actual collected samples are evidence; public demo remains unstable and not platform-wide."])
+    for sample in observed["comment_samples"][:4]:
+        lines.append("- "+str(sample.get("text_excerpt",""))[:160])
     demand=report["domestic_demand_evidence"]
     lines.extend(["","## Domestic demand observation (separate evidence, not automatic cross-topic proof)",
         f"Actually fetched public Chinese comments: {demand['actual_community_reply_sample_count']}",
