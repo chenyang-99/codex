@@ -70,6 +70,8 @@ jobs:
         run: python social-topic-radar/domestic_multisearch.py
       - name: Verify public-index XHS and Douyin permalinks
         run: python social-topic-radar/domestic_permalink_verification.py
+      - name: Audit whether free Douyin demo now exposes a native keyword-search endpoint
+        run: python social-topic-radar/douyin_native_search_audit.py
       - name: Discover actual AI creator videos and sample comments via public free Douyin demo
         run: python douyin_creator_discovery.py
       - name: Aggregate evidence-linked domestic comment pain points
