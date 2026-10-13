@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install pinned open-source guest signer
-        run: python -m pip install --disable-pip-version-check "xhshow==0.1.0" "requests==2.32.5"
+        run: python -m pip install --disable-pip-version-check "xhshow @ git+https://github.com/Cloxl/xhshow.git@b242a84f9c5a6a971bc4c90c63ad43345a4bf8a1" "requests==2.32.5"
       - name: One bounded read-only guest search; stop on login wall
         run: python guest-crawler-pilot/xhs_guest_probe.py
       - name: Upload sanitized XHS no-personal-login evidence
