@@ -21,13 +21,13 @@ OUT = HERE / "output"
 UPSTREAM = HERE / "x_upstream.py"
 HANDLES = [
     "Google", "NewsFromGoogle", "GoogleAI", "GoogleDeepMind",
-    "GeminiApp", "GoogleAIStudio", "GoogleCloud", "GoogleDevelopers",
+    "GeminiApp", "GoogleAIStudio", "GoogleCloud", "googledevs",
     "GoogleResearch", "GoogleLabs", "GoogleWorkspace", "MadeByGoogle",
     "Android", "googlechrome",
 ]
 FEEDS = {
     "Google AI Blog": "https://blog.google/technology/ai/rss/",
-    "Google DeepMind": "https://deepmind.google/discover/blog/rss.xml",
+    "Google DeepMind": "https://deepmind.google/blog/rss.xml",
     "Google Research": "https://research.google/blog/rss/",
 }
 PHRASE = re.compile(r"(?i)\b(?:gemini[\s.\-]*4(?:\b|[.\-]\d+)|gemini\s+four\b|gemini\s+argon\b|gemini\s+4\s+argon\b)")
