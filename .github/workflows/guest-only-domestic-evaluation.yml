@@ -1,190 +1,44 @@
 name: Guest-only domestic collector evaluation
 
+# Retired repeated blocked anonymous XHS search, Douyin nested-reply and
+# browser challenges. Preserved run evidence in docs; do not replay blocks.
 on:
   workflow_dispatch:
   push:
     paths:
       - '.github/workflows/guest-only-domestic-evaluation.yml'
-      - 'guest-crawler-pilot/**'
-      - 'social-topic-radar/public_douyin_demo_test.py'
-      - 'social-topic-radar/douyin_reply_diagnostic.py'
-      - 'social-topic-radar/douyin_reply_async_diagnostic.py'
-      - 'social-topic-radar/douyin_reply_previews.py'
-      - 'social-topic-radar/douyin_reply_diagnostic.py'
       - 'douyin_creator_discovery.py'
-      - 'social-topic-radar/guest_visible_browser.py'
+      - 'social-topic-radar/douyin_acceptance.py'
+      - 'social-topic-radar/douyin_native_search_audit.py'
 
 permissions:
   contents: read
 
 jobs:
-  openweb-xhs-public:
-    name: Validate OpenWeb public Xiaohongshu keyword and hot search
+  permitted-public-douyin:
+    name: Validate bounded permitted public demo reads, not full platform access
     runs-on: ubuntu-latest
-    timeout-minutes: 8
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install pinned MIT OpenWeb CLI and isolated Chrome
-        shell: bash
-        run: |
-          npm install -g @openweb-org/openweb@0.1.6
-          openweb xiaohongshu --json
-          command -v google-chrome || command -v chromium || true
-      - name: Single bounded no-login keyword and hot-search tests
-        shell: bash
-        run: |
-          mkdir -p "$RUNNER_TEMP/openweb-empty-home/.config/google-chrome/Default" "$RUNNER_TEMP/openweb-public-xhs"
-          echo '{"timeout":55000,"browser":{"headless":true}}' > "$RUNNER_TEMP/openweb-public-xhs/config.json"
-          HOME="$RUNNER_TEMP/openweb-empty-home" OPENWEB_HOME="$RUNNER_TEMP/openweb-public-xhs" python guest-crawler-pilot/openweb_xhs_smoke.py
-      - name: Upload sanitized public Xiaohongshu evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: xhs-openweb-public-evidence
-          path: guest-crawler-pilot/output/openweb-xhs-proof.json
-          if-no-files-found: warn
-          retention-days: 7
-  xhs-temporary-guest-search:
-    name: Try single XHS temporary guest keyword search and public comments
-    runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install pinned open-source guest signer
-        run: python -m pip install --disable-pip-version-check "xhshow @ git+https://github.com/Cloxl/xhshow.git@b242a84f9c5a6a971bc4c90c63ad43345a4bf8a1" "requests==2.32.5"
-      - name: One bounded read-only guest search; stop on login wall
-        run: python guest-crawler-pilot/xhs_guest_probe.py
-      - name: Upload sanitized XHS no-personal-login evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: xhs-temp-guest-keyword-evidence
-          path: guest-crawler-pilot/output/xiaohongshu-guest.json
-          retention-days: 7
-          if-no-files-found: warn
-  douyin-free-demo:
-    name: Verify actual AI tutorial post and comments on free Douyin demo
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Check actual anonymous-platform comment data using published demo account
-        run: python social-topic-radar/public_douyin_demo_test.py
-      - name: Inspect one asynchronous nested-reply task failure code
-        run: python social-topic-radar/douyin_reply_async_diagnostic.py
-      - name: Diagnose Douyin public second-level replies from a parent with replies
-        run: python social-topic-radar/douyin_reply_diagnostic.py
-      - name: Discover verified recent AI creator posts on free Douyin demo
+      - name: Check existing published free demo OpenAPI for native search
+        run: python social-topic-radar/douyin_native_search_audit.py
+      - name: Sample public creator posts and inline comments within budget
         run: python douyin_creator_discovery.py
-      - name: Check inline second-level reply previews inside permitted top-level comment response
-        run: python social-topic-radar/douyin_reply_previews.py
-      - name: Diagnose single real nested Douyin comment using a replied-to parent
-        run: python social-topic-radar/douyin_reply_diagnostic.py
-      - name: Upload sanitized real read-only demo evidence
+      - name: Write truthful end-to-end capability verdict
+        run: python social-topic-radar/douyin_acceptance.py
+      - name: Upload evidence and acceptance matrix
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: douyin-actual-demo-content
+          name: douyin-public-capability-verdict
           path: |
-            social-topic-radar/output/douyin-public-demo.json
-            social-topic-radar/output/douyin-reply-diagnostic.json
-            social-topic-radar/output/douyin-reply-previews.json
-            social-topic-radar/output/douyin-async-reply-root-cause.json
+            social-topic-radar/output/douyin-native-search-capability.json
             social-topic-radar/output/douyin-creator-discovery.json
+            social-topic-radar/output/douyin-acceptance.json
+            social-topic-radar/output/douyin-acceptance.md
           if-no-files-found: warn
-          retention-days: 7
-  guest-browser:
-    name: Render XHS and Douyin public search without accounts
-    runs-on: ubuntu-latest
-    timeout-minutes: 9
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install isolated Playwright browser
-        run: |
-          python -m pip install --disable-pip-version-check playwright==1.55.0
-          python -m playwright install --with-deps chromium
-      - name: Read only publicly visible guest search pages
-        run: python social-topic-radar/guest_visible_browser.py
-      - name: Upload access evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: guest-visible-search-evidence
-          path: social-topic-radar/output/guest-visible-browser.json
-          if-no-files-found: warn
-          retention-days: 7
-  xhs-guest:
-    name: Xiaohongshu guest-feed read-only smoke test
-    runs-on: ubuntu-latest
-    timeout-minutes: 6
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run upstream anonymous public-feed probe once
-        run: python social-topic-radar/xhs_public.py
-      - name: Publish guest-feed evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: xiaohongshu-guest-evidence
-          path: social-topic-radar/output/xiaohongshu-public.json
-          if-no-files-found: warn
-          retention-days: 7
-
-  douyin-source:
-    name: Douyin guest API source and Compose configuration check
-    runs-on: ubuntu-latest
-    timeout-minutes: 6
-    steps:
-      - uses: actions/checkout@v4
-      - name: Fetch pinned open-source Douyin/TikTok API
-        shell: bash
-        run: |
-          git clone --quiet --filter=blob:none https://github.com/Evil0ctal/Douyin_TikTok_Download_API.git /tmp/dtk
-          git -C /tmp/dtk checkout --quiet 4f0bed8483c35a980315d9c7b3a1d4a1119ad2b2
-      - name: Validate upstream Compose topology without running or logging into platforms
-        shell: bash
-        run: |
-          docker compose -f /tmp/dtk/docker/compose.yml config --quiet
-          echo "Pinned guest-capable upstream source checked and Compose validated."
-          echo "This does not verify Douyin search, comments or guest identity creation."
-      - name: Preserve preflight status
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p social-topic-radar/output
-          python - <<'PY'
-          import datetime,json,pathlib
-          value = dict(checked_at_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                       platform="douyin", source="Evil0ctal/Douyin_TikTok_Download_API",
-                       source_commit="4f0bed8483c35a980315d9c7b3a1d4a1119ad2b2",
-                       test_scope="source checkout and Docker Compose syntax only",
-                       real_search_verified=False,real_comments_verified=False,
-                       guest_identity_minted=False,
-                       note="Persistent Postgres, Redis and guest browser profile not started. CI runner is ephemeral.")
-          pathlib.Path("social-topic-radar/output/douyin-guest-preflight.json").write_text(
-                json.dumps(value,indent=2),encoding="utf-8")
-          PY
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: douyin-guest-preflight
-          path: social-topic-radar/output/douyin-guest-preflight.json
-          retention-days: 7
+          retention-days: 14
