@@ -8,6 +8,7 @@ on:
       - 'guest-crawler-pilot/**'
       - 'social-topic-radar/public_douyin_demo_test.py'
       - 'social-topic-radar/douyin_reply_diagnostic.py'
+      - 'social-topic-radar/douyin_reply_diagnostic.py'
       - 'douyin_creator_discovery.py'
       - 'social-topic-radar/guest_visible_browser.py'
 
@@ -79,6 +80,8 @@ jobs:
           python-version: "3.12"
       - name: Check actual anonymous-platform comment data using published demo account
         run: python social-topic-radar/public_douyin_demo_test.py
+      - name: Diagnose Douyin public second-level replies from a parent with replies
+        run: python social-topic-radar/douyin_reply_diagnostic.py
       - name: Discover verified recent AI creator posts on free Douyin demo
         run: python douyin_creator_discovery.py
       - name: Diagnose single real nested Douyin comment using a replied-to parent
@@ -90,6 +93,7 @@ jobs:
           name: douyin-actual-demo-content
           path: |
             social-topic-radar/output/douyin-public-demo.json
+            social-topic-radar/output/douyin-reply-diagnostic.json
             social-topic-radar/output/douyin-creator-discovery.json
           if-no-files-found: warn
           retention-days: 7
