@@ -13,6 +13,37 @@ permissions:
   contents: read
 
 jobs:
+  openweb-xhs-public:
+    name: Validate OpenWeb public Xiaohongshu keyword and hot search
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned MIT OpenWeb CLI and isolated Chrome
+        shell: bash
+        run: |
+          npm install -g @openweb-org/openweb@0.1.6
+          openweb xiaohongshu --json
+          command -v google-chrome || command -v chromium || true
+      - name: Single bounded no-login keyword and hot-search tests
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/openweb-empty-home" "$RUNNER_TEMP/openweb-public-xhs"
+          HOME="$RUNNER_TEMP/openweb-empty-home" OPENWEB_HOME="$RUNNER_TEMP/openweb-public-xhs" python guest-crawler-pilot/openweb_xhs_smoke.py
+      - name: Upload sanitized public Xiaohongshu evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xhs-openweb-public-evidence
+          path: guest-crawler-pilot/output/openweb-xhs-proof.json
+          if-no-files-found: warn
+          retention-days: 7
   xhs-temporary-guest-search:
     name: Try single XHS temporary guest keyword search and public comments
     runs-on: ubuntu-latest
