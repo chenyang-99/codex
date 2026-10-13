@@ -100,6 +100,14 @@ def main():
                     result["response_type"]=type(data).__name__
                     if isinstance(data,dict):
                         result["response_top_level_keys"]=list(data.keys())[:18]
+                        result["reported_count"]=data.get("count") if isinstance(data.get("count"),(int,float)) else None
+                        entries=data.get("notes")
+                        result["raw_note_entry_count"]=len(entries) if isinstance(entries,list) else None
+                        if isinstance(entries,list) and entries and isinstance(entries[0],dict):
+                            result["first_note_top_level_keys"]=list(entries[0].keys())[:18]
+                            detail=entries[0].get("noteCard") or entries[0].get("note_card")
+                            if isinstance(detail,dict):
+                                result["first_note_detail_field_names"]=list(detail)[:15]
                         result["response_ok"]=data.get("success")
                         result["response_error_type"]=safe(data.get("code") or data.get("error") or data.get("status"),90)
                         if isinstance(data.get("message"),str):
