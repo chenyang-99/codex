@@ -27,3 +27,17 @@
 没有符合门槛的实测结果，就不能声称全链路成功。
 
 如果用户之后**明确允许仅限临时匿名访客 Cookie**，可以单独重新评估不绑定真实账号的方案；这与本次严格“无 Cookie”条件不同，不可擅自放宽。
+
+## 2026-10-13 用户新增授权：允许临时游客会话
+
+用户已明确允许程序自行生成、随任务销毁的游客 Cookie，但仍不允许登录其本人小红书/抖音账号、不使用个人 Cookie、不购买额外服务。此前要求的严格「零 Cookie」已相应放宽，仅限临时游客身份。
+
+### 新增独立预检
+
+工作流 [guest-only-domestic-evaluation.yml](../../.github/workflows/guest-only-domestic-evaluation.yml) 已写入仓库，当前仅支持在 GitHub Actions 手动启动：
+- 小红书使用此前的 `xhs_public.py` 项目现成游客信息流探针，不创建持久化个人会话，不尝试登录；它此前在 GitHub 数据中心返回过要求登录的 `-101`。
+- 抖音读取官方开源项目 [Evil0ctal/Douyin_TikTok_Download_API](https://github.com/Evil0ctal/Douyin_TikTok_Download_API) 固定提交，进行 Docker Compose 配置静态检查；**不启动数据库、浏览器或评论爬虫**，所以不能证明搜索及评论采集成功。
+
+当前状态是**手动运行测试工作流已部署，尚未执行这一轮测试**。这不是一台已经安装并运行的常驻 VPS。抖音完整游客服务需要独立 Linux 主机，并按项目文档配置持久存储；GitHub Actions 临时运行器不适合作为其长期部署环境。
+
+本次没有任何真实小红书或抖音评论被新组件验证获取；不得把旧的 B 站 / V2EX 评论列成两平台的评论数据。
