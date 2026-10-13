@@ -75,6 +75,32 @@ def main():
         doc["actual_relevant_video_count"]=len(matches)
         doc["candidate_videos"]=matches[:5]
         if matches:doc["author_feed_status"]="verified_relevant_author_videos"
+        # A single bounded comments page for the creator's newest on-topic video.
+        top=next((m for m in matches if m["video_url"] and
+                  (m.get("stats") or {}).get("comment_count",0)>0),None)
+        if top:
+            identifier=top["video_url"].split("/")[-1]
+            cp="/api/v1/douyin/video/comments?"+urllib.parse.urlencode({
+                "aweme_id":identifier,"count":8,"wait":20})
+            comment_status,comment_response=api.request("GET",cp,timeout=28)
+            doc["comment_source_video_url"]=top["video_url"]
+            doc["comment_api_http"]=comment_status
+            if comment_status==200 and comment_response.get("success"):
+                comments=rows(comment_response.get("data"))
+                evidence=[]
+                for comment in comments[:8]:
+                    if not isinstance(comment,dict):continue
+                    msg=comment.get("text") or comment.get("content") or ""
+                    if not isinstance(msg,str) or not msg.strip():continue
+                    evidence.append({"text_excerpt":scrub(msg,340),
+                        "reply_count_reported":comment.get("reply_comment_total") or comment.get("reply_count") or 0})
+                doc["comments_status"]="verified_comment_text" if evidence else "no_comments_verified"
+                doc["actual_comment_texts"]=len(evidence)
+                doc["comment_samples"]=evidence[:6]
+            else:
+                doc["comments_status"]="api_not_verified"
+                doc["actual_comment_texts"]=0
+
     except Exception as e:doc["error"]=type(e).__name__+":"+scrub(e,140)
     return doc
 if __name__=="__main__":
