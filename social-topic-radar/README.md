@@ -64,3 +64,16 @@ Files:
 - Native platform comment collection is **not** solved under zero-login constraints. Keep using source-labeled Bilibili/V2EX public reply evidence for domestic user questions.
 - Official Douyin **keyword video / comment** management API exists, but restricted keyword applications must directly relate to the applicant's own business (not general AI categories or competitors) and require application approval; it is not a general anonymous social listening API. See: https://open.douyin.com/platform/resource/docs/ability/search-management/video/
 - The public Xiaohongshu openaccount OAuth scope inventory does not list general note search/comment collection. See: https://openaccount.xiaohongshu.com/docs/scope
+
+## New evidence-first topic research gate (2026-10-14)
+
+The project now has a topic-only skill in [AI Topic Research](../.agents/skills/ai-topic-research/SKILL.md), adapting Customer Research (JTBD, authentic user signals, sample bias) and Idea Generation & Ideation (SPARK: signal, differentiated angles, human-led prioritization, tests). It does not write social copy or publish.
+
+After the existing source collectors and editorial shortlist finish, GitHub Actions also runs regression tests and `topic_quality_gate.py radar`. Outputs are added to the **same** `anonymous-probe-report` artifact: `topic-research-evidence.json/.md`. This is an evidence audit only — it NEVER promotes a keyword match, search snippet, or news headline to a fully verified publishable topic.
+
+To validate an independently researched shortlist (with original links, source scope, JTBD and competitor gap), follow [review-schema.md](../.agents/skills/ai-topic-research/references/review-schema.md) and run:
+```bash
+python social-topic-radar/topic_quality_gate.py review --input dossier.json --history topic-history.json --output-dir ./topic-review-output
+python -m unittest discover -s social-topic-radar/tests -v
+```
+The history file must come from the actual project's existing Google Sheets; GitHub Actions has no credentialed access to that spreadsheet. `editorial_candidate` means research dossier passed a mechanical quality gate; content validation, final human selection and publishing remain separate. Never infer platform-wide trends or virality from bounded social samples.

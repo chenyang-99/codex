@@ -80,6 +80,11 @@ jobs:
         run: python social-topic-radar/editorial.py
       - name: Consolidate source-specific domestic search and comment access status
         run: python social-topic-radar/domestic_status.py
+      - name: Verify topic evidence gate regression tests
+        run: python -m unittest discover -s social-topic-radar/tests -v
+      - name: Audit real collected topic signals without auto-approving publication
+        if: always()
+        run: python social-topic-radar/topic_quality_gate.py radar --output-dir social-topic-radar/output
       - name: Generate strict full-access acceptance verdict for Douyin
         if: always()
         run: python social-topic-radar/douyin_acceptance.py
