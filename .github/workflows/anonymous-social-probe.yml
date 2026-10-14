@@ -8,8 +8,8 @@ on:
       - ".github/workflows/anonymous-social-probe.yml"
   workflow_dispatch:
   schedule:
-    # Around 09:15 Beijing time, best-effort (GitHub may delay scheduled runs).
-    - cron: "15 1 * * *"
+    # Every 3 hours; scheduled GitHub Actions runs may be delayed.
+    - cron: "15 */3 * * *"
 
 permissions:
   contents: read
