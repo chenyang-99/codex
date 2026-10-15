@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "mode": "audit_only",
+  "scope": "20 X creators and 18 distinct non-X sites confirmed in conversation; the requested 23 were not uniquely enumerated",
+  "x_handles": [
+    "CharaspowerAI",
+    "mickmumpitz",
+    "PJaccetturo",
+    "AmirMushich",
+    "azed_ai",
+    "AIwithSynthia",
+    "AIWarper",
+    "fofrAI",
+    "egeberkina",
+    "umesh_ai",
+    "Aitrepreneur",
+    "DonAllenIII",
+    "Kavanthekid",
+    "Gossip_Goblin",
+    "bydarinstewart",
+    "Diesol",
+    "rgaudetteai",
+    "paultrillo",
+    "AzeAlter",
+    "NeuralViz"
+  ],
+  "sites": [
+    {
+      "name": "Krea Community Apps",
+      "url": "https://www.krea.ai/apps/community"
+    },
+    {
+      "name": "Midjourney Explore",
+      "url": "https://www.midjourney.com/explore"
+    },
+    {
+      "name": "Higgsfield Community",
+      "url": "https://higgsfield.ai/community"
+    },
+    {
+      "name": "Google Flow TV",
+      "url": "https://labs.google/flow/tv"
+    },
+    {
+      "name": "ComfyUI Workflows",
+      "url": "https://comfy.org/workflows"
+    },
+    {
+      "name": "Adobe Firefly Gallery",
+      "url": "https://firefly.adobe.com"
+    },
+    {
+      "name": "Runway Academy",
+      "url": "https://academy.runway.com/courses"
+    },
+    {
+      "name": "Luma Learning Center",
+      "url": "https://lumalabs.ai/learning-center"
+    },
+    {
+      "name": "Behance AI Advertising",
+      "url": "https://www.behance.net/search/projects/ai%20generated%20advertising"
+    },
+    {
+      "name": "Hugging Face Spaces",
+      "url": "https://huggingface.co/spaces?sort=trending"
+    },
+    {
+      "name": "Replicate Collections",
+      "url": "https://replicate.com/collections"
+    },
+    {
+      "name": "Runway AI Festival",
+      "url": "https://aif.runwayml.com/"
+    },
+    {
+      "name": "Curious Refuge",
+      "url": "https://curiousrefuge.com/"
+    },
+    {
+      "name": "Ideogram",
+      "url": "https://ideogram.ai/"
+    },
+    {
+      "name": "Civitai",
+      "url": "https://civitai.com/"
+    },
+    {
+      "name": "Recraft Blog",
+      "url": "https://www.recraft.ai/blog"
+    },
+    {
+      "name": "Google DeepMind Blog",
+      "url": "https://deepmind.google/blog/"
+    },
+    {
+      "name": "Black Forest Labs Blog",
+      "url": "https://bfl.ai/blog/"
+    }
+  ]
+}

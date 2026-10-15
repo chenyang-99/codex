@@ -60,6 +60,8 @@ jobs:
         run: python social-topic-radar/discovery.py
       - name: Retrieve public official RSS discovery sources
         run: python social-topic-radar/rss_discovery.py
+      - name: Audit AICG 20 X creators and 18 sites (read-only)
+        run: python social-topic-radar/aicg_source_audit.py
       - name: Verify other public platform content and comments
         run: python social-topic-radar/public_platforms.py
       - name: Test pinned public Douyin hot-search CLI
