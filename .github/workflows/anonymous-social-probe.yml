@@ -62,6 +62,10 @@ jobs:
         run: python social-topic-radar/rss_discovery.py
       - name: Audit AICG 20 X creators and 18 sites (read-only)
         run: python social-topic-radar/aicg_source_audit.py
+      - name: Collect AICG creator original posts with media and links
+        run: python social-topic-radar/aicg_x_content.py
+      - name: Collect first-party AICG project pages and Hub API items
+        run: python social-topic-radar/aicg_site_content.py
       - name: Verify other public platform content and comments
         run: python social-topic-radar/public_platforms.py
       - name: Test pinned public Douyin hot-search CLI
