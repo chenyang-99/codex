@@ -80,7 +80,7 @@ def main():
     with cf.ThreadPoolExecutor(max_workers=7) as pool:
         site_results=list(pool.map(probe_site,DATA["sites"]))
     verdict={"checked_at_utc":dt.datetime.now(dt.timezone.utc).isoformat(),
-       "branch_test_only":True,"x_targets":len(x_results),
+       "access_audit_only":True,"x_targets":len(x_results),
        "x_samples_returned":sum(z["returned"] for z in x_results),
        "x_handles_with_posts":sum(z["status"]=="verified_sample" for z in x_results),
        "site_targets":len(site_results),
