@@ -66,6 +66,8 @@ jobs:
         run: python social-topic-radar/aicg_x_content.py
       - name: Collect first-party AICG project pages and Hub API items
         run: python social-topic-radar/aicg_site_content.py
+      - name: Normalize AICG works into evidence-linked recent candidates
+        run: python social-topic-radar/aicg_candidate_merge.py
       - name: Verify other public platform content and comments
         run: python social-topic-radar/public_platforms.py
       - name: Test pinned public Douyin hot-search CLI
