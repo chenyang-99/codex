@@ -111,22 +111,48 @@ def main():
     seen=set()
     posts=[p for p in posts if not (p["id"] in seen or seen.add(p["id"]))]
     posts.sort(key=lambda x:x.get("published_utc") or "",reverse=True)
-    # Query a bounded handful of public posts for full long-form/article data.
+    # Inspect a small number of public author-owned follow-up replies and threads
+    # where the original post explicitly signals a prompt or long-form article.
     article_enriched=0
-    targets=[p for p in posts if p["article"]["title"] and not p["article"]["has_full_text"]][:8]
+    author_followups=0
+    targets=[p for p in posts if (p["article"]["title"] and not p["article"]["has_full_text"])
+             or (p["prompt_workflow_hint"] and p["media"])][:12]
     def enrich(p):
-        j,err=call_upstream(["tweet",p["url"]],timeout=16)
+        j,err=call_upstream(["tweet",p["url"],"--thread","--replies","8"],timeout=20)
         if err or not j:return None
         t=j.get("tweet") or {}
-        return normalize(t,p["author"])
+        base=normalize(t,p["author"])
+        own=[]
+        for reply in (j.get("thread") or [])+(j.get("replies") or []):
+            if not isinstance(reply,dict):continue
+            a=reply.get("author") or {}
+            if not isinstance(a,dict) or str(a.get("handle","")).lower()!=p["author"].lower():continue
+            text=take(reply.get("text"),3500)
+            if not text:continue
+            own.append({"url":reply.get("url"),
+                        "created_at":reply.get("created_at"),
+                        "text":text,
+                        "media":public_media(reply),
+                        "external_links":urls_from_text(text),
+                        "retrieved_scope":"actual public author-owned reply, not verified complete thread"})
+        dedup={x.get("url"):x for x in own if x.get("url")}
+        return base,list(dedup.values())[:8]
     if targets:
         with ThreadPoolExecutor(max_workers=3) as pool:
             full=list(pool.map(enrich,targets))
-        for old,new in zip(targets,full):
+        for old,result in zip(targets,full):
+            if not result:continue
+            new,own_replies=result
             if new and new["article"]["has_full_text"]:
                 old["article"]=new["article"]
                 old["external_links"]=list(dict.fromkeys(old["external_links"]+new["external_links"]))[:12]
                 article_enriched+=1
+            if own_replies:
+                old["author_followup_replies"]=own_replies
+                old["author_followup_scope"]="bounded_public_reply_sample_not_complete"
+                old["external_links"]=list(dict.fromkeys(old["external_links"]+
+                     [u for rp in own_replies for u in rp["external_links"]]))[:12]
+                author_followups+=1
     OUT.mkdir(exist_ok=True,parents=True)
     report={"checked_at_utc":datetime.now(timezone.utc).isoformat(),
             "scope":"20 named original authors, bounded 4-day public timeline; 8 items max per author",
@@ -136,6 +162,7 @@ def main():
             "posts_with_media_metadata":sum(bool(x["media"]) for x in posts),
             "posts_with_external_links":sum(bool(x["external_links"]) for x in posts),
             "long_articles_enriched":article_enriched,
+            "posts_with_author_followup_replies":author_followups,
             "source_health":statuses,"items":posts,
             "limitations":["Third-party reader: may omit posts and fail for accounts.",
              "Media URLs and thumbnails are referenced; media files not downloaded.",
@@ -151,7 +178,7 @@ def main():
              "Media: "+", ".join(m["type"] for m in p["media"]) if p["media"] else "Media: not returned",
              "Prompt/workflow: not independently verified",""]
     (OUT/"aicg-x-original-posts.md").write_text("\n".join(md),encoding="utf-8")
-    print(json.dumps({k:report[k] for k in ("creators_configured","creators_with_original_posts","posts","posts_with_media_metadata","posts_with_external_links","long_articles_enriched")},ensure_ascii=False))
+    print(json.dumps({k:report[k] for k in ("creators_configured","creators_with_original_posts","posts","posts_with_media_metadata","posts_with_external_links","long_articles_enriched","posts_with_author_followup_replies")},ensure_ascii=False))
 
 if __name__=="__main__":
     main()
