@@ -1,0 +1,47 @@
+name: ZotPilot stdio MCP protocol smoke test
+
+on:
+  push:
+    paths:
+      - .github/workflows/zotpilot-mcp-protocol-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mcp-handshake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install upstream ZotPilot
+        run: python -m pip install 'zotpilot==0.5.3'
+      - name: Verify MCP stdio handshake and list_tools without credentials
+        shell: bash
+        run: |
+          python - <<'PY'
+          import asyncio
+          from mcp import ClientSession, StdioServerParameters
+          from mcp.client.stdio import stdio_client
+
+          async def smoke():
+              params = StdioServerParameters(command="zotpilot", args=["mcp", "serve"])
+              async with stdio_client(params) as (reader, writer):
+                  async with ClientSession(reader, writer) as session:
+                      init = await asyncio.wait_for(session.initialize(), timeout=40)
+                      response = await asyncio.wait_for(session.list_tools(), timeout=40)
+                      names = {tool.name for tool in response.tools}
+                      expected = {"search_papers", "browse_library", "get_paper_for_tutor"}
+                      missing = expected - names
+                      print("MCP initialize: OK; server =", init.serverInfo.name)
+                      print("Registered tools:", len(names), sorted(names))
+                      assert not missing, "Missing ZotPilot tool(s): " + ", ".join(sorted(missing))
+                      print("MCP protocol smoke test PASSED.")
+                      print("NOTE: This does NOT test Doubao's own MCP client, Zotero DB/PDF access, or review quality.")
+
+          asyncio.run(smoke())
+          PY
