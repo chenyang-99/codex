@@ -21,10 +21,10 @@ class ZoteroError(Exception):
 def config():
     user_id = os.environ.get("ZOTERO_USER_ID", "").strip()
     api_key = os.environ.get("ZOTERO_API_KEY", "").strip()
-    if not user_id.isdigit() or not api_key:
+    if not user_id.isdigit():
         raise ZoteroError(
-            "Set ZOTERO_USER_ID (numeric) and ZOTERO_API_KEY in the secure "
-            "runtime environment; never commit or print the key."
+            "Set numeric ZOTERO_USER_ID in the runtime. Public libraries "
+            "work without ZOTERO_API_KEY; private libraries need a secure key."
         )
     return user_id, api_key
 
@@ -33,11 +33,12 @@ class Zotero:
     def __init__(self, user_id, api_key):
         self.base = "https://api.zotero.org/users/" + user_id
         self.headers = {
-            "Zotero-API-Key": api_key,
             "Zotero-API-Version": "3",
             "Accept": "application/json",
-            "User-Agent": "Codex-Zotero-Research-ReadOnly/0.1",
+            "User-Agent": "Codex-Zotero-Research-ReadOnly/0.2",
         }
+        if api_key:
+            self.headers["Zotero-API-Key"] = api_key
 
     def get(self, path, params=None, missing_ok=False):
         url = self.base + "/" + path.lstrip("/")
