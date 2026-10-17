@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "system": "自由学习-全领域AI应用与交付",
+  "initialized_on": "2026-10-17",
+  "curriculum_version": "0.1",
+  "privacy": "PUBLIC_SCAFFOLD_ONLY_NO_PERSONAL_RECORDS",
+  "current_stage": "1",
+  "current_week": "W01",
+  "current_lesson": "L00-DIAGNOSTIC",
+  "lesson_status": "not_started",
+  "last_verified_checkpoint": null,
+  "weekly_hours_plan": 10,
+  "completed_lessons": [],
+  "completed_projects": [],
+  "pending_review": [],
+  "last_assessment": null,
+  "source_material_status": "requires_per_lesson_audit",
+  "authoritative_private_progress_repo": null,
+  "notice": "This is a public bootstrap marker, NOT a personal learning log. Do not write private progress, reflections, scores, identities or work artifacts here. Migrate to dedicated private repo first."
+}
