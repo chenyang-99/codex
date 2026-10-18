@@ -1,71 +1,76 @@
-# AI选题审核输入模式（JSON，v1.1，2026-10-19）
+# AI选题研究审核 JSON · v1.2（2026-10-19用户纠偏）
 
-## 人工研究档案示例（**虚构字段示范**，不代表真实已验证选题）
+## 基本原则
+- **硬门槛只有两项：吸引力 + 传播潜力**（均须清楚可核验的理由）。
+- 收藏、学习、认知、决策、情绪、娱乐等是**可替代或组合的读者价值**，不强迫每条文章有Prompt或教程。
+- 仍要求明确读者回报、原始证据、差异化、诚信与平台规则；“传播潜力”是编辑评估，不保证播放。
+- 正式推荐总分≥85，且分项≥20/23/21/10（分别对应吸引力25、传播30、读者回报30、可信与原创15）；未人工评分只能探索。
+- 顶级AICG作品另有视觉审查门槛，作品没Prompt依然可能合格，只要真实画面达标且传播理由充分。
+
+## 人工研究档案 JSON 示例（模拟数据，不可直接当真实稿件或热度证据）
 
 ```json
 {
-  "rejected": ["previously-rejected-topic"],
-  "known_problem_keys": ["historical-topic-key"],
-  "topics": [{
-    "topic_id": "topic-01",
-    "problem_key": "ai-real-work-time",
-    "title": "AI生成看似更快，核查和返工时间怎么算？",
-    "audience": "用AI处理文档的普通职场人",
-    "trigger": "生成完成后依旧要核验",
-    "job": "判断一项任务是否真的节省工时",
-    "outcome": "可复核的全流程工时记录表",
-    "value_type": "决策",
-    "angle": "加上提示、核查、返工三段",
-    "promise": "完整工时核算思路与表格模板",
-    "proof_plan": "实际做两次同类任务并保留计时记录",
-    "competitor_gap": "竞品通常只比较生成耗时（待实际搜索验证）",
-    "difference_rationale": "明确计入人为审核成本",
-    "source_limitations": "公开讨论不代表所有职场用户",
-    "requires_test": true,
-    "test_gap": "本账号尚无对照工时实测",
-    "four_values": {
-      "attraction": "首屏展示生成速度与最终交付速度的反差；数据须实际测量",
-      "save_asset": "可复制的三阶段任务工时记录模板",
-      "learning_outcome": "学会计算人工、AI与核查返工的完整耗时，识别成本隐藏项",
-      "spread_mechanism": "反常识的实际耗时对比与评论区复核需求；尚非已验证热度",
-      "spread_class": "fresh_potential",
-      "spread_source_url": "https://example.org/original-source",
-      "original_published_at": "2026-10-19",
-      "freshness_reason": "近期新示例，尚待从实际源文核验发布时间和增量"
-    },
-    "four_value_scores": {
-      "attraction": 22,
-      "save": 28,
-      "learning": 23,
-      "spread": 15
-    },
-    "signals": [
-      {"kind": "user_post", "url": "https://example.org/post/1", "quote": "准确引用的用户原话", "read_scope": "actually_read_public_post"},
-      {"kind": "official_release", "url": "https://example.org/official", "claim": "官方原始事实摘要", "read_scope": "actually_read_official"}
-    ]
-  }]
+  "rejected": ["old-rejected-topic"],
+  "known_problem_keys": ["old-topic-key"],
+  "topics": [
+    {
+      "topic_id": "example-01",
+      "problem_key": "story-about-ai-creator",
+      "title": "一位创作者为什么放弃看似完美的AI画面？",
+      "audience": "AICG创作者与普通观众",
+      "trigger": "专业创作者公开解释一个不寻常的创作决定",
+      "job": "理解为什么风格选择能够影响故事",
+      "outcome": "一则能引发讨论且经过核实的独到分析",
+      "value_type": "认知",
+      "angle": "从观众情绪而不是技术参数拆解",
+      "promise": "解释创作者选择及可查事实",
+      "proof_plan": "阅读原作者完整说明并核对影片画面",
+      "competitor_gap": "仅展示美图、缺乏艺术决策分析（待查）",
+      "difference_rationale": "有原作者解释及客观对照",
+      "source_limitations": "未代表全体创作者；热度未知",
+      "requires_test": true,
+      "test_gap": "尚未实际观看完整作品",
+      "content_values": {
+        "attraction": "开头呈现完美与不完美画面的鲜明对比（需要真实画面）",
+        "spread_mechanism": "艺术设计取舍引发有证据的立场讨论",
+        "payoff_type": "insight",
+        "payoff_description": "读者理解审美选择并获得独立判断",
+        "spread_class": "fresh_potential",
+        "spread_source_url": "https://example.org/creator-work",
+        "original_published_at": "2026-10-19",
+        "freshness_reason": "最新原作者公开说明（样例字段，待真实核验）"
+      },
+      "content_scores": {
+        "attraction": 23,
+        "spread": 26,
+        "payoff": 27,
+        "credibility": 12
+      },
+      "signals": [
+        {"kind":"original_case","url":"https://example.org/creator-work","observed_result":"原作者完整说明","read_scope":"actually_read_original"}
+      ]
+    }
+  ]
 }
 ```
 
-示例中 `example.org` 链接和评分均为演示，**不可作为真实选题直接入库或传播证据**。
+## 字段与边界
 
-## 四价值必填规则
-- `four_values.attraction`: 为什么第一屏/前三秒值得停留；要具体而真实。
-- `four_values.save_asset`: 读者能够实际保存的Prompt、模板、工具及适用限制、完整操作步骤或判断框架。泛泛说“干货”不合格。
-- `four_values.learning_outcome`: 读者具体学会什么或能够做什么；不可只是“看看好看的图”。
-- `four_values.spread_mechanism`: 可解释的传播机制，或真实热度证据的范围。
-- `four_values.spread_class`: `verified_viral`（A类）或 `fresh_potential`（B类）；无可靠依据则 `unverified`，不可进入正式推荐。
-- `four_values.spread_source_url`: 对应原作/原教程/同一社交帖的可回查来源。
-- A类还需 `spread_metric`（明确平台、数值和指标）及 `spread_checked_at`（检查时间）；不得伪造，第三方统计要明示。
-- B类还需 `original_published_at` 和 `freshness_reason`；老教程可作为有价值的学习资料，但不可假称本周新发布。
-- `four_value_scores` 必须为**人工显式提供**的四个数：`attraction` 0–25、`save` 0–30、`learning` 0–25、`spread` 0–20。缺失或不完整者只作探索研究，不得进入正式编辑推荐。
-- 正式推荐需要总分≥85，且四项分别≥20/24/20/14；评分只是内部编辑规则，不是被证实的流量预测。
-- 不论评分多高，真实来源、版权合规、完整教程/方法可信度、用户历史否决和跨天去重均为独立门槛。
-- AICG视觉精品还必须实际看见原作画面并通过另一个视觉维度硬门槛：视觉≥40/45、综合≥85/100；**四价值分和视觉分不可混算**。
+`content_values.attraction`（必填）：第一屏/前三秒真实而具体的看点，不能空喊爆炸。
 
-## 原有研究字段及兼容性
-- `signals[].kind` 仅支持 `user_post`、`user_comment`、`official_release`（需 `claim`）、`original_case`（需 `observed_result`）。
-- `read_scope` 必须记录实际读到什么；`search_snippet_only`、`headline_only`、`unknown`、`unavailable` 不是一手验证。
-- 一篇原帖下多条评论只能算一个语境，未知作者不可虚构人数。
-- 旧 `ratings` 六维需求/价值/时效/差异化/受众/可行性仍可选，用于**研究排名辅助**，不替代四价值硬门槛。
-- `blocked` / `exploratory_only` / `editorial_candidate` 均不是发布授权；所有自动采集永远不能自动批准成稿与发布。
+`content_values.spread_mechanism`（必填）：具体哪类观众为什么会转发/讨论/共鸣。
+
+`content_values.payoff_type`（必填、选最主要）：`save`、`learning`、`insight`、`decision`、`emotion`、`entertainment`；其他维度可在正文自然兼有，不设排他性强制。
+
+`content_values.payoff_description`（必填）：观众看完实际得到什么。收藏类可给保存材料；观点可给判断；故事可给情绪体验。可选 `save_asset` 和 `learning_outcome`，**不存在时不作缺项处罚**。
+
+`content_values.spread_class`：A=`verified_viral`，必须同时附 `spread_metric`（平台＋真实指标）和 `spread_checked_at`（核验时间）；B=`fresh_potential` 必须附 `original_published_at` 和 `freshness_reason`。无可靠依据则C=`unverified`，不得进入正式选题。
+
+`content_values.spread_source_url`：同一原始来源的可回查深链。引用第三方统计注明渠道并区分官方数据。
+
+`content_scores`：人工显式输入 attraction 0—25、spread 0—30、payoff 0—30、credibility 0—15，总分≥85且单项≥20/23/21/10。无 `content_scores` 为探索；旧版 `four_values` / `four_value_scores` 并非v1.2有效完整档案，需按类型重新审核，不要自动继承旧分。
+
+真实来源 `signals[].kind` 限 `user_post`、`user_comment`、`official_release`（有claim）、`original_case`（有observed_result）；搜索摘要和无法打开的素材仅是线索。用户否定、跨天重复、IP/肖像/商标版权、安全合规及未经验证的本人亲测仍可一票否决。
+
+`editorial_candidate` 仅代表机械资料门槛通过，不表示内容已复刻成功、用户审稿通过或已发布。
