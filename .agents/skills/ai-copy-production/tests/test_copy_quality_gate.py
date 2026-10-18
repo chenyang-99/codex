@@ -128,8 +128,8 @@ class CopySkillGateTests(unittest.TestCase):
         }
         item["value_delivery"] = {
             "hook": "标题交代阅读收益",
-            "saveable": "选型判断表",
-            "learning": "读者知道如何辨别方法",
+            "primary_payoff_type": "insight",
+            "primary_payoff": "读者理解三种方法的根本区别",
             "shareability": "有清楚分享理由，传播仅为编辑预测",
             "readability": "关键术语以人话解释"
         }
@@ -144,6 +144,64 @@ class CopySkillGateTests(unittest.TestCase):
         reasons = gate.validate(item)["blocking_reasons"]
         self.assertIn("research_sources_missing", reasons)
         self.assertIn("value_readability_missing", reasons)
+
+    def test_emotion_only_payoff_does_not_require_learning_or_save(self):
+        item = sample()
+        item["edit_scope"] = "new_draft"
+        item["original"] = ""
+        item["research"] = {
+            "question": "如何描述AI学习焦虑", "summary": "公开作者观点和真实情绪表达",
+            "limitations": "属于观点而非普适统计结论",
+            "sources": [{"locator": "本轮用户文字", "supports": "用户观点"}]
+        }
+        item["value_delivery"] = {
+            "hook": "直面AI学习焦虑", "shareability": "同感读者可能向朋友分享（编辑预测）",
+            "primary_payoff_type": "emotion", "primary_payoff": "读者得到情绪理解",
+            "readability": "自然短句"
+        }
+        self.assertEqual(gate.validate(item)["status"], "requires_editorial_review")
+
+    def test_save_only_payoff_does_not_require_learning(self):
+        item = sample()
+        item["edit_scope"] = "new_draft"
+        item["original"] = ""
+        item["research"] = {
+            "question": "哪些工具适合留存", "summary": "官方页面已列出功能和条件",
+            "limitations": "尚未个人实测",
+            "sources": [{"locator": "https://example.org/official", "supports": "工具用途与限制"}]
+        }
+        item["value_delivery"] = {
+            "hook": "明确哪种工具值得保留", "shareability": "同领域用户转发（编辑预测）",
+            "primary_payoff_type": "save", "primary_payoff": "带适用说明的工具直达入口",
+            "readability": "简洁且准确"
+        }
+        self.assertEqual(gate.validate(item)["status"], "requires_editorial_review")
+
+    def test_primary_payoff_required_but_secondary_optional(self):
+        item = sample()
+        item["edit_scope"] = "new_draft"
+        item["research"] = {
+            "question": "讨论内容", "summary": "对照", "limitations": "情况有限",
+            "sources": [{"locator": "本轮用户文字", "supports": "个人观点"}]
+        }
+        item["value_delivery"] = {
+            "hook": "看点", "shareability": "传播机制", "readability": "自然"
+        }
+        self.assertIn("value_primary_payoff_type_missing", gate.validate(item)["blocking_reasons"])
+        self.assertIn("value_primary_payoff_missing", gate.validate(item)["blocking_reasons"])
+
+    def test_invalid_payoff_type_blocked(self):
+        item = sample()
+        item["edit_scope"] = "new_draft"
+        item["research"] = {
+            "question": "问题", "summary": "归纳", "limitations": "限制",
+            "sources": [{"locator": "本轮观点", "supports": "观点"}]
+        }
+        item["value_delivery"] = {
+            "hook": "开头", "shareability": "机制", "readability": "清晰",
+            "primary_payoff_type": "fake_virality", "primary_payoff": "真实读者回报"
+        }
+        self.assertIn("value_primary_payoff_type_invalid", gate.validate(item)["blocking_reasons"])
 
     def test_substantive_rewrite_requires_research(self):
         item = sample()
