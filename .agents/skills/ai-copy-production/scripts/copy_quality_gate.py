@@ -110,6 +110,30 @@ def validate(item: Any) -> dict:
             warnings.append("tutorial_missing_verification_plan")
         if not assertions:
             warnings.append("tutorial_no_claim_inventory")
+    # V2: structure-only preflight for fresh articles and substantive rewrites.
+    # This does NOT confirm source authenticity or actual content value.
+    if mode in {"new_draft", "substantive_rewrite"}:
+        research = item.get("research")
+        if not isinstance(research, dict):
+            reasons.append("research_dossier_missing")
+        else:
+            for key in ("question", "summary", "limitations"):
+                if not _s(research.get(key)).strip():
+                    reasons.append(f"research_{key}_missing")
+            sources = research.get("sources")
+            if not isinstance(sources, list) or not sources:
+                reasons.append("research_sources_missing")
+            else:
+                for idx, source in enumerate(sources):
+                    if not isinstance(source, dict) or not _s(source.get("locator")).strip() or not _s(source.get("supports")).strip():
+                        reasons.append(f"research_source_{idx}_incomplete")
+        delivery = item.get("value_delivery")
+        if not isinstance(delivery, dict):
+            reasons.append("value_delivery_missing")
+        else:
+            for key in ("hook", "saveable", "learning", "shareability", "readability"):
+                if not _s(delivery.get(key)).strip():
+                    reasons.append(f"value_{key}_missing")
     if UNSUPPORTED_GUARANTEE.search(draft):
         warnings.append("absolute_promise_detected_check_if_supported")
     if HARD_BAIT.search(draft):
