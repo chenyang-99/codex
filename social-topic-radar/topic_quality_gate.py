@@ -9,6 +9,10 @@ from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
 WEIGHTS = {"demand":25,"value":25,"evidence":20,"differentiation":15,"audience_fit":10,"feasibility":5}
+FOUR_VALUE_CAPS = {"attraction":25,"save":30,"learning":25,"spread":20}
+FOUR_VALUE_MINS = {"attraction":20,"save":24,"learning":20,"spread":14}
+FOUR_VALUE_FIELDS = ("attraction","save_asset","learning_outcome","spread_mechanism")
+SPREAD_CLASSES = {"verified_viral","fresh_potential"}
 EVIDENCE_KINDS = {"user_post","user_comment","official_release","original_case"}
 VALUE_TYPES = {"实用","决策","认知","情绪"}
 STATUSES = ("editorial_candidate","exploratory_only","blocked")
@@ -90,6 +94,39 @@ def audit_radar(outdir):
     (out/"topic-research-evidence.md").write_text("\n".join(lines)+"\n",encoding="utf-8")
     return result
 
+def audit_four_values(topic):
+    """Strict human-scored four-value gate. No auto-scoring from scraped metrics."""
+    v=topic.get("four_values")
+    issues=[]
+    if not isinstance(v,dict):
+        return ["missing_four_values"],None
+    for k in FOUR_VALUE_FIELDS:
+        if not txt(v.get(k)): issues.append("missing_four_value_"+k)
+    spread_class=txt(v.get("spread_class"))
+    if spread_class not in SPREAD_CLASSES:
+        issues.append("missing_or_unverified_spread_class")
+    if not canon(v.get("spread_source_url")):
+        issues.append("missing_spread_primary_source")
+    if spread_class=="verified_viral":
+        if not txt(v.get("spread_metric")): issues.append("missing_verified_platform_metric")
+        if not txt(v.get("spread_checked_at")): issues.append("missing_verified_metric_timestamp")
+    elif spread_class=="fresh_potential":
+        if not txt(v.get("original_published_at")): issues.append("missing_original_published_at")
+        if not txt(v.get("freshness_reason")): issues.append("missing_freshness_reason")
+    scores=topic.get("four_value_scores")
+    if scores is None:
+        return issues,None
+    if not isinstance(scores,dict) or any(not isinstance(scores.get(k),(int,float))
+            or isinstance(scores.get(k),bool) or not 0<=scores[k]<=cap
+            for k,cap in FOUR_VALUE_CAPS.items()):
+        issues.append("invalid_four_value_scores")
+        return issues,None
+    total=round(sum(scores[k] for k in FOUR_VALUE_CAPS),1)
+    for k,minimum in FOUR_VALUE_MINS.items():
+        if scores[k]<minimum: issues.append("four_value_below_minimum_"+k)
+    if total<85: issues.append("four_value_total_below_85")
+    return issues,total
+
 def review_one(topic,rejected,history,seen):
     if not isinstance(topic,dict):
         return {"status":"blocked","blocking_reasons":["invalid_record"]}
@@ -106,7 +143,9 @@ def review_one(topic,rejected,history,seen):
         if not txt(topic.get(field)): issues.append("missing_"+field)
     if topic.get("value_type") not in VALUE_TYPES: issues.append("missing_or_invalid_value_type")
     if topic.get("requires_test") and not txt(topic.get("test_gap")): issues.append("missing_preproduction_test_gap")
-    contexts=set(); links=set(); user_evidence=0; official_evidence=0
+    four_issues,four_score=audit_four_values(topic)
+    issues.extend(four_issues)
+    contexts=set(); links=set(); user_evidence=0; official_evidence=0; original_evidence=0
     for sig in (topic.get("signals") or []):
         if not isinstance(sig,dict): continue
         url=canon(sig.get("url")); kind=sig.get("kind"); scope=txt(sig.get("read_scope"))
@@ -120,8 +159,10 @@ def review_one(topic,rejected,history,seen):
         if k: contexts.add(k)
         user_evidence+=int(kind in ("user_post","user_comment"))
         official_evidence+=int(kind=="official_release")
+        original_evidence+=int(kind=="original_case")
     if not links: issues.append("no_recheckable_primary_evidence")
-    if not (user_evidence or official_evidence): issues.append("no_direct_user_or_official_evidence")
+    if not (user_evidence or official_evidence or original_evidence):
+        issues.append("no_direct_user_official_or_original_evidence")
     if not contexts: issues.append("no_independent_source_context")
     rating=topic.get("ratings")
     score=None
@@ -130,11 +171,19 @@ def review_one(topic,rejected,history,seen):
         score=round(sum(WEIGHTS[k]*rating[k]/5 for k in WEIGHTS),1)
     confidence="high" if len(contexts)>=3 else ("medium" if len(contexts)==2 else
                 ("low" if len(contexts)==1 else "none"))
-    decision="blocked" if issues else ("editorial_candidate" if len(contexts)>=2 else "exploratory_only")
+    # A single verified original creator work/official tutorial can be a primary
+    # source; secondary popularity is not required for fresh high-value research.
+    primary_source=bool(official_evidence or original_evidence)
+    decision="blocked" if issues else ("editorial_candidate"
+        if four_score is not None and (len(contexts)>=2 or primary_source)
+        else "exploratory_only")
     return {"topic_id":topicid,"problem_key":key,"title":txt(topic.get("title")),
             "status":decision,"blocking_reasons":issues,
             "independent_post_contexts":len(contexts),"evidence_confidence":confidence,
             "source_links":sorted(links),"human_supplied_score":score,
+            "four_value_score":four_score,
+            "four_value_verdict":("failed" if four_issues else
+                "unscored_exploration" if four_score is None else "passed"),
             "score_note":"not a virality prediction" if score is not None else "unscored; do not invent ratings",
             "requires_test":bool(topic.get("requires_test")),
             "proof_plan":txt(topic.get("proof_plan")),
@@ -147,7 +196,8 @@ def review_file(source,outdir,history_path=None):
     seen=set()
     rows=[review_one(t,rejected,known,seen) for t in obj.get("topics",[])]
     order={"editorial_candidate":0,"exploratory_only":1,"blocked":2}
-    rows.sort(key=lambda x:(order.get(x["status"],3),-(x.get("human_supplied_score") or -1)))
+    rows.sort(key=lambda x:(order.get(x["status"],3),
+                           -(x.get("four_value_score") if x.get("four_value_score") is not None else -1)))
     counts=Counter(x["status"] for x in rows)
     report={"mode":"curated_topic_review",
             "generated_at_utc":dt.datetime.now(dt.timezone.utc).isoformat(),
@@ -157,7 +207,7 @@ def review_file(source,outdir,history_path=None):
     (out/"topic-review.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     lines=["# 选题研究档案审核","",f"输入：{len(rows)} 条",
            f"编辑候选 {counts['editorial_candidate']}；仅探索 {counts['exploratory_only']}；拦截 {counts['blocked']}",
-           "编辑初审≠实测≠发布。评分（若有）为研究者输入。",""]
+           "编辑初审≠实测≠发布；四价值分由人工显式给出，无分不进入编辑候选。",""]
     for r in rows:
         lines.extend([f"## {r['title'] or r['topic_id']}",
                       f"状态：{r['status']}；独立帖子语境：{r['independent_post_contexts']}；置信度：{r['evidence_confidence']}",
