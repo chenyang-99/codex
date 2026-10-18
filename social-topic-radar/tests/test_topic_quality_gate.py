@@ -16,6 +16,17 @@ def record():
       "value_type":"决策","angle":"纳入重试成本","promise":"可核验预算","proof_plan":"查官方价并实测",
       "competitor_gap":"竞品忽略重试","difference_rationale":"补成本缺口",
       "source_limitations":"少数用户样本","requires_test":True,"test_gap":"尚未亲测",
+      "four_values":{
+         "attraction":"开头对比免费会员两种开销误区",
+         "save_asset":"可复制的预算记录表",
+         "learning_outcome":"学会逐项核对订阅成本",
+         "spread_mechanism":"公开成本对比激发真实讨论",
+         "spread_class":"fresh_potential",
+         "spread_source_url":"https://example.com/post/1",
+         "original_published_at":"2026-10-19",
+         "freshness_reason":"近期用户问题，编辑判断有可展示的反差"
+      },
+      "four_value_scores":{"attraction":22,"save":27,"learning":22,"spread":16},
       "signals":[
         {"kind":"user_post","url":"https://example.com/post/1","quote":"成本怎么算","read_scope":"actual_public_post"},
         {"kind":"user_comment","url":"https://example.org/post/2","quote":"会员够用吗","read_scope":"actual_public_comment"}]}
@@ -43,7 +54,35 @@ class GateTest(unittest.TestCase):
         x=record()
         x["signals"]=[{"kind":"official_release","url":"https://example.net/release",
             "claim":"新功能上线","read_scope":"actual_official_release"}]
-        self.assertEqual(gate.review_one(x,set(),set(),set())["status"],"exploratory_only")
+        self.assertEqual(gate.review_one(x,set(),set(),set())["status"],"editorial_candidate")
+    def test_missing_four_values_blocks(self):
+        x=record(); x.pop("four_values")
+        r=gate.review_one(x,set(),set(),set())
+        self.assertEqual(r["status"],"blocked")
+        self.assertIn("missing_four_values",r["blocking_reasons"])
+    def test_unscored_four_values_are_exploratory(self):
+        x=record(); x.pop("four_value_scores")
+        r=gate.review_one(x,set(),set(),set())
+        self.assertEqual(r["status"],"exploratory_only")
+        self.assertIsNone(r["four_value_score"])
+    def test_low_save_value_blocks(self):
+        x=record();x["four_value_scores"]["save"]=8
+        r=gate.review_one(x,set(),set(),set())
+        self.assertEqual(r["status"],"blocked")
+        self.assertIn("four_value_below_minimum_save",r["blocking_reasons"])
+    def test_false_viral_claim_blocks(self):
+        x=record();v=x["four_values"]
+        v["spread_class"]="verified_viral"
+        v.pop("freshness_reason",None)
+        r=gate.review_one(x,set(),set(),set())
+        self.assertEqual(r["status"],"blocked")
+        self.assertIn("missing_verified_platform_metric",r["blocking_reasons"])
+    def test_one_first_party_original_case(self):
+        x=record()
+        x["signals"]=[{"kind":"original_case","url":"https://example.org/author/work",
+                       "observed_result":"作者公开的原始工作流","read_scope":"actually_read_original"}]
+        r=gate.review_one(x,set(),set(),set())
+        self.assertEqual(r["status"],"editorial_candidate")
     def test_history_and_batch_duplicates(self):
         with TemporaryDirectory() as d:
             p=Path(d)
