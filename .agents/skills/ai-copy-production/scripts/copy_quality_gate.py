@@ -17,6 +17,7 @@ EDIT_SCOPES = {
 }
 FACT_STATUSES = {"user_verified", "original_source", "third_party_claim", "proposed", "unknown"}
 VALID_PLATFORMS = {"douyin", "xiaohongshu", "x", "multi", "unspecified"}
+PAYOFF_TYPES = {"utility", "learning", "save", "insight", "decision", "information", "emotion", "entertainment", "social_expression"}
 HARD_BAIT = re.compile(r"(评论区(?:打|扣|留下)(?:1|666|YES)|点赞(?:收藏)?关注三连|求个三连)")
 UNSUPPORTED_GUARANTEE = re.compile(r"(100%成功|百分百保证|保证(?:涨粉|播放|变现)|零失误|永久(?:免费|有效))")
 
@@ -131,9 +132,17 @@ def validate(item: Any) -> dict:
         if not isinstance(delivery, dict):
             reasons.append("value_delivery_missing")
         else:
-            for key in ("hook", "saveable", "learning", "shareability", "readability"):
+            for key in ("hook", "shareability", "readability", "primary_payoff"):
                 if not _s(delivery.get(key)).strip():
                     reasons.append(f"value_{key}_missing")
+            payoff_type = _s(delivery.get("primary_payoff_type")).strip()
+            if not payoff_type:
+                reasons.append("value_primary_payoff_type_missing")
+            elif payoff_type not in PAYOFF_TYPES:
+                reasons.append("value_primary_payoff_type_invalid")
+            secondary = delivery.get("secondary_payoffs", [])
+            if not isinstance(secondary, list) or any(not isinstance(x, str) or x not in PAYOFF_TYPES for x in secondary):
+                reasons.append("value_secondary_payoffs_invalid")
     if UNSUPPORTED_GUARANTEE.search(draft):
         warnings.append("absolute_promise_detected_check_if_supported")
     if HARD_BAIT.search(draft):
