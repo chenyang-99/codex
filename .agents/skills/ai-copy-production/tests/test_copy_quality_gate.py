@@ -105,12 +105,50 @@ class CopySkillGateTests(unittest.TestCase):
                            "presented_as_fact": True}]
         self.assertIn("claim_0_unverified_statement_of_fact", gate.validate(item)["blocking_reasons"])
 
-    def test_new_draft_does_not_need_original(self):
+    def test_new_draft_requires_research_and_value_delivery(self):
         item = sample()
         item["edit_scope"] = "new_draft"
         item["original"] = ""
         item["protected_phrases"] = []
+        reasons = gate.validate(item)["blocking_reasons"]
+        self.assertIn("research_dossier_missing", reasons)
+        self.assertIn("value_delivery_missing", reasons)
+
+    def test_new_draft_complete_research_preflight(self):
+        item = sample()
+        item["edit_scope"] = "new_draft"
+        item["original"] = ""
+        item["protected_phrases"] = []
+        item["research"] = {
+            "question": "这一主题解决什么问题",
+            "summary": "根据公开技术资料作出的概念区分和判断",
+            "limitations": "没有完成个人独立实测",
+            "sources": [{"locator": "https://example.org/primary",
+                         "supports": "一项具体技术定义"}]
+        }
+        item["value_delivery"] = {
+            "hook": "标题交代阅读收益",
+            "saveable": "选型判断表",
+            "learning": "读者知道如何辨别方法",
+            "shareability": "有清楚分享理由，传播仅为编辑预测",
+            "readability": "关键术语以人话解释"
+        }
         self.assertEqual(gate.validate(item)["status"], "requires_editorial_review")
+
+    def test_new_draft_rejects_empty_sources_and_readability(self):
+        item = sample()
+        item["edit_scope"] = "new_draft"
+        item["research"] = {"question": "问题", "summary": "提炼", "limitations": "限制", "sources": []}
+        item["value_delivery"] = {"hook": "开头", "saveable": "清单",
+                                   "learning": "方法", "shareability": "理由"}
+        reasons = gate.validate(item)["blocking_reasons"]
+        self.assertIn("research_sources_missing", reasons)
+        self.assertIn("value_readability_missing", reasons)
+
+    def test_substantive_rewrite_requires_research(self):
+        item = sample()
+        item["edit_scope"] = "substantive_rewrite"
+        self.assertIn("research_dossier_missing", gate.validate(item)["blocking_reasons"])
 
     def test_tutorial_missing_proof_plan_warns(self):
         item = sample()
