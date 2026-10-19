@@ -14,6 +14,8 @@ CONTENT_SCORE_MINS = {"attraction":20,"spread":23,"payoff":21,"credibility":10}
 CONTENT_FIELDS = ("attraction","spread_mechanism","payoff_description")
 PAYOFF_TYPES = {"utility","learning","save","insight","decision","information","emotion","entertainment","social_expression"}
 SPREAD_CLASSES = {"verified_viral","fresh_potential"}
+SOCIAL_PLATFORMS = {"x", "xiaohongshu", "douyin"}
+SOCIAL_SUPPORT_TYPES = {"own_post", "same_platform_post", "original_work"}
 EVIDENCE_KINDS = {"user_post","user_comment","official_release","original_case"}
 VALUE_TYPES = {"实用","学习","收藏","决策","认知","信息","情绪","审美娱乐","社交表达"}
 STATUSES = ("editorial_candidate","exploratory_only","blocked")
@@ -135,6 +137,39 @@ def audit_content_values(topic):
     if total<85: issues.append("content_score_total_below_85")
     return issues,total
 
+def audit_social_native_pitch(topic):
+    """Reject attractive-sounding leads without a concrete, platform-native post concept.
+
+    This validates supplied editorial evidence, NOT the truth of claims, artistic
+    quality, audience demand or actual platform reach. Human veto remains required.
+    """
+    p=topic.get("social_pitch")
+    if not isinstance(p,dict):
+        return ["missing_social_pitch"]
+    issues=[]
+    if txt(p.get("platform")) not in SOCIAL_PLATFORMS:
+        issues.append("missing_target_platform")
+    for key in ("first_screen","proof_object","why_share_or_save","account_fit",
+                "support_observation"):
+        if not txt(p.get(key)):
+            issues.append("missing_social_"+key)
+    support=txt(p.get("support_type"))
+    if support not in SOCIAL_SUPPORT_TYPES:
+        issues.append("missing_or_invalid_social_support_type")
+    if not canon(p.get("support_url")):
+        issues.append("missing_social_support_url")
+    if support in ("own_post","same_platform_post"):
+        for key in ("support_metric","support_checked_at"):
+            if not txt(p.get(key)):
+                issues.append("missing_social_"+key)
+    if support=="original_work":
+        if not txt(p.get("original_published_at")):
+            issues.append("missing_social_original_published_at")
+        if not txt(p.get("editorial_hypothesis")):
+            issues.append("missing_social_editorial_hypothesis")
+    # For B-class original works, do NOT imply that platform distribution was verified.
+    return issues
+
 def review_one(topic,rejected,history,seen):
     if not isinstance(topic,dict):
         return {"status":"blocked","blocking_reasons":["invalid_record"]}
@@ -153,6 +188,13 @@ def review_one(topic,rejected,history,seen):
     if topic.get("requires_test") and not txt(topic.get("test_gap")): issues.append("missing_preproduction_test_gap")
     content_issues,content_score=audit_content_values(topic)
     issues.extend(content_issues)
+    social_issues=audit_social_native_pitch(topic)
+    issues.extend(social_issues)
+    if content_score is not None:
+        evidence=topic.get("score_evidence")
+        if not isinstance(evidence,dict) or any(
+                not txt(evidence.get(k)) for k in CONTENT_SCORE_CAPS):
+            issues.append("missing_score_evidence_by_dimension")
     contexts=set(); links=set(); user_evidence=0; official_evidence=0; original_evidence=0
     for sig in (topic.get("signals") or []):
         if not isinstance(sig,dict): continue
@@ -190,6 +232,8 @@ def review_one(topic,rejected,history,seen):
             "independent_post_contexts":len(contexts),"evidence_confidence":confidence,
             "source_links":sorted(links),"human_supplied_score":score,
             "content_value_score":content_score,
+            "social_native_verdict":"blocked_metadata" if social_issues else "manual_content_review_required",
+            "human_editorial_approval":False,
             "content_value_verdict":("failed" if content_issues else
                 "unscored_exploration" if content_score is None else "passed"),
             "score_note":"not a virality prediction" if score is not None else "unscored; do not invent ratings",
@@ -210,7 +254,7 @@ def review_file(source,outdir,history_path=None):
     report={"mode":"curated_topic_review",
             "generated_at_utc":dt.datetime.now(dt.timezone.utc).isoformat(),
             "counts":{k:counts[k] for k in STATUSES},"topics":rows,
-            "warning":"Editorial pass is NOT model validation, production approval, or publication."}
+            "warning":"Mechanical pass is NOT social-media fit, human editorial approval, model validation, production approval or publication."}
     out=Path(outdir);out.mkdir(parents=True,exist_ok=True)
     (out/"topic-review.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     lines=["# 选题研究档案审核","",f"输入：{len(rows)} 条",
