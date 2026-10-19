@@ -1,3 +1,6 @@
 [submodule "vendor/punk-skill"]
 	path = vendor/punk-skill
 	url = https://github.com/adrianpunk/Punk-Skill.git
+[submodule "vendor/storyboard-skill"]
+	path = vendor/storyboard-skill
+	url = https://github.com/H4pplness/storyboard-skill.git
