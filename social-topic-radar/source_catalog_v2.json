@@ -1,0 +1,631 @@
+{
+  "version": "2.0",
+  "description": "Source catalog for on-demand/editorial discovery. Not an active crawler or proof of access.",
+  "monitoring_note": "Catalog entries are URL leads only; no feed, account access, public engagement, or retrieval success is implied. Current automatic RSS monitoring is separately configured in sources.json.",
+  "sources": [
+    {
+      "name": "OpenAI 官方",
+      "url": "https://openai.com/news/",
+      "domains": [
+        "foundation_models"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Anthropic News",
+      "url": "https://www.anthropic.com/news",
+      "domains": [
+        "foundation_models"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Google DeepMind",
+      "url": "https://deepmind.google/discover/blog/",
+      "domains": [
+        "foundation_models"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "DeepSeek GitHub",
+      "url": "https://github.com/deepseek-ai",
+      "domains": [
+        "foundation_models"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Qwen GitHub",
+      "url": "https://github.com/QwenLM",
+      "domains": [
+        "foundation_models"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Artificial Analysis",
+      "url": "https://artificialanalysis.ai/",
+      "domains": [
+        "model_evaluation"
+      ],
+      "roles": [
+        "evaluation"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Arena",
+      "url": "https://arena.ai/leaderboard",
+      "domains": [
+        "model_evaluation"
+      ],
+      "roles": [
+        "evaluation"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "arXiv",
+      "url": "https://arxiv.org/",
+      "domains": [
+        "ai_research"
+      ],
+      "roles": [
+        "discovery"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "OpenReview",
+      "url": "https://openreview.net/",
+      "domains": [
+        "ai_research"
+      ],
+      "roles": [
+        "discovery"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "NeurIPS",
+      "url": "https://neurips.cc/",
+      "domains": [
+        "ai_research"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "GitHub Trending",
+      "url": "https://github.com/trending",
+      "domains": [
+        "tools_products"
+      ],
+      "roles": [
+        "discovery"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Product Hunt",
+      "url": "https://www.producthunt.com/",
+      "domains": [
+        "tools_products"
+      ],
+      "roles": [
+        "discovery"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Hugging Face Spaces",
+      "url": "https://huggingface.co/spaces",
+      "domains": [
+        "tools_products"
+      ],
+      "roles": [
+        "discovery"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Skills.sh",
+      "url": "https://skills.sh/",
+      "domains": [
+        "agents_automation"
+      ],
+      "roles": [
+        "discovery"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "MCP Registry",
+      "url": "https://registry.modelcontextprotocol.io/",
+      "domains": [
+        "agents_automation"
+      ],
+      "roles": [
+        "discovery"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "n8n AI Workflows",
+      "url": "https://n8n.io/workflows/categories/ai/",
+      "domains": [
+        "agents_automation"
+      ],
+      "roles": [
+        "tutorial"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Cursor",
+      "url": "https://cursor.com/",
+      "domains": [
+        "ai_coding"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Replit",
+      "url": "https://replit.com/",
+      "domains": [
+        "ai_coding"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Lovable",
+      "url": "https://lovable.dev/",
+      "domains": [
+        "ai_coding"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Civitai",
+      "url": "https://civitai.com/",
+      "domains": [
+        "aicg_image"
+      ],
+      "roles": [
+        "community"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "ComfyUI Workflows",
+      "url": "https://comfy.org/workflows/comfyui/",
+      "domains": [
+        "aicg_image"
+      ],
+      "roles": [
+        "tutorial"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Midjourney",
+      "url": "https://www.midjourney.com/",
+      "domains": [
+        "aicg_image"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Adobe Firefly",
+      "url": "https://www.adobe.com/products/firefly.html",
+      "domains": [
+        "aicg_image"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Runway Academy",
+      "url": "https://academy.runwayml.com/",
+      "domains": [
+        "aicg_video"
+      ],
+      "roles": [
+        "tutorial"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Kling Blog",
+      "url": "https://kling.ai/blog",
+      "domains": [
+        "aicg_video"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Pika",
+      "url": "https://pika.art/",
+      "domains": [
+        "aicg_video"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "ElevenLabs",
+      "url": "https://elevenlabs.io/",
+      "domains": [
+        "ai_audio_avatars"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Suno",
+      "url": "https://suno.com/",
+      "domains": [
+        "ai_audio_avatars"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "HeyGen",
+      "url": "https://www.heygen.com/",
+      "domains": [
+        "ai_audio_avatars"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "DeepLearning.AI Courses",
+      "url": "https://www.deeplearning.ai/courses/",
+      "domains": [
+        "ai_education"
+      ],
+      "roles": [
+        "tutorial"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Kaggle Learn",
+      "url": "https://www.kaggle.com/learn",
+      "domains": [
+        "ai_education"
+      ],
+      "roles": [
+        "tutorial"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Hugging Face Learn",
+      "url": "https://huggingface.co/learn",
+      "domains": [
+        "ai_education"
+      ],
+      "roles": [
+        "tutorial"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "NVIDIA Developer Blog",
+      "url": "https://developer.nvidia.com/blog/",
+      "domains": [
+        "ai_infrastructure"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Ollama Blog",
+      "url": "https://ollama.com/blog",
+      "domains": [
+        "ai_infrastructure"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "vLLM GitHub",
+      "url": "https://github.com/vllm-project/vllm",
+      "domains": [
+        "ai_infrastructure"
+      ],
+      "roles": [
+        "discovery"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Hugging Face LeRobot",
+      "url": "https://huggingface.co/lerobot",
+      "domains": [
+        "robotics"
+      ],
+      "roles": [
+        "discovery"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "NVIDIA Robotics",
+      "url": "https://developer.nvidia.com/blog/category/robotics/",
+      "domains": [
+        "robotics"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Microsoft 365 Roadmap",
+      "url": "https://www.microsoft.com/en-us/microsoft-365/roadmap",
+      "domains": [
+        "industry_applications"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Microsoft Customer Stories",
+      "url": "https://www.microsoft.com/en-us/customers",
+      "domains": [
+        "industry_applications"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "NIST AI RMF",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "domains": [
+        "safety_policy"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "OWASP GenAI",
+      "url": "https://genai.owasp.org/",
+      "domains": [
+        "safety_policy"
+      ],
+      "roles": [
+        "official"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Stanford AI Index",
+      "url": "https://hai.stanford.edu/ai-index",
+      "domains": [
+        "business_trends"
+      ],
+      "roles": [
+        "evaluation"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "a16z AI",
+      "url": "https://a16z.com/ai/",
+      "domains": [
+        "business_trends"
+      ],
+      "roles": [
+        "discovery"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Similarweb",
+      "url": "https://www.similarweb.com/",
+      "domains": [
+        "business_trends"
+      ],
+      "roles": [
+        "trend"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "YouTube",
+      "url": "https://www.youtube.com/",
+      "domains": [
+        "ai_education"
+      ],
+      "roles": [
+        "community"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "X",
+      "url": "https://x.com/",
+      "domains": [
+        "foundation_models"
+      ],
+      "roles": [
+        "community"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Reddit",
+      "url": "https://www.reddit.com/",
+      "domains": [
+        "tools_products"
+      ],
+      "roles": [
+        "community"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Bilibili",
+      "url": "https://www.bilibili.com/",
+      "domains": [
+        "ai_education"
+      ],
+      "roles": [
+        "community"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Xiaohongshu",
+      "url": "https://www.xiaohongshu.com/",
+      "domains": [
+        "industry_applications"
+      ],
+      "roles": [
+        "trend"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Douyin",
+      "url": "https://www.douyin.com/",
+      "domains": [
+        "aicg_video"
+      ],
+      "roles": [
+        "trend"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Google Trends",
+      "url": "https://trends.google.com/trends/",
+      "domains": [
+        "business_trends"
+      ],
+      "roles": [
+        "trend"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    },
+    {
+      "name": "Hacker News",
+      "url": "https://news.ycombinator.com/",
+      "domains": [
+        "tools_products"
+      ],
+      "roles": [
+        "community"
+      ],
+      "collection": "on_demand",
+      "access_status": "not_checked"
+    }
+  ]
+}
