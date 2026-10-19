@@ -1,7 +1,7 @@
 ---
 name: ai-topic-research
 description: 全网AI选题研究专用。以吸引力和传播潜力为双硬门槛，按内容类型选择收藏/学习/认知/决策/情绪等回报；保留来源证据、跨日去重和AICG视觉验证。
-version: 2.1.5
+version: 2.1.6
 ---
 # AI Topic Research · V2.1 证据与查重强化（保留V2分类、v1.2内容评分）
 
@@ -10,6 +10,20 @@ version: 2.1.5
 - 项目总控：https://docs.google.com/document/d/1Jw9zjaNnEy9ixfuNSinf7ZL3Zh72wF7otLPD3rdyGZc/edit
 - 运营台账：https://docs.google.com/spreadsheets/d/1P9hGNDJmwil7KnWmUm7Y2IlPp1BRK3-erPdQ7fhHyQA/edit
 - 每次先读最新“决策与交接”、选题池、AICG选题池、AICG来源库、需求证据库、内容数据；台账优先。跨天去重、排除用户否定的同质选题。已有匿名采集雷达和北京约09:30日报不重复创建。
+
+## V2.1.6｜2026-10-20 社媒原生价值阻断：修复第47轮推荐失控
+
+本次不是重做选题类型配比，而是恢复**先判有无社媒传播作品，再判是否值得推荐**。第47轮把20条跨类研究线索当选题交付，其中“真实用途”“真实事件与观点”大量属于资讯/实用背景，缺少能够在X/小红书/抖音展示并激发收藏、讨论或转发的具体原始材料。用户明确认为整个系统跑偏。本次反馈已写运营台账；不将用户对这批候选的否定偷换为“所有新闻或实用教程永久禁选”。
+
+**强制执行顺序（不得只在输出中口头称已审核）：**
+1. 先看账号正反样本：X已发布AI漫画GitHub资源帖公开快照9685浏览/352收藏/236点赞，是观察到的正向样本；awesome-gpt-image-2、Seedance、Kling幕后、Pomerado为用户选择/编辑反馈而非同等真实传播证明。第43、46、47轮负向批次作为限制，避免旧题换名字回流。
+2. 对每个原始研究线索，先填 `social_pitch`：`platform`（x/xiaohongshu/douyin，明确首发平台）、`first_screen`（具体第一屏画面或真实一句话，必须与原始材料匹配）、`proof_object`（真正要展示的作品/演示/数据/资源本体）、`why_share_or_save`（哪类用户因为什么具体动作愿转发/收藏）、`account_fit`（与账号正反样本的类比及缺口）、`support_type`、`support_url`、`support_observation`。
+3. 传播支持A：`support_type=own_post` 或 `same_platform_post`，必须有 `support_metric` 和 `support_checked_at`；B：`support_type=original_work`，必须有 `original_published_at`、`editorial_hypothesis`，只可说“有具体原作的编辑预测”，不能说社媒已验证。不能用GitHub Stars、Product Hunt票、营销自报替代同平台传播指标。
+4. 四维 `content_scores` 必须与 `score_evidence`（attraction/spread/payoff/credibility各自可复查的理由）成对；数字只是人工初评，禁止先打85+再倒找证据。候选只有 `social_pitch`、原始 `signals`、独立审查与评分证据齐全，才能调用 `social-topic-radar/topic_quality_gate.py review`；其 `editorial_candidate` 仍仅表示**元数据过关、等待人审**，不表示已获用户认可/已有热度/能发。
+5. 最终人工闸门单独判断作品本身能否吸引目标平台用户、材料是否真看过（图/视频/数据）、同题竞争、版权和准确性。若不能用一幅有证据的画面、一段可用素材、一个明确的原创实物或扎实短论证呈现价值，退回背景资料。**“新品+功能+可能有用”“新闻+观点+推测会争论”“真实痛点+空教程”一律不能替代传播论证。**
+6. 每轮优先给**不超过3—5条通过上述人审的短名单**，保留受众、原始链接、实际素材/第一屏、A/B证据及不能发的限制。如果本轮0条通过，就明确报0条，而不是填满20条。用户明确要求20条时可以报告研究容量，但必须区分“研究线索/待核”和“正式精选”，不得把20条直接当作20篇可发布选题。
+
+**执行与验收要求：** 编辑/助手若没有实际完成脚本审核（或缺失运行通道），必须明说“未运行机械门槛”，不能伪称已审核。GitHub脚本更新和本条规范不足以自动保证推荐质量，需要后续用已通过人审的正例和被否决的负例做实际回归，再经用户选题反馈及平台真实作品数据验证。独立新闻、事件、认知观点、实际用途可以继续竞争，但仅在内容天然具备特定账号的社媒首屏理由时入选；不硬禁某个AI领域。
 
 ## V2.0 的三维分类与调用（2026-10-19）
 
