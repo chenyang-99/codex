@@ -29,6 +29,24 @@ def record():
             "freshness_reason":"假设近期出现实际开支对照，尚需来源核验"
         },
         "content_scores":{"attraction":23,"spread":26,"payoff":26,"credibility":12},
+        "score_evidence":{
+            "attraction":"首屏明确展示两张原始账单的差异（合成样本）",
+            "spread":"同类决策者可能转发费用陷阱的证据（合成样本）",
+            "payoff":"公开一份总成本比较表（合成样本）",
+            "credibility":"有两个原始来源，仍需人工确认内容（合成样本）"
+        },
+        "social_pitch":{
+            "platform":"x",
+            "first_screen":"两个账单的总成本并列，突出重试次数（合成样本）",
+            "proof_object":"可审阅的费用明细表，而非产品功能说明",
+            "why_share_or_save":"同类AI用户可把费用检查项转给朋友",
+            "account_fit":"参考已有可保存工具资源帖，但尚未验证真实受众",
+            "support_type":"original_work",
+            "support_url":"https://example.com/post/1",
+            "support_observation":"假设原作者提供可核账单表，尚需查证",
+            "original_published_at":"2026-10-19",
+            "editorial_hypothesis":"若原账单确实有反常识差异可做B类社媒初筛"
+        },
         "signals":[
             {"kind":"user_post","url":"https://example.com/post/1",
              "quote":"成本怎么算","read_scope":"actual_public_post"},
@@ -38,6 +56,31 @@ def record():
     }
 
 class GateTest(unittest.TestCase):
+    def test_missing_social_pitch_blocks_even_high_score(self):
+        x=record(); x.pop("social_pitch")
+        r=gate.review_one(x,set(),set(),set())
+        self.assertEqual(r["status"],"blocked")
+        self.assertIn("missing_social_pitch",r["blocking_reasons"])
+    def test_missing_first_screen_proof_blocks(self):
+        x=record(); x["social_pitch"]["proof_object"]=""
+        r=gate.review_one(x,set(),set(),set())
+        self.assertIn("missing_social_proof_object",r["blocking_reasons"])
+    def test_missing_score_rationale_blocks(self):
+        x=record(); x.pop("score_evidence")
+        r=gate.review_one(x,set(),set(),set())
+        self.assertIn("missing_score_evidence_by_dimension",r["blocking_reasons"])
+    def test_peer_post_requires_metric_and_timestamp(self):
+        x=record()
+        x["social_pitch"].update(support_type="same_platform_post",
+                                  support_url="https://example.org/viral")
+        r=gate.review_one(x,set(),set(),set())
+        self.assertIn("missing_social_support_metric",r["blocking_reasons"])
+        self.assertIn("missing_social_support_checked_at",r["blocking_reasons"])
+    def test_complete_metadata_never_auto_editorially_approves(self):
+        r=gate.review_one(record(),set(),set(),set())
+        self.assertEqual(r["status"],"editorial_candidate")
+        self.assertFalse(r["human_editorial_approval"])
+        self.assertEqual(r["social_native_verdict"],"manual_content_review_required")
     def test_two_post_contexts(self):
         x=gate.review_one(record(),set(),set(),set())
         self.assertEqual((x["status"],x["independent_post_contexts"]),("editorial_candidate",2))
