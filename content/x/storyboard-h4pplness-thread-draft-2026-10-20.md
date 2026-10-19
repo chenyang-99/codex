@@ -1,34 +1,32 @@
-# X 串推草稿｜H4pplness Storyboard Skill
+# X 串推草稿 V2｜Storyboard Skill 已真实生图
 
-日期：2026-10-20。状态：待审核，未发布。依据：正确原项目源码、独立6镜文本测试、角色参考图，以及2次失败的视觉输出。此次不能标榜生成成功的分镜海报/成片；不得使用错题图片作为演示图。
+日期：2026-10-20，待用户审核，未发布。
 
-1/5
+**发布素材：** 本次聊天实际生成的 `storyboard-skill-rain-seedling-v1.png` 和 `storyboard-skill-rain-seedling-v2.png`；建议首条配 V1 六格分镜海报。两张图片保存在会话附件中，尚未上传 GitHub。任何推文“使用Skill”仅指遵循上游技能文档执行，不宣称Codex CLI自动加载。
 
-找到一个开源 Storyboard Skill，原来它并不是“一键出视频”。H4pplness 做了两条路线：Claude 版整理分镜海报与视频提示词；ChatGPT 版再调用生图工具做角色设定和分镜海报。我拿一个原创故事做了次测试。🧵
+## 1/3
 
----
+我用开源 Storyboard Skill，把一段25秒的机器人短片做成了6格分镜海报。实际生成了两版图，却发现一个很典型的问题：脚本明明指定“白色花盆”，画面还是把植物种进了地里。
 
-2/5
-
-题目叫《雨滴与幼苗》：25秒、6镜。机器人在废弃温室发现枯苗，看到破窗滴下雨水，拿蓝色水壶接水、浇水，最后幼苗长出新叶。镜头分配4/4/4/4/5/4秒，高潮放在浇水那一镜。
+完整实测和结果在下面。🧵
 
 ---
 
-3/5
+## 2/3
 
-按原作者文本版规则，我做出了两份交付：一份16:9、6格的故事板海报Prompt；一份6场景视频Prompt。相机角度、动作、道具和时间都写明了。这部分是可复查的文本产物，不是视频成片。
-
----
-
-4/5
-
-图像侧没法报喜：角色参考图生成了，但后续两次生成故事板都偏离原定机器人剧情，还出现了没有核实的安装代码。因此这次故事板视觉验收没有通过；不能拿偏题图当成功案例。
+我用的是 H4pplness 的原始 Storyboard Skill：先整理镜头海报Prompt和分场视频Prompt，再按它的 ChatGPT 生图流程生成故事板。两版图都出现了6个镜头，时长相加是25秒，机器人和蓝色水壶也基本连贯。但第二版还改变了原定的动作顺序。
 
 ---
 
-5/5
+## 3/3
 
-我的判断：这种 Skill 值得用来把创意变成可检查的镜头计划；但Prompt写得完整，和模型最终能稳定保持人物/道具一致，是两回事。源码：https://github.com/H4pplness/storyboard-skill
-测试记录：https://github.com/chenyang-99/codex/blob/feature/h4pplness-storyboard-poster-20261020/content/storyboard-h4pplness-test-2026-10-20.md
+所以结论不是“一键生成视频”，而是：Skill能让分镜规划更清楚，图像模型仍可能漏道具、改动作。现在已经有两张真实分镜图，但还没生成视频，也没有验证Codex原生自动加载。
 
-发布前：人工核查画面和文字；如需出图演示，先真正生成主题匹配的6格故事板并审查授权、AI标识；无原生Codex启动验证。
+项目：https://github.com/H4pplness/storyboard-skill
+完整测试：https://github.com/chenyang-99/codex/blob/feature/h4pplness-storyboard-poster-20261020/content/storyboard-h4pplness-test-2026-10-20.md
+
+## 发布前事实门禁
+
+- 两次生成都得到同题材六格海报；白色盆栽缺失，严格连续性不通过。
+- 尚未生成完整短视频，GitHub PR #6 待合并，Codex 运行时自动调用未验证。
+- 图片属于AI生成，按发布平台要求标识；手动审稿后才能发布，不把草稿记录为已发布。
