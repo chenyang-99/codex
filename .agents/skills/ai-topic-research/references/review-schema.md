@@ -41,6 +41,24 @@
         "original_published_at": "2026-10-19",
         "freshness_reason": "最新原作者公开说明（样例字段，待真实核验）"
       },
+      "social_pitch": {
+        "platform": "x",
+        "first_screen": "原作品中的两幅真实对照画面，须获合法展示来源（样例）",
+        "proof_object": "原作者可回查的原创视频和逐镜头说明（样例）",
+        "why_share_or_save": "创作者可收藏本次镜头取舍和具体对比（样例）",
+        "account_fit": "对照本账号AI漫画资源帖正向表现，此处仅为示范，不代表同题流量（样例）",
+        "support_type": "original_work",
+        "support_url": "https://example.org/creator-work",
+        "support_observation": "已读原作并看到视觉差异（样例数据非真实核查）",
+        "original_published_at": "2026-10-19",
+        "editorial_hypothesis": "如果同题内容目前缺原始视觉对照，可能有收藏价值（仅假说）"
+      },
+      "score_evidence": {
+        "attraction": "能在第一屏展示原作对照，仍需合法素材验证（样例）",
+        "spread": "创作者会围绕视觉取舍讨论，未实测传播（样例）",
+        "payoff": "可以带走一套具体镜头判断方式（样例）",
+        "credibility": "有原作者一手资料，未完成独立复现（样例）"
+      },
       "content_scores": {
         "attraction": 23,
         "spread": 26,
@@ -61,6 +79,20 @@
 `utility`（实用）、`learning`（学习）、`save`（收藏资料）、`insight`（认知）、`decision`（决策）、`information`（信息发现）、`emotion`（情绪）、`entertainment`（审美娱乐）、`social_expression`（社交表达）。允许仅选择**一项**强主导价值，不强制收藏或教程。选题档案兼容旧版 `value_type` 中文标签，并增加“学习、收藏、信息、审美娱乐、社交表达”；旧数据无需批量修改。
 
 更新的是**类型兼容性**，不是评分豁免：吸引力、传播潜力、读者回报、来源可信与原创增量分项及总分硬门槛一律保留；机器不验证一条新闻的时效真实性，也不证明审美效果。所有价值仍须以原始证据和人审说明具体兑现内容。
+
+## 2026-10-20｜V2.1.6 社媒原生审核的新增硬字段
+
+`topic_quality_gate.py review` 现在要求 `social_pitch` 和四维 `score_evidence`。它们是申请进入“元数据过关的编辑候选”的前置条件，不替代真人判断或用户批准。
+
+- `social_pitch.platform` 必须为 `x`、`xiaohongshu`、`douyin` 之一（先明确首发平台）。
+- `first_screen` 必须给出真实而具体的第一屏内容；`proof_object` 是可见的原始实物/作品/对照或足够扎实的短论证，不能仅填“新品介绍”。
+- `why_share_or_save` 指向哪类实际受众为什么愿意收藏、转述或评论；`account_fit` 说明与本账号样本的适配证据或其局限；`support_observation` 说明原材料里具体观察到什么。
+- `support_type=own_post` 或 `same_platform_post` 时要求 `support_url`、`support_metric`、`support_checked_at`；只有来源数据符合平台/时间口径才能作为社媒验证。
+- `support_type=original_work` 时要求 `support_url`、`original_published_at`、`editorial_hypothesis`；只表示存在可核原作和编辑预测，不等于已在平台表现突出。
+- `score_evidence` 中 `attraction`、`spread`、`payoff`、`credibility` 的逐项依据均不能为空；旧 `content_scores` 总分高也不能跳过。
+- `review_one` 返回的 `human_editorial_approval=false` 与 `social_native_verdict=manual_content_review_required` 提醒：机器通过≠真人内容审核通过≠正式发布许可。
+
+本附录是格式样例，示例 `example.org` 与假设场景没有平台热度、真实采集或人工实操证明，不得直接以此示例申报选题。
 
 ## 字段与边界
 
