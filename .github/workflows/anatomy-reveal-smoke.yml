@@ -1,0 +1,85 @@
+name: Anatomy Reveal official skill smoke test
+
+on:
+  push:
+    branches:
+      - 'test/anatomy-reveal-20261020'
+    paths:
+      - '.agents/skills/anatomy-reveal/**'
+      - '.github/workflows/anatomy-reveal-smoke.yml'
+  pull_request:
+    paths:
+      - '.agents/skills/anatomy-reveal/**'
+      - '.github/workflows/anatomy-reveal-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render-official-espresso:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install render tools
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg imagemagick
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          elif command -v chromium >/dev/null 2>&1; then
+            echo "CHROME_PATH=$(command -v chromium)" >> "$GITHUB_ENV"
+          else
+            echo "Chrome/Chromium missing" >&2
+            exit 1
+          fi
+          if command -v magick >/dev/null 2>&1; then
+            echo "MAGICK=$(command -v magick)" >> "$GITHUB_ENV"
+          else
+            echo "MAGICK=$(command -v convert)" >> "$GITHUB_ENV"
+          fi
+          ffmpeg -version | head -n 1
+      - name: Initialize official espresso example
+        shell: bash
+        run: |
+          node .agents/skills/anatomy-reveal/scripts/new-project.mjs "$RUNNER_TEMP/anatomy-espresso"
+          cd "$RUNNER_TEMP/anatomy-espresso"
+          node object/test-page.mjs --light
+          node object/build.mjs --light
+          test -s object/figure-light.html
+      - name: Check parts and timeline
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP/anatomy-espresso"
+          node motion/build.mjs --duration 3 --ratio 9:16
+          npm run check
+      - name: Render short MP4 from original geometry
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP/anatomy-espresso"
+          mkdir -p out/stills
+          node motion/render.mjs stills 0,1,2,3 out/stills
+          node motion/render.mjs blur out/blur --step 100 --most 1
+          node motion/encode.mjs out/blur out/espresso-machine-smoke.mp4
+          ffmpeg -v error -i out/espresso-machine-smoke.mp4 -f null -
+          ffprobe -v error -show_entries stream=codec_name,width,height,r_frame_rate,nb_frames -show_entries format=duration -of json out/espresso-machine-smoke.mp4 | tee out/verify.json
+      - name: Upload demonstration artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: anatomy-reveal-official-smoke
+          path: |
+            \${{ runner.temp }}/anatomy-espresso/object/figure.html
+            \${{ runner.temp }}/anatomy-espresso/object/figure-light.html
+            \${{ runner.temp }}/anatomy-espresso/out/espresso-machine-smoke.mp4
+            \${{ runner.temp }}/anatomy-espresso/out/verify.json
+            \${{ runner.temp }}/anatomy-espresso/out/stills/*.png
+          if-no-files-found: warn
+          retention-days: 14
