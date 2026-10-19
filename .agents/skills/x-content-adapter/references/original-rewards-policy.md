@@ -9,7 +9,7 @@
 5. X 自动化规则： https://help.x.com/en/rules-and-policies/x-automation
 
 ## A. 资格要求（申请时的账户级门槛）
-必须逐项核对：所在国家/地区可用；18+；账号符合政策、Personal 或 Business；有效的 Premium / Premium+ / Premium Business（或官方明确列出的对应 X Subscription 可用层级）；过去 90 天至少 500,000 个来自已认证用户首页时间线的曝光（不计回复）；至少 500 个已认证粉丝；持续发布原创内容。满足不等于自动获批，需审核。
+必须逐项核对：所在国家/地区可用；18+；账号符合政策、Personal 或 Business；有效的 Premium / Premium+ / Premium Business，或 X 官方当前列出的 X Subscription 的 Plus / Premium / Super / Ultra 档位（以用户实际资格页面与最新官方条款为准）；过去 90 天至少 500,000 个来自已认证用户首页时间线的曝光（不计回复）；至少 500 个已认证粉丝；持续发布原创内容。满足不等于自动获批，需审核。
 提醒：自己的 Premium Basic 不能作为当前申请资格；但 Premium Basic 观众产生的观看可能属于收益规则中的合格曝光。
 账号普通总粉、总曝光、转赞收藏、媒体浏览等都不能直接代替以上门槛。用户曾报 7.7K 有效曝光，应核对 Creator Studio 具体字段、同一时间窗口和认证粉丝，不假定已验证。
 
