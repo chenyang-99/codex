@@ -12,10 +12,10 @@ WEIGHTS = {"demand":25,"value":25,"evidence":20,"differentiation":15,"audience_f
 CONTENT_SCORE_CAPS = {"attraction":25,"spread":30,"payoff":30,"credibility":15}
 CONTENT_SCORE_MINS = {"attraction":20,"spread":23,"payoff":21,"credibility":10}
 CONTENT_FIELDS = ("attraction","spread_mechanism","payoff_description")
-PAYOFF_TYPES = {"save","learning","insight","decision","emotion","entertainment"}
+PAYOFF_TYPES = {"utility","learning","save","insight","decision","information","emotion","entertainment","social_expression"}
 SPREAD_CLASSES = {"verified_viral","fresh_potential"}
 EVIDENCE_KINDS = {"user_post","user_comment","official_release","original_case"}
-VALUE_TYPES = {"实用","决策","认知","情绪"}
+VALUE_TYPES = {"实用","学习","收藏","决策","认知","信息","情绪","审美娱乐","社交表达"}
 STATUSES = ("editorial_candidate","exploratory_only","blocked")
 
 def read(path):
