@@ -76,10 +76,10 @@ jobs:
         with:
           name: anatomy-reveal-official-smoke
           path: |
-            \${{ runner.temp }}/anatomy-espresso/object/figure.html
-            \${{ runner.temp }}/anatomy-espresso/object/figure-light.html
-            \${{ runner.temp }}/anatomy-espresso/out/espresso-machine-smoke.mp4
-            \${{ runner.temp }}/anatomy-espresso/out/verify.json
-            \${{ runner.temp }}/anatomy-espresso/out/stills/*.png
+            ${{ runner.temp }}/anatomy-espresso/object/figure.html
+            ${{ runner.temp }}/anatomy-espresso/object/figure-light.html
+            ${{ runner.temp }}/anatomy-espresso/out/espresso-machine-smoke.mp4
+            ${{ runner.temp }}/anatomy-espresso/out/verify.json
+            ${{ runner.temp }}/anatomy-espresso/out/stills/*.png
           if-no-files-found: warn
           retention-days: 14
