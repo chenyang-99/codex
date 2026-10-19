@@ -13,7 +13,7 @@ export function buildObject(T,{layer}){
    const p=T.prism({name,group,layer,F,polygon:[[x0,y0],[x1,y0],[x1,y1],[x0,y1]],s0:z0,s1:z1,steps:5,tone:"hi",crease:"lo",bevel:0,material});
    parts[name]=p;return p;
  }
- const shell=T.group("case",{parent:root});groups.case=shell;
+ const shell=T.group("case",{parent:root,slide:{direction:Z,travel:0}});groups.case=shell;
  box("case.bottom",shell,-145,145,-53,53,0,6,"gunmetal");
  box("case.left",shell,-145,-138,-53,53,6,28,"gunmetal");
  box("case.right",shell,138,145,-53,53,6,28,"gunmetal");
