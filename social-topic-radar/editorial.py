@@ -9,6 +9,7 @@ import json
 import re
 from pathlib import Path
 from urllib.parse import urlsplit,urlunsplit
+from topic_taxonomy import classify_text, ROLE_BY_LEGACY_KIND
 
 HERE=Path(__file__).resolve().parent
 OUT=HERE/"output"
@@ -155,6 +156,9 @@ def main():
         item["evidence_status"]="needs_original_full_text_verification"
         item["editorial_claims_verified"]=False
         item["social_virality_verified"]=False
+        # V2 orthogonal labels are retrieval hints, never evidence or approval.
+        item.update(classify_text(item.get("title"), item.get("excerpt")))
+        item["source_roles"] = ROLE_BY_LEGACY_KIND.get(item.get("source_type"), [])
         ranked.append(item)
     ranked.sort(key=lambda x:x["rank_score"],reverse=True)
     report={"checked_at_utc":dt.datetime.now(dt.timezone.utc).isoformat(),
