@@ -51,7 +51,10 @@ jobs:
           cp experiments/anatomy-reveal/keyboard/timeline.mjs "$RUNNER_TEMP/keyboard-anatomy/motion/timeline.mjs"
           cd "$RUNNER_TEMP/keyboard-anatomy"
           node object/test-page.mjs --light
+          node object/build.mjs
           node object/build.mjs --light
+          grep -q 'Mechanical keyboard' object/figure.html
+          grep -q 'Mechanical keyboard' object/figure-light.html
           node motion/build.mjs --duration 6 --ratio 9:16
           test -s object/figure-light.html
       - name: Strict parts and motion checks
