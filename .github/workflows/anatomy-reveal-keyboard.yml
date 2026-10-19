@@ -1,0 +1,92 @@
+name: Anatomy Reveal new-product keyboard test
+on:
+  push:
+    branches: ['test/anatomy-reveal-20261020']
+    paths:
+      - 'experiments/anatomy-reveal/keyboard/**'
+      - '.github/workflows/anatomy-reveal-keyboard.yml'
+  pull_request:
+    paths:
+      - 'experiments/anatomy-reveal/keyboard/**'
+      - '.github/workflows/anatomy-reveal-keyboard.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-new-keyboard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install required rendering programs
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg imagemagick
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          elif command -v chromium >/dev/null 2>&1; then
+            echo "CHROME_PATH=$(command -v chromium)" >> "$GITHUB_ENV"
+          else
+            echo "Chrome or Chromium not found" >&2
+            exit 1
+          fi
+          if command -v magick >/dev/null 2>&1; then
+            echo "MAGICK=$(command -v magick)" >> "$GITHUB_ENV"
+          else
+            echo "MAGICK=$(command -v convert)" >> "$GITHUB_ENV"
+          fi
+      - name: Initialize unmodified upstream Anatomy template
+        run: node .agents/skills/anatomy-reveal/scripts/new-project.mjs "$RUNNER_TEMP/keyboard-anatomy"
+      - name: Replace stock espresso geometry with independent keyboard
+        shell: bash
+        run: |
+          cp experiments/anatomy-reveal/keyboard/geometry.mjs "$RUNNER_TEMP/keyboard-anatomy/object/geometry.mjs"
+          cp experiments/anatomy-reveal/keyboard/film.mjs "$RUNNER_TEMP/keyboard-anatomy/object/film.mjs"
+          cp experiments/anatomy-reveal/keyboard/timeline.mjs "$RUNNER_TEMP/keyboard-anatomy/motion/timeline.mjs"
+          cd "$RUNNER_TEMP/keyboard-anatomy"
+          node object/test-page.mjs --light
+          node object/build.mjs
+          node object/build.mjs --light
+          grep -q 'Mechanical keyboard' object/figure.html
+          grep -q 'Mechanical keyboard' object/figure-light.html
+          node motion/build.mjs --duration 6 --ratio 9:16
+          test -s object/figure-light.html
+      - name: Strict parts and motion checks
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP/keyboard-anatomy"
+          mkdir -p out
+          npm run check 2>&1 | tee out/geometry-check.log
+          test "$(grep -c 'no pairs pass through each other' out/geometry-check.log)" -eq 5
+          test "$(grep -c 'forced picks: 0' out/geometry-check.log)" -eq 5
+          grep -q 'every frame clean' out/geometry-check.log
+      - name: Render original engine into new keyboard MP4
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP/keyboard-anatomy"
+          mkdir -p out/stills
+          node motion/render.mjs stills 0,1,2,3,4,5,6 out/stills
+          node motion/render.mjs blur out/blur --step 100 --most 1
+          node motion/encode.mjs out/blur out/keyboard-anatomy.mp4
+          ffmpeg -v error -i out/keyboard-anatomy.mp4 -f null -
+          ffprobe -v error -show_entries stream=codec_name,width,height,r_frame_rate,nb_frames -show_entries format=duration -of json out/keyboard-anatomy.mp4 | tee out/verify-keyboard.json
+      - name: Upload HTML, video, screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: anatomy-reveal-new-keyboard
+          path: |
+            ${{ runner.temp }}/keyboard-anatomy/object/figure.html
+            ${{ runner.temp }}/keyboard-anatomy/object/figure-light.html
+            ${{ runner.temp }}/keyboard-anatomy/out/keyboard-anatomy.mp4
+            ${{ runner.temp }}/keyboard-anatomy/out/verify-keyboard.json
+            ${{ runner.temp }}/keyboard-anatomy/out/geometry-check.log
+            ${{ runner.temp }}/keyboard-anatomy/out/stills/*.png
+          if-no-files-found: warn
+          retention-days: 14
