@@ -27,3 +27,10 @@ that file instead of relying on automatic skill discovery.
 Preserve the original copyright and license notices. The current upstream
 release permits free personal non-commercial use; commercial use requires the
 author's separate authorization. Installation does not grant commercial rights.
+
+
+## X account operations in the AI content project
+
+For tasks involving operating, planning, auditing, growing, or monetizing the user's X account @CY160909, read \`.agents/skills/x-account-operations/SKILL.md\` and its task-relevant references before proposing decisions. It is the strategy and accountability layer; do not replace the existing topic research, copy-production, or X publishing-format adapter skills.
+
+For confirmed topics and X copy tasks, continue following \`.agents/skills/ai-copy-production/SKILL.md\` and \`.agents/skills/x-content-adapter/SKILL.md\`. For current project history and real content data, use the existing Google Docs and Google Sheets project records as the single source of truth. Do not infer the private Original Content Rewards metrics from public views, pretend to have a live X connection, or automatically create/post content for rewards. The operations Skill is a human-in-the-loop research-backed prototype; no real account outcome is yet validated.
