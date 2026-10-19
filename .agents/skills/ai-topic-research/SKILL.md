@@ -1,15 +1,33 @@
 ---
 name: ai-topic-research
 description: 全网AI选题研究专用。以吸引力和传播潜力为双硬门槛，按内容类型选择收藏/学习/认知/决策/情绪等回报；保留来源证据、跨日去重和AICG视觉验证。
-version: 1.2.0
+version: 2.0.0
 ---
-# AI Topic Research · 选题阶段 v1.2（2026-10-19 最新用户修订）
+# AI Topic Research · V2.0 分类与信源系统（沿用 v1.2 内容评分）
 
 ## 职责与权威上下文
 仅负责选题发现、原始证据审核、差异化角度、排名和用户反馈；不负责自动出稿、制图、发布。已有选题/初稿不强迫重新研究；按事实核验承接。
 - 项目总控：https://docs.google.com/document/d/1Jw9zjaNnEy9ixfuNSinf7ZL3Zh72wF7otLPD3rdyGZc/edit
 - 运营台账：https://docs.google.com/spreadsheets/d/1P9hGNDJmwil7KnWmUm7Y2IlPp1BRK3-erPdQ7fhHyQA/edit
 - 每次先读最新“决策与交接”、选题池、AICG选题池、AICG来源库、需求证据库、内容数据；台账优先。跨天去重、排除用户否定的同质选题。已有匿名采集雷达和北京约09:30日报不重复创建。
+
+## V2.0 的三维分类与调用（2026-10-19）
+
+**不能把内容类型、AI领域和网站来源混成一套互斥类别。**
+- 内容类型（5）：工具与资源 `tool_resource`、资讯与动态 `news_update`、教程与技巧 `tutorial`、案例与测评 `case_review`、观点与趋势 `opinion_trend`。
+- AI领域（15）：参见 `social-topic-radar/topic_taxonomy.py` 的 `AI_DOMAINS`。同一题允许多个领域标签，例如教程 × AI视频 × Agent；AICG作为重点垂直频道，不与教程等内容类型互斥。
+- 信源职责（6）：官方 `official`、发现 `discovery`、独立评测 `evaluation`、社区 `community`、教程 `tutorial`、传播验证 `trend`。一个网站可以有多种职责。
+- **人工现场查询（不依赖定时任务）**：按用户指定的内容类型、AI领域、数量、时效检索、筛选、研究和评分；不足不凑。首先查 `source_catalog_v2.json` 的候选入口，再用可访问的网络工具核验一手来源，必要时交叉验证，禁止仅凭目录断言网站已检索。
+- **定时**：ChatGPT 已单独建立每小时雷达任务；GitHub `anonymous-social-probe.yml` 的匿名自动数据采集仍每3小时运行，二者非同一频率，不得把旧GitHub产物写成当小时新闻。
+
+### V2.0 工具与数据诚实边界
+- 原 `sources.json` 是当前**实际配置的RSS/Atom订阅**；`source_catalog_v2.json` 是 15 个领域的**按需研究目录**，其 `access_status=not_checked` 表示未检验可访问性，**绝不是已部署爬虫，更不是已成功监控52个网站**。
+- `python social-topic-radar/topic_catalog.py sources --domain agents_automation` 查询领域来源；增加 `--role tutorial` 可按职责过滤。
+- `python social-topic-radar/topic_catalog.py classify --title "AI视频镜头教程"` 查看启发式分类，不产生评分、热度或事实结论。
+- `python social-topic-radar/topic_catalog.py coverage` 生成 `topic-source-coverage-v2.json/.md`，对比静态来源目录数量与实际RSS标题匹配；零匹配只能说明当前可见样本中无匹配，**不能推出全网无相关新闻**。
+- `editorial-shortlist.json` 附带 `content_type`、`domains`、`source_roles`、`classification_status`，保留原 `theme_tags`、`rank_score` 和未验证限制。
+- 先做原始来源、日期、热度、独立作者、场景、版权核验，再按下文已验证的 **v1.2 四维审核与人工门槛**选题；分类器不能绕过 `topic_quality_gate.py`。
+- 研究完确认的选题与否决项写回原Google Sheets（若有权限且写入成功），跨时段去重；不能因为任务已配置就声称长期历史数据持久化已完成。
 
 ## 用户最新纠偏：两项必备，其余价值按类型选，不机械“四项全要”
 **必须有：**
