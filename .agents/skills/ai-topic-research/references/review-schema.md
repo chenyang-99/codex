@@ -55,6 +55,13 @@
 }
 ```
 
+## 与出稿系统v2.6的价值标签兼容（2026-10-19）
+
+选题与出稿两套机械检查现在采用同一组 `content_values.payoff_type` / `value_delivery.primary_payoff_type` 代码：
+`utility`（实用）、`learning`（学习）、`save`（收藏资料）、`insight`（认知）、`decision`（决策）、`information`（信息发现）、`emotion`（情绪）、`entertainment`（审美娱乐）、`social_expression`（社交表达）。允许仅选择**一项**强主导价值，不强制收藏或教程。选题档案兼容旧版 `value_type` 中文标签，并增加“学习、收藏、信息、审美娱乐、社交表达”；旧数据无需批量修改。
+
+更新的是**类型兼容性**，不是评分豁免：吸引力、传播潜力、读者回报、来源可信与原创增量分项及总分硬门槛一律保留；机器不验证一条新闻的时效真实性，也不证明审美效果。所有价值仍须以原始证据和人审说明具体兑现内容。
+
 ## 字段与边界
 
 `content_values.attraction`（必填）：第一屏/前三秒真实而具体的看点，不能空喊爆炸。
