@@ -87,6 +87,34 @@ class GateTest(unittest.TestCase):
         x["signals"]=[{"kind":"original_case","url":"https://example.org/story",
                         "observed_result":"原创者故事与公开原始视频","read_scope":"actually_viewed_original"}]
         self.assertEqual(gate.review_one(x,set(),set(),set())["status"],"editorial_candidate")
+    def test_information_only_payoff_can_pass_without_save_or_tutorial(self):
+        x=record()
+        x["value_type"]="信息"
+        x["content_values"]["payoff_type"]="information"
+        x["content_values"]["payoff_description"]="读者及时知道一项已核对的发布变化以及适用人群"
+        x["signals"]=[{"kind":"official_release","url":"https://example.org/news",
+                       "claim":"官方说明新变化","read_scope":"actual_official_release"}]
+        self.assertNotIn("save_asset",x["content_values"])
+        self.assertEqual(gate.review_one(x,set(),set(),set())["status"],"editorial_candidate")
+
+    def test_utility_payoff_and_learning_value_type_accepted(self):
+        x=record()
+        x["value_type"]="学习"
+        x["content_values"]["payoff_type"]="utility"
+        x["content_values"]["payoff_description"]="能完成一个低成本实际任务"
+        x["signals"]=[{"kind":"original_case","url":"https://example.org/guide",
+                       "observed_result":"原作者公开的具体步骤","read_scope":"actually_read_original"}]
+        self.assertEqual(gate.review_one(x,set(),set(),set())["status"],"editorial_candidate")
+
+    def test_social_expression_payoff_can_pass_without_save(self):
+        x=record()
+        x["value_type"]="社交表达"
+        x["content_values"]["payoff_type"]="social_expression"
+        x["content_values"]["payoff_description"]="读者获得可核对的观点与公共讨论角度"
+        x["signals"]=[{"kind":"original_case","url":"https://example.org/opinion",
+                       "observed_result":"作者公开原始观点","read_scope":"actually_read_original"}]
+        self.assertEqual(gate.review_one(x,set(),set(),set())["status"],"editorial_candidate")
+
     def test_low_attraction_blocks(self):
         x=record();x["content_scores"]["attraction"]=10
         r=gate.review_one(x,set(),set(),set())
