@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PIXEL WIZARD — Self-contained Canvas spell loop</title>
+<style>
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080d20}
+  canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated;image-rendering:crisp-edges}
+</style>
+</head>
+<body><canvas id="display"></canvas>
+<script>
+'use strict';
+/* Independent one-file implementation of the public @zacxbt wizard prompt.
+   128×96 offscreen canvas, 24-color palette, integer scaling, 60-Hz fixed step,
+   pixel-quantized 10-fps character pose, allocated particle pool, no assets. */
+const W=128,H=96;
+const P=[
+ '#080d20', // 00 darkest sky
+ '#101630', // 01 sky
+ '#172443', // 02 back mountains
+ '#26274b', // 03 far purple
+ '#313959', // 04 slate outline
+ '#49536e', // 05 stone
+ '#646e84', // 06 stone highlight
+ '#e1d8b7', // 07 moon
+ '#fbf4d7', // 08 white/shine
+ '#52314b', // 09 deep crimson robe
+ '#78405b', // 10 robe shade
+ '#a65c6e', // 11 robe mid
+ '#d17b81', // 12 robe light
+ '#edaa96', // 13 skin
+ '#a17857', // 14 wood/gold shade
+ '#e4be80', // 15 gold
+ '#4a506f', // 16 beard dark
+ '#8a98b8', // 17 beard shade
+ '#c4ccdc', // 18 beard highlight
+ '#6c53aa', // 19 magic purple
+ '#a586ea', // 20 violet
+ '#5ba7e8', // 21 blue
+ '#60e5e3', // 22 cyan
+ '#c2fff2'  // 23 aqua white
+];
+const display=document.getElementById('display');const dc=display.getContext('2d',{alpha:false});
+const screen=document.createElement('canvas');screen.width=W;screen.height=H;
+const g=screen.getContext('2d',{alpha:false});
+g.imageSmoothingEnabled=false;dc.imageSmoothingEnabled=false;
+let fit=1,offx=0,offy=0,vw=0,vh=0;
+function resize(){const dpr=window.devicePixelRatio||1;vw=Math.floor(innerWidth*dpr);vh=Math.floor(innerHeight*dpr);display.width=vw;display.height=vh;fit=Math.max(1,Math.floor(Math.min(vw/W,vh/H)));offx=Math.floor((vw-W*fit)/2);offy=Math.floor((vh-H*fit)/2);dc.imageSmoothingEnabled=false;}
+addEventListener('resize',resize);resize();
+// No objects are created in the animation update or draw loops.
+function pixel(c,x,y,w=1,h=1){g.fillStyle=P[c];g.fillRect(x|0,y|0,w|0,h|0)}
+function line(c,x0,y0,x1,y1,th=1){x0=Math.round(x0);y0=Math.round(y0);x1=Math.round(x1);y1=Math.round(y1);let dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx+dy;for(;;){pixel(c,x0,y0,th,th);if(x0===x1&&y0===y1)break;let e2=2*err;if(e2>=dy){err+=dy;x0+=sx}if(e2<=dx){err+=dx;y0+=sy}}}
+function ease(t){t=Math.min(1,Math.max(0,t));return t*t*(3-2*t)}
+function rand(k){let x=(k*1664525+1013904223)>>>0;x^=x>>>16;x=Math.imul(x,2246822519)>>>0;x^=x>>>13;return (x>>>0)/4294967296}
+const MAX=100,px=new Float32Array(MAX),py=new Float32Array(MAX),vx=new Float32Array(MAX),vy=new Float32Array(MAX),life=new Uint16Array(MAX),maxlife=new Uint16Array(MAX),kind=new Uint8Array(MAX);let cursor=0;
+function spawn(x,y,dx,dy,ttl,type){const i=cursor;cursor=(cursor+1)%MAX;px[i]=x;py[i]=y;vx[i]=dx;vy[i]=dy;life[i]=ttl;maxlife[i]=ttl;kind[i]=type}
+// One complete loop: IDLE 120f, CHARGE 90f, CAST 42f, RECOVER 78f = 330f (5.5s).
+const IDLE=120,CHARGE=90,CAST=42,RECOVER=78,PERIOD=330;
+let frame=0,state=0,phase=0,gemX=56,gemY=43,staffRaise=0,shakeX=0,shakeY=0;
+function calcPose(f){
+ const sf=f%PERIOD;state=sf<IDLE?0:sf<IDLE+CHARGE?1:sf<IDLE+CHARGE+CAST?2:3;
+ phase=state===0?sf/IDLE:state===1?(sf-IDLE)/CHARGE:state===2?(sf-IDLE-CHARGE)/CAST:(sf-IDLE-CHARGE-CAST)/RECOVER;
+ staffRaise=state===1?ease(phase):state===2?1:state===3?1-ease(phase):0;
+ // Quantized to 10 fps sprite poses while physics still updates at 60fps.
+ const q=Math.floor(sf/6);
+ const bob=((q%6===2||q%6===3)?-1:0);
+ const sw=Math.round(Math.sin(q*0.8));
+ gemX=55+Math.round(5*staffRaise)+sw;
+ gemY=44-Math.round(14*staffRaise)+bob;
+ shakeX=state===2&&phase<.45?((f&1)?2:-2):0;
+ shakeY=state===2&&phase<.4?((f%3)?0:1):0;
+}
+function update(){
+ frame++;
+ calcPose(frame);
+ const sf=frame%PERIOD;
+ if(state===1&&sf%3===0){
+   const a=frame*0.26;const r=6+(1-phase)*12;
+   spawn(gemX+Math.cos(a)*r,gemY+Math.sin(a)*r,Math.cos(a+2.3)*0.25,Math.sin(a+2.3)*0.25,18,0);
+ }
+ if(state===2&&sf===IDLE+CHARGE+1){for(let n=0;n<38;n++){const a=n*2.39996;const v=.35+(n%6)*.17;spawn(gemX,gemY,Math.cos(a)*v,Math.sin(a)*v,16+(n%8),1)}}
+ if(state===2&&sf%2===0){let tx=gemX+(phase*103);spawn(tx,gemY+(Math.sin(phase*16)*2),-.6,(rand(sf)*2-1)*0.35,9,2)}
+ for(let i=0;i<MAX;i++){if(life[i]===0)continue;life[i]--;if(kind[i]===0){px[i]+=(gemX-px[i])*.12+vx[i];py[i]+=(gemY-py[i])*.12+vy[i]}else{px[i]+=vx[i];py[i]+=vy[i];if(kind[i]===1){vx[i]*=.975;vy[i]*=.975;}}}
+}
+function background(f){
+ pixel(0,0,0,W,H);pixel(1,0,14,W,47);
+ // Sparse hand-selected constellations and an 8x8 dither-free pixel moon.
+ for(let i=0;i<19;i++){const x=3+Math.floor(rand(i*17+5)*120),y=4+Math.floor(rand(i*47+13)*45);if(i%5===0){pixel((f/22|0)%3===i%3?8:6,x,y)}else{pixel((f/32|0)%4===i%4?7:5,x,y)}}
+ pixel(3,96,10,8,1);pixel(7,98,8,5,1);pixel(7,96,9,9,5);pixel(7,95,10,11,3);pixel(8,97,9,7,3);pixel(8,98,8,5,5);pixel(1,96,9,2,2);pixel(1,103,13,2,2);
+ // Distant mountains and low horizon.
+ pixel(2,0,66,128,16);
+ for(let x=0;x<W;x++){const wave=(Math.floor(3*Math.sin(x*.12)+2*Math.sin(x*.23)));pixel(3,x,67+wave,1,2)}
+ pixel(3,0,71,W,4);pixel(4,0,75,W,4);pixel(5,0,79,W,2);pixel(4,0,81,W,15);
+ // Stone tile seams and chips.
+ for(let x=0;x<W;x+=16){const offset=((x/16)&1)?4:0;pixel(3,x+offset,81,1,6);pixel(3,x+offset-6,90,1,6)}
+ for(let x=2;x<128;x+=21){pixel(6,x,77,4,1);pixel(3,x+8,84,4,1);pixel(5,x+12,92,2,1)}
+ // A faint, stylized horizon glyph.
+ pixel(4,111,64,3,10);pixel(5,112,64,1,1);pixel(4,115,68,4,6);pixel(4,8,69,6,6);
+}
+function wizard(f){
+ // Wizard silhouette occupies 24×35 logical pixels, procedural pixel rectangles.
+ const q=Math.floor((f%PERIOD)/6);const ox=28,oy=43+((q%6===2||q%6===3)?-1:0);
+ const sway=(q%4<2?0:1),beardSway=(q%3===0?1:0);
+ const staffBottomX=51,staffBottomY=72;
+ // Staff and gem behind the right arm.
+ line(3,staffBottomX-1,staffBottomY,gemX-1,gemY+1,3);
+ line(14,staffBottomX,staffBottomY,gemX,gemY+1,2);
+ pixel(15,Math.round((staffBottomX+gemX)/2),Math.round((staffBottomY+gemY+1)/2),1,3);
+ pixel(3,gemX-3,gemY-3,7,7);pixel(19,gemX-2,gemY-3,5,6);pixel(21,gemX-2,gemY-2,5,4);pixel(22,gemX-1,gemY-2,3,3);pixel(23,gemX,gemY-2,1,2);
+ // Cape lower boundary and distinctive hem.
+ pixel(3,ox+4,oy+22,21,14);
+ pixel(9,ox+5,oy+23,19,12);
+ pixel(10,ox+7,oy+24,14,10);pixel(11,ox+10,oy+25,10,9);
+ pixel(10,ox+4,oy+31,7,4);pixel(11,ox+18,oy+31,6,4);
+ pixel(3,ox+3,oy+33,23,3);pixel(9,ox+5,oy+34,6,2);pixel(10,ox+13,oy+34,7,2);
+ pixel(12,ox+11,oy+30,3,5);pixel(9,ox+10,oy+23,2,11);pixel(9,ox+22,oy+23,2,10);
+ // Boots barely visible on the stone.
+ pixel(3,ox+9,oy+36,5,2);pixel(3,ox+18,oy+36,5,2);pixel(14,ox+12,oy+35,1,1);
+ // Face, hat shadow and beard.
+ pixel(3,ox+9,oy+11,12,13);pixel(13,ox+10,oy+14,10,8);
+ pixel(14,ox+10,oy+19,10,2);pixel(3,ox+9,oy+12,12,2);
+ pixel(18,ox+10,oy+20,11,2);pixel(17,ox+10,oy+22,12,4);
+ pixel(16,ox+10,oy+26,11,4);pixel(18,ox+11+beardSway,oy+23,7,6);
+ pixel(17,ox+12+beardSway,oy+28,6,3);pixel(18,ox+14+beardSway,oy+30,2,3);
+ pixel(3,ox+12,oy+17,2,2);pixel(3,ox+18,oy+17,2,2);pixel(7,ox+13,oy+17,1,1);pixel(7,ox+19,oy+17,1,1);
+ pixel(13,ox+14,oy+20,4,1);
+ // Hat brim and pointed bent tip.
+ pixel(3,ox+5,oy+11,22,4);pixel(9,ox+6,oy+12,20,2);pixel(11,ox+11,oy+12,11,1);
+ // Bent hat top: widening bands over an asymmetric tip.
+ pixel(3,ox+7,oy+0,6,3);pixel(10,ox+8,oy+1,4,2);
+ pixel(3,ox+11,oy+2,6,4);pixel(9,ox+12,oy+3,4,3);
+ pixel(3,ox+12,oy+5,8,4);pixel(9,ox+13,oy+6,6,3);pixel(11,ox+16,oy+8,3,1);
+ pixel(3,ox+9,oy+8,14,4);pixel(9,ox+10,oy+9,12,2);pixel(10,ox+13,oy+10,8,1);
+ pixel(15,ox+18,oy+10,2,2);pixel(15,ox+9,oy+12,3,1);
+ // Loose shoulder, moving casting arm, hand, gloved fingers.
+ const armY=oy+22-Math.round(staffRaise*7),armX=ox+21+Math.round(staffRaise*2);
+ pixel(3,ox+20,oy+21,6,8);pixel(10,ox+21,oy+22,4,6);
+ line(9,ox+23,oy+24,armX+4,armY,4);line(11,ox+24,oy+23,armX+4,armY,2);
+ pixel(3,armX+2,armY-1,5,5);pixel(13,armX+3,armY,3,3);
+ // Belt and metallic buckle.
+ pixel(9,ox+7,oy+30,16,2);pixel(15,ox+14,oy+29,4,4);pixel(9,ox+15,oy+30,2,2);
+ // Gem lighting on right shoulder / hat edge. Keep palette discrete.
+ if(staffRaise>.2){pixel(21,ox+25,oy+22,1,3);pixel(22,ox+21,oy+11,1,2);pixel(20,ox+23,oy+27,1,2)}
+ if(staffRaise>.7){pixel(23,ox+20,oy+6,1,1);pixel(22,ox+26,oy+23,1,2)}
+}
+function effects(f){
+ const sf=f%PERIOD;
+ if(state===1){
+  if((f/5|0)%2===0){pixel(23,gemX-1,gemY-5,3,1);pixel(21,gemX-4,gemY,1,2);pixel(23,gemX+4,gemY,1,1)}
+  for(let j=0;j<3;j++){const a=f*.18+j*2.1;const r=10-j*2;pixel(20+j,Math.round(gemX+Math.cos(a)*r),Math.round(gemY+Math.sin(a)*r),1,1)}
+ }
+ if(state===2){
+  const t=phase;let tx=Math.round(gemX+t*103),ty=Math.round(gemY+Math.sin(t*16)*2);
+  if(tx<125){line(19,tx-11,ty,tx,ty,2);line(21,tx-7,ty-1,tx,ty-1,2);pixel(22,tx-3,ty-2,6,5);pixel(23,tx-1,ty-1,4,3);pixel(8,tx,ty,2,1)}
+  if(t<.32){const r=Math.round(t*17);for(let d=0;d<8;d++){const a=d*Math.PI/4;pixel(d&1?23:20,Math.round(gemX+Math.cos(a)*r),Math.round(gemY+Math.sin(a)*r),2,2)}}
+  if(t>.6){const r=Math.round((t-.6)*28);for(let d=0;d<12;d++){const a=d*Math.PI/6;pixel(d%3===0?23:d%3===1?22:20,Math.round(112+Math.cos(a)*r),Math.round(41+Math.sin(a)*r),d%4===0?2:1,d%4===0?2:1)}}
+ }
+ for(let i=0;i<MAX;i++){if(life[i]===0)continue;const t=life[i]/maxlife[i];const c=t>.75?23:t>.48?22:t>.25?20:19;pixel(c,Math.round(px[i]),Math.round(py[i]),t>.75&&kind[i]===1?2:1,t>.75&&kind[i]===1?2:1)}
+}
+function render(){
+ g.save();g.translate(shakeX,shakeY);
+ background(frame%PERIOD);wizard(frame);effects(frame);
+ g.restore();
+ dc.fillStyle=P[0];dc.fillRect(0,0,vw,vh);dc.imageSmoothingEnabled=false;dc.drawImage(screen,offx,offy,W*fit,H*fit);
+}
+const DT=1000/60;let last=0,acc=0,looping=true;
+function run(ts){if(!last)last=ts;acc+=Math.min(100,ts-last);last=ts;let limit=0;while(acc>=DT&&limit++<6){update();acc-=DT}render();if(looping)requestAnimationFrame(run)}
+// Stable hooks for deterministic offline capture; not used during production playback.
+window.__wizardTest={
+ getState:()=>({frame,state,phase,paletteSize:P.length,particlesAlive:life.reduce((a,b)=>a+(b>0),0),logical:[W,H],fit}),
+ seek:(f)=>{frame=0;life.fill(0);cursor=0;for(let i=0;i<f;i++)update();render();},
+ step:(n)=>{for(let i=0;i<n;i++)update();render();},
+ stop:()=>{looping=false;},
+ resume:()=>{if(!looping){looping=true;last=0;acc=0;requestAnimationFrame(run)}}
+};
+calcPose(0);render();requestAnimationFrame(run);
+</script></body></html>
