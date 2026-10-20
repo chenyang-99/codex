@@ -28,6 +28,21 @@ def record():
             "original_published_at":"2026-10-19",
             "freshness_reason":"假设近期出现实际开支对照，尚需来源核验"
         },
+        "value_scan":{k:("primary" if k=="decision" else "not_applicable")
+                      for k in ("utility","learning","save","decision","insight",
+                                "information","emotion","entertainment","social_expression")},
+        "value_proof":{
+            "source_url":"https://example.com/post/1",
+            "source_access":"original_read",
+            "evidence_status":"source_reviewed",
+            "observed_material":"模拟两种产品费用数据",
+            "reader_deliverable":"成本决策对照表",
+            "verification_check":"检查总价与重试次数",
+            "limitations":"模拟数据，非本账号实际测试",
+            "category_evidence":{"options_compared":"A方案和B方案",
+                                 "tradeoffs":"质量成本与耗时",
+                                 "decision_rule":"相同质量下对比总花费"}
+        },
         "content_scores":{"attraction":23,"spread":26,"payoff":26,"credibility":12},
         "score_evidence":{
             "attraction":"首屏明确展示两张原始账单的差异（合成样本）",
