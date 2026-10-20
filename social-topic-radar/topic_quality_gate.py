@@ -169,7 +169,8 @@ def audit_nine_values(topic):
     promise is fulfilled. A human must verify those claims before recommendation.
     """
     issues=[]
-    cv=topic.get("content_values") or {}
+    cv=topic.get("content_values")
+    if not isinstance(cv,dict): cv={}
     payoff=txt(cv.get("payoff_type"))
     scan=topic.get("value_scan")
     if not isinstance(scan,dict):
@@ -315,8 +316,8 @@ def review_one(topic,rejected,history,seen):
             "source_links":sorted(links),"human_supplied_score":score,
             "content_value_score":content_score,
             "social_native_verdict":"blocked_metadata" if social_issues else "manual_content_review_required",
-            "primary_value":txt((topic.get("content_values") or {}).get("payoff_type")),
-            "secondary_values":[k for k in VALUE_LABELS if (topic.get("value_scan") or {}).get(k)=="secondary"],
+            "primary_value":txt(topic.get("content_values",{}).get("payoff_type")) if isinstance(topic.get("content_values"),dict) else "",
+            "secondary_values":[k for k in VALUE_LABELS if isinstance(topic.get("value_scan"),dict) and topic["value_scan"].get(k)=="secondary"],
             "value_proof_verdict":"blocked_metadata" if value_issues else "manual_value_review_required",
             "human_editorial_approval":False,
             "content_value_verdict":("failed" if content_issues else
