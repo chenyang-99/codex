@@ -19,6 +19,30 @@ SOCIAL_SUPPORT_TYPES = {"own_post", "same_platform_post", "original_work"}
 EVIDENCE_KINDS = {"user_post","user_comment","official_release","original_case"}
 VALUE_TYPES = {"实用","学习","收藏","决策","认知","信息","情绪","审美娱乐","社交表达"}
 STATUSES = ("editorial_candidate","exploratory_only","blocked")
+# Nine reader-value dimensions: scan all nine but require only ONE primary.
+# This is a disclosure gate, not machine proof of content quality or virality.
+VALUE_LABELS = {
+    "utility":"实用", "learning":"学习", "save":"收藏", "decision":"决策",
+    "insight":"认知", "information":"信息", "emotion":"情绪",
+    "entertainment":"审美娱乐", "social_expression":"社交表达",
+}
+VALUE_PROOF_FIELDS = {
+    "utility":("task_input","deliverable_example","success_check"),
+    "learning":("teachable_skill","steps_and_prerequisites","learner_verification"),
+    "save":("reusable_asset","access_conditions","reuse_scenario"),
+    "decision":("options_compared","tradeoffs","decision_rule"),
+    "insight":("prior_understanding","new_interpretation","supporting_observation"),
+    "information":("new_fact","event_date","reader_impact"),
+    "emotion":("specific_story","emotional_turn","audience_connection"),
+    "entertainment":("actually_viewed_work","standout_moment","experience_reason"),
+    "social_expression":("discussion_question","grounded_positions","reason_to_express"),
+}
+VALUE_STATES = {"primary","secondary","not_applicable"}
+VALUE_SOURCE_ACCESS = {
+    "original_read","original_viewed","official_document_read","independently_tested"
+}
+VALUE_EVIDENCE_STATES = {"source_reviewed","independently_tested"}
+
 
 def read(path):
     try:
@@ -137,6 +161,62 @@ def audit_content_values(topic):
     if total<85: issues.append("content_score_total_below_85")
     return issues,total
 
+def audit_nine_values(topic):
+    """Demand source-linked, category-specific deliverables, not nine arbitrary scores.
+
+    Checks structured editorial declarations and link consistency only. It cannot
+    establish whether the source was actually read, the artwork is good, or the
+    promise is fulfilled. A human must verify those claims before recommendation.
+    """
+    issues=[]
+    cv=topic.get("content_values") or {}
+    payoff=txt(cv.get("payoff_type"))
+    scan=topic.get("value_scan")
+    if not isinstance(scan,dict):
+        issues.append("missing_nine_value_scan")
+        scan={}
+    for key in VALUE_LABELS:
+        if scan.get(key) not in VALUE_STATES:
+            issues.append("missing_or_invalid_value_scan_"+key)
+    if set(scan)-set(VALUE_LABELS):
+        issues.append("unknown_value_scan_dimension")
+    primaries=[key for key in VALUE_LABELS if scan.get(key)=="primary"]
+    if len(primaries)!=1:
+        issues.append("nine_value_scan_requires_one_primary")
+    if len(primaries)==1 and primaries[0]!=payoff:
+        issues.append("primary_value_mismatch")
+    if payoff in VALUE_LABELS and txt(topic.get("value_type"))!=VALUE_LABELS[payoff]:
+        issues.append("chinese_value_label_mismatch")
+    proof=topic.get("value_proof")
+    if not isinstance(proof,dict):
+        return issues+["missing_value_proof"]
+    for key in ("observed_material","reader_deliverable","verification_check","limitations"):
+        if not txt(proof.get(key)):
+            issues.append("missing_value_proof_"+key)
+    if proof.get("evidence_status") not in VALUE_EVIDENCE_STATES:
+        issues.append("unverified_value_evidence")
+    if proof.get("source_access") not in VALUE_SOURCE_ACCESS:
+        issues.append("unverified_value_source_access")
+    source=canon(proof.get("source_url"))
+    if not source:
+        issues.append("missing_value_proof_source_url")
+    else:
+        signal_links={canon(sig.get("url")) for sig in (topic.get("signals") or [])
+                      if isinstance(sig,dict)}
+        if source not in signal_links:
+            issues.append("unlinked_value_proof_source")
+    evidence=proof.get("category_evidence")
+    if not isinstance(evidence,dict):
+        evidence={}
+        issues.append("missing_category_value_evidence")
+    for field in VALUE_PROOF_FIELDS.get(payoff,()):
+        if not txt(evidence.get(field)):
+            issues.append("missing_value_"+payoff+"_"+field)
+    if payoff=="entertainment" and proof.get("source_access") not in (
+            "original_viewed","independently_tested"):
+        issues.append("visual_work_not_viewed")
+    return issues
+
 def audit_social_native_pitch(topic):
     """Reject attractive-sounding leads without a concrete, platform-native post concept.
 
@@ -188,6 +268,8 @@ def review_one(topic,rejected,history,seen):
     if topic.get("requires_test") and not txt(topic.get("test_gap")): issues.append("missing_preproduction_test_gap")
     content_issues,content_score=audit_content_values(topic)
     issues.extend(content_issues)
+    value_issues=audit_nine_values(topic)
+    issues.extend(value_issues)
     social_issues=audit_social_native_pitch(topic)
     issues.extend(social_issues)
     if content_score is not None:
@@ -233,6 +315,9 @@ def review_one(topic,rejected,history,seen):
             "source_links":sorted(links),"human_supplied_score":score,
             "content_value_score":content_score,
             "social_native_verdict":"blocked_metadata" if social_issues else "manual_content_review_required",
+            "primary_value":txt((topic.get("content_values") or {}).get("payoff_type")),
+            "secondary_values":[k for k in VALUE_LABELS if (topic.get("value_scan") or {}).get(k)=="secondary"],
+            "value_proof_verdict":"blocked_metadata" if value_issues else "manual_value_review_required",
             "human_editorial_approval":False,
             "content_value_verdict":("failed" if content_issues else
                 "unscored_exploration" if content_score is None else "passed"),
