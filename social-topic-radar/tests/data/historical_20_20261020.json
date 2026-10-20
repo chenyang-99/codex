@@ -1,0 +1,727 @@
+{
+  "sample_date": "2026-10-20",
+  "dataset_type": "20 authentic prior project topics with limited recorded source observations; not independent re-verification",
+  "source_authority": "Google 项目总控 / 决策与交接 / 选题池 / 内容数据",
+  "notes": [
+    "Previous user feedback is annotated but not used by value-proof checks",
+    "Even six evidence-complete declarations require human content and social-native review",
+    "Unverified cases are explicitly pending; do not claim content is false",
+    "No fabricated editorial scores, published status, or new platform metrics"
+  ],
+  "records": [
+    {
+      "topic_id": "H01",
+      "title": "7个AI漫画开源项目",
+      "value_type": "收藏",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "primary",
+        "decision": "not_applicable",
+        "insight": "not_applicable",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "save"
+      },
+      "historical_label": "published_positive",
+      "value_proof": {
+        "source_url": "https://x.com/CY160909/status/2111799455980658973",
+        "source_access": "original_read",
+        "evidence_status": "source_reviewed",
+        "observed_material": "已发布X资源帖、公开快照9685浏览、352收藏、236点赞、7个已核对仓库入口",
+        "reader_deliverable": "已发布X资源帖、公开快照9685浏览、352收藏、236点赞、7个已核对仓库入口",
+        "verification_check": "核对原始来源范围和主张，另做人审",
+        "limitations": "仅项目此前研究确认；尚未完成本次盲审，传播不可承诺",
+        "category_evidence": {
+          "reusable_asset": "7个AI漫画开源GitHub项目及各自用途",
+          "access_conditions": "开放仓库的使用与归档状态要逐项核对",
+          "reuse_scenario": "需要按剧情、角色一致性或上色选项目"
+        }
+      },
+      "signals": [
+        {
+          "kind": "original_case",
+          "url": "https://x.com/CY160909/status/2111799455980658973",
+          "observed_result": "已发布X资源帖、公开快照9685浏览、352收藏、236点赞、7个已核对仓库入口",
+          "read_scope": "actually_read_original"
+        }
+      ]
+    },
+    {
+      "topic_id": "H02",
+      "title": "Awesome GPT Image案例资源库",
+      "value_type": "收藏",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "primary",
+        "decision": "not_applicable",
+        "insight": "not_applicable",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "save"
+      },
+      "historical_label": "user_positive",
+      "value_proof": {
+        "source_url": "https://github.com/freestylefly/awesome-gpt-image-2",
+        "source_access": "original_read",
+        "evidence_status": "source_reviewed",
+        "observed_material": "README含大量案例与可复制Prompt，用户明确认为同批20条中此项有价值",
+        "reader_deliverable": "README含大量案例与可复制Prompt，用户明确认为同批20条中此项有价值",
+        "verification_check": "核对原始来源范围和主张，另做人审",
+        "limitations": "仅项目此前研究确认；尚未完成本次盲审，传播不可承诺",
+        "category_evidence": {
+          "reusable_asset": "作者公开的Prompt示例与图片案例",
+          "access_conditions": "各案例原始模型、版权与实际重现条件不同",
+          "reuse_scenario": "AI生图者查找可复用风格与指令"
+        }
+      },
+      "signals": [
+        {
+          "kind": "original_case",
+          "url": "https://github.com/freestylefly/awesome-gpt-image-2",
+          "observed_result": "README含大量案例与可复制Prompt，用户明确认为同批20条中此项有价值",
+          "read_scope": "actually_read_original"
+        }
+      ]
+    },
+    {
+      "topic_id": "H03",
+      "title": "Pomerado网页操作工具化",
+      "value_type": "实用",
+      "value_scan": {
+        "utility": "primary",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "not_applicable",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "utility"
+      },
+      "historical_label": "user_editorial_positive",
+      "value_proof": {
+        "source_url": "",
+        "source_access": "pending",
+        "evidence_status": "pending",
+        "observed_material": "",
+        "reader_deliverable": "",
+        "verification_check": "",
+        "limitations": "材料未足，不能声称已核实",
+        "category_evidence": {}
+      },
+      "signals": []
+    },
+    {
+      "topic_id": "H04",
+      "title": "Kling The Beat官方幕后",
+      "value_type": "学习",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "primary",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "not_applicable",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "learning"
+      },
+      "historical_label": "topic_positive_visual_rejected",
+      "value_proof": {
+        "source_url": "https://kling.ai/blog/Behind-the-Scenes-of-The-Beat",
+        "source_access": "original_read",
+        "evidence_status": "source_reviewed",
+        "observed_material": "官方幕后展示长镜头、角色参考、色彩声音等；多版自行制作的配图被用户与编辑拒绝",
+        "reader_deliverable": "官方幕后展示长镜头、角色参考、色彩声音等；多版自行制作的配图被用户与编辑拒绝",
+        "verification_check": "核对原始来源范围和主张，另做人审",
+        "limitations": "仅项目此前研究确认；尚未完成本次盲审，传播不可承诺",
+        "category_evidence": {
+          "teachable_skill": "依据参考材料组织镜头与角色连续性",
+          "steps_and_prerequisites": "逐项对照官方幕后：分镜、参考图、镜头路径、音画配合",
+          "learner_verification": "用真实官方镜头与自建分镜逐点比较，禁止混同"
+        }
+      },
+      "signals": [
+        {
+          "kind": "original_case",
+          "url": "https://kling.ai/blog/Behind-the-Scenes-of-The-Beat",
+          "observed_result": "官方幕后展示长镜头、角色参考、色彩声音等；多版自行制作的配图被用户与编辑拒绝",
+          "read_scope": "actually_read_original"
+        }
+      ]
+    },
+    {
+      "topic_id": "H05",
+      "title": "去AI味Qwen3-4B",
+      "value_type": "认知",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "primary",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "insight"
+      },
+      "historical_label": "research_selected",
+      "value_proof": {
+        "source_url": "https://kundutech.com/qwen3-4b-with-the-ai-writing-tics-trained-out/",
+        "source_access": "original_read",
+        "evidence_status": "source_reviewed",
+        "observed_material": "原作者英文写作评测出现分数更低但遵守指令更差的反向结果",
+        "reader_deliverable": "原作者英文写作评测出现分数更低但遵守指令更差的反向结果",
+        "verification_check": "核对原始来源范围和主张，另做人审",
+        "limitations": "仅项目此前研究确认；尚未完成本次盲审，传播不可承诺",
+        "category_evidence": {
+          "prior_understanding": "认为去AI味评分越低一定越好",
+          "new_interpretation": "风格分数与忠实完成任务存在权衡",
+          "supporting_observation": "作者示例中9.9风格分的版本遵守要求反而不如12.5分版本"
+        }
+      },
+      "signals": [
+        {
+          "kind": "original_case",
+          "url": "https://kundutech.com/qwen3-4b-with-the-ai-writing-tics-trained-out/",
+          "observed_result": "原作者英文写作评测出现分数更低但遵守指令更差的反向结果",
+          "read_scope": "actually_read_original"
+        }
+      ]
+    },
+    {
+      "topic_id": "H06",
+      "title": "MiniMax M3.1 Flash Agent成本",
+      "value_type": "决策",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "primary",
+        "insight": "not_applicable",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "decision"
+      },
+      "historical_label": "research_selected",
+      "value_proof": {
+        "source_url": "https://plotly.com/blog/minimax-m3-1-flash-plotly-data-analytics-bench/",
+        "source_access": "original_read",
+        "evidence_status": "source_reviewed",
+        "observed_material": "Plotly公开43题测试，正式版更准确但相对早期版耗时与估算费用更高",
+        "reader_deliverable": "Plotly公开43题测试，正式版更准确但相对早期版耗时与估算费用更高",
+        "verification_check": "核对原始来源范围和主张，另做人审",
+        "limitations": "仅项目此前研究确认；尚未完成本次盲审，传播不可承诺",
+        "category_evidence": {
+          "options_compared": "Space Bunny早期版与正式M3.1 Flash",
+          "tradeoffs": "答题正确数、调用次数、延迟和总估算API费用",
+          "decision_rule": "比较实际任务单位成功成本而不是单看Token价格"
+        }
+      },
+      "signals": [
+        {
+          "kind": "original_case",
+          "url": "https://plotly.com/blog/minimax-m3-1-flash-plotly-data-analytics-bench/",
+          "observed_result": "Plotly公开43题测试，正式版更准确但相对早期版耗时与估算费用更高",
+          "read_scope": "actually_read_original"
+        }
+      ]
+    },
+    {
+      "topic_id": "H07",
+      "title": "AI写代码自己看不懂",
+      "value_type": "认知",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "primary",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "insight"
+      },
+      "historical_label": "research_selected",
+      "value_proof": {
+        "source_url": "https://news.ycombinator.com/item?id=50151036",
+        "source_access": "pending",
+        "evidence_status": "pending",
+        "observed_material": "",
+        "reader_deliverable": "",
+        "verification_check": "",
+        "limitations": "材料未足，不能声称已核实",
+        "category_evidence": {}
+      },
+      "signals": [
+        {
+          "kind": "original_case",
+          "url": "https://news.ycombinator.com/item?id=50151036",
+          "observed_result": "待核实",
+          "read_scope": "unknown"
+        }
+      ]
+    },
+    {
+      "topic_id": "H08",
+      "title": "网站拒绝部分AI Agent访问",
+      "value_type": "信息",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "not_applicable",
+        "information": "primary",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "information"
+      },
+      "historical_label": "draft_then_batch_changed",
+      "value_proof": {
+        "source_url": "https://www.theverge.com/ai-artificial-intelligence/1013195/ai-agents-blocked-web",
+        "source_access": "original_read",
+        "evidence_status": "source_reviewed",
+        "observed_material": "The Verge报道多种网站访问限制及不同原因，尚无本账号原创访问实测",
+        "reader_deliverable": "The Verge报道多种网站访问限制及不同原因，尚无本账号原创访问实测",
+        "verification_check": "核对原始来源范围和主张，另做人审",
+        "limitations": "仅项目此前研究确认；尚未完成本次盲审，传播不可承诺",
+        "category_evidence": {
+          "new_fact": "部分购物、金融与航空网站限制未经授权的第三方Agent操作",
+          "event_date": "2026-10-17",
+          "reader_impact": "说明Agent能执行网页操作不代表获网站授权"
+        }
+      },
+      "signals": [
+        {
+          "kind": "original_case",
+          "url": "https://www.theverge.com/ai-artificial-intelligence/1013195/ai-agents-blocked-web",
+          "observed_result": "The Verge报道多种网站访问限制及不同原因，尚无本账号原创访问实测",
+          "read_scope": "actually_read_original"
+        }
+      ]
+    },
+    {
+      "topic_id": "H09",
+      "title": "Glasp视频高亮资料库",
+      "value_type": "实用",
+      "value_scan": {
+        "utility": "primary",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "not_applicable",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "utility"
+      },
+      "historical_label": "research_selected",
+      "value_proof": {
+        "source_url": "https://glasp.co/",
+        "source_access": "pending",
+        "evidence_status": "pending",
+        "observed_material": "",
+        "reader_deliverable": "",
+        "verification_check": "",
+        "limitations": "材料未足，不能声称已核实",
+        "category_evidence": {}
+      },
+      "signals": [
+        {
+          "kind": "original_case",
+          "url": "https://glasp.co/",
+          "observed_result": "待核实",
+          "read_scope": "unknown"
+        }
+      ]
+    },
+    {
+      "topic_id": "H10",
+      "title": "Notion Agent长任务",
+      "value_type": "信息",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "not_applicable",
+        "information": "primary",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "information"
+      },
+      "historical_label": "research_queued",
+      "value_proof": {
+        "source_url": "https://www.notion.com/blog/notion-ai-more-for-less",
+        "source_access": "pending",
+        "evidence_status": "pending",
+        "observed_material": "",
+        "reader_deliverable": "",
+        "verification_check": "",
+        "limitations": "材料未足，不能声称已核实",
+        "category_evidence": {}
+      },
+      "signals": [
+        {
+          "kind": "original_case",
+          "url": "https://www.notion.com/blog/notion-ai-more-for-less",
+          "observed_result": "待核实",
+          "read_scope": "unknown"
+        }
+      ]
+    },
+    {
+      "topic_id": "H11",
+      "title": "Hintly会议术语",
+      "value_type": "实用",
+      "value_scan": {
+        "utility": "primary",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "not_applicable",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "utility"
+      },
+      "historical_label": "user_negative_42",
+      "value_proof": {
+        "source_url": "",
+        "source_access": "pending",
+        "evidence_status": "pending",
+        "observed_material": "",
+        "reader_deliverable": "",
+        "verification_check": "",
+        "limitations": "材料未足，不能声称已核实",
+        "category_evidence": {}
+      },
+      "signals": []
+    },
+    {
+      "topic_id": "H12",
+      "title": "withHuman Agent审批",
+      "value_type": "决策",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "primary",
+        "insight": "not_applicable",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "decision"
+      },
+      "historical_label": "user_negative_42",
+      "value_proof": {
+        "source_url": "",
+        "source_access": "pending",
+        "evidence_status": "pending",
+        "observed_material": "",
+        "reader_deliverable": "",
+        "verification_check": "",
+        "limitations": "材料未足，不能声称已核实",
+        "category_evidence": {}
+      },
+      "signals": []
+    },
+    {
+      "topic_id": "H13",
+      "title": "Navige Agent省Token",
+      "value_type": "决策",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "primary",
+        "insight": "not_applicable",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "decision"
+      },
+      "historical_label": "user_negative_42",
+      "value_proof": {
+        "source_url": "",
+        "source_access": "pending",
+        "evidence_status": "pending",
+        "observed_material": "",
+        "reader_deliverable": "",
+        "verification_check": "",
+        "limitations": "材料未足，不能声称已核实",
+        "category_evidence": {}
+      },
+      "signals": []
+    },
+    {
+      "topic_id": "H14",
+      "title": "Meta Muse地址分享争议",
+      "value_type": "信息",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "not_applicable",
+        "information": "primary",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "information"
+      },
+      "historical_label": "user_negative_42",
+      "value_proof": {
+        "source_url": "",
+        "source_access": "pending",
+        "evidence_status": "pending",
+        "observed_material": "",
+        "reader_deliverable": "",
+        "verification_check": "",
+        "limitations": "材料未足，不能声称已核实",
+        "category_evidence": {}
+      },
+      "signals": []
+    },
+    {
+      "topic_id": "H15",
+      "title": "Google AI搜索引用链接",
+      "value_type": "信息",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "not_applicable",
+        "information": "primary",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "information"
+      },
+      "historical_label": "user_negative_42",
+      "value_proof": {
+        "source_url": "https://blog.google/products-and-platforms/products/search/updates-ai-mode-overviews-explore-web/",
+        "source_access": "pending",
+        "evidence_status": "pending",
+        "observed_material": "",
+        "reader_deliverable": "",
+        "verification_check": "",
+        "limitations": "材料未足，不能声称已核实",
+        "category_evidence": {}
+      },
+      "signals": [
+        {
+          "kind": "original_case",
+          "url": "https://blog.google/products-and-platforms/products/search/updates-ai-mode-overviews-explore-web/",
+          "observed_result": "待核实",
+          "read_scope": "unknown"
+        }
+      ]
+    },
+    {
+      "topic_id": "H16",
+      "title": "腾讯AI代理浏览事件",
+      "value_type": "认知",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "primary",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "insight"
+      },
+      "historical_label": "user_negative_42",
+      "value_proof": {
+        "source_url": "",
+        "source_access": "pending",
+        "evidence_status": "pending",
+        "observed_material": "",
+        "reader_deliverable": "",
+        "verification_check": "",
+        "limitations": "材料未足，不能声称已核实",
+        "category_evidence": {}
+      },
+      "signals": []
+    },
+    {
+      "topic_id": "H17",
+      "title": "中国AI技术出口政策变化",
+      "value_type": "信息",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "not_applicable",
+        "information": "primary",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "information"
+      },
+      "historical_label": "user_negative_42",
+      "value_proof": {
+        "source_url": "",
+        "source_access": "pending",
+        "evidence_status": "pending",
+        "observed_material": "",
+        "reader_deliverable": "",
+        "verification_check": "",
+        "limitations": "材料未足，不能声称已核实",
+        "category_evidence": {}
+      },
+      "signals": []
+    },
+    {
+      "topic_id": "H18",
+      "title": "Grimes AI MV幕后",
+      "value_type": "审美娱乐",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "not_applicable",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "primary",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "entertainment"
+      },
+      "historical_label": "user_negative_46",
+      "value_proof": {
+        "source_url": "",
+        "source_access": "pending",
+        "evidence_status": "pending",
+        "observed_material": "",
+        "reader_deliverable": "",
+        "verification_check": "",
+        "limitations": "材料未足，不能声称已核实",
+        "category_evidence": {}
+      },
+      "signals": []
+    },
+    {
+      "topic_id": "H19",
+      "title": "AI求职工作流",
+      "value_type": "实用",
+      "value_scan": {
+        "utility": "primary",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "not_applicable",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "utility"
+      },
+      "historical_label": "user_negative_46",
+      "value_proof": {
+        "source_url": "",
+        "source_access": "pending",
+        "evidence_status": "pending",
+        "observed_material": "",
+        "reader_deliverable": "",
+        "verification_check": "",
+        "limitations": "材料未足，不能声称已核实",
+        "category_evidence": {}
+      },
+      "signals": []
+    },
+    {
+      "topic_id": "H20",
+      "title": "陶哲轩AI数学观点",
+      "value_type": "认知",
+      "value_scan": {
+        "utility": "not_applicable",
+        "learning": "not_applicable",
+        "save": "not_applicable",
+        "decision": "not_applicable",
+        "insight": "primary",
+        "information": "not_applicable",
+        "emotion": "not_applicable",
+        "entertainment": "not_applicable",
+        "social_expression": "not_applicable"
+      },
+      "content_values": {
+        "payoff_type": "insight"
+      },
+      "historical_label": "user_negative_46",
+      "value_proof": {
+        "source_url": "",
+        "source_access": "pending",
+        "evidence_status": "pending",
+        "observed_material": "",
+        "reader_deliverable": "",
+        "verification_check": "",
+        "limitations": "材料未足，不能声称已核实",
+        "category_evidence": {}
+      },
+      "signals": []
+    }
+  ]
+}
