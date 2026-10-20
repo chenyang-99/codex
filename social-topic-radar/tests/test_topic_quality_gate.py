@@ -28,6 +28,21 @@ def record():
             "original_published_at":"2026-10-19",
             "freshness_reason":"假设近期出现实际开支对照，尚需来源核验"
         },
+        "value_scan":{k:("primary" if k=="decision" else "not_applicable")
+                      for k in ("utility","learning","save","decision","insight",
+                                "information","emotion","entertainment","social_expression")},
+        "value_proof":{
+            "source_url":"https://example.com/post/1",
+            "source_access":"original_read",
+            "evidence_status":"source_reviewed",
+            "observed_material":"模拟两种产品费用数据",
+            "reader_deliverable":"成本决策对照表",
+            "verification_check":"检查总价与重试次数",
+            "limitations":"模拟数据，非本账号实际测试",
+            "category_evidence":{"options_compared":"A方案和B方案",
+                                 "tradeoffs":"质量成本与耗时",
+                                 "decision_rule":"相同质量下对比总花费"}
+        },
         "content_scores":{"attraction":23,"spread":26,"payoff":26,"credibility":12},
         "score_evidence":{
             "attraction":"首屏明确展示两张原始账单的差异（合成样本）",
@@ -54,6 +69,16 @@ def record():
              "quote":"会员够用吗","read_scope":"actual_public_comment"}
         ]
     }
+
+def retarget(x, value, proof_url=None):
+    x["value_type"]=gate.VALUE_LABELS[value]
+    x["content_values"]["payoff_type"]=value
+    x["value_scan"]={k:("primary" if k==value else "not_applicable") for k in gate.VALUE_LABELS}
+    x["value_proof"]["source_url"]=proof_url or "https://example.com/post/1"
+    x["value_proof"]["source_access"]="original_viewed" if value=="entertainment" else "original_read"
+    x["value_proof"]["category_evidence"]={k:"可核查的测试示例 "+k
+                                           for k in gate.VALUE_PROOF_FIELDS[value]}
+    return x
 
 class GateTest(unittest.TestCase):
     def test_missing_social_pitch_blocks_even_high_score(self):
@@ -104,6 +129,7 @@ class GateTest(unittest.TestCase):
         x=record()
         x["signals"]=[{"kind":"official_release","url":"https://example.net/release",
                        "claim":"新功能上线","read_scope":"actual_official_release"}]
+        x["value_proof"]["source_url"]="https://example.net/release"
         self.assertEqual(gate.review_one(x,set(),set(),set())["status"],"editorial_candidate")
     def test_missing_content_values_blocks(self):
         x=record();x.pop("content_values")
@@ -117,33 +143,30 @@ class GateTest(unittest.TestCase):
         self.assertIsNone(r["content_value_score"])
     def test_no_save_no_tutorial_insight_can_pass(self):
         x=record()
-        x["content_values"]["payoff_type"]="insight"
+        retarget(x,"insight")
         x["content_values"]["payoff_description"]="理解一个有依据的行业反直觉判断"
         self.assertNotIn("save_asset",x["content_values"])
         self.assertNotIn("learning_outcome",x["content_values"])
         self.assertEqual(gate.review_one(x,set(),set(),set())["status"],"editorial_candidate")
     def test_emotional_story_without_prompt_can_pass(self):
         x=record()
-        x["value_type"]="情绪"
-        x["content_values"]["payoff_type"]="emotion"
+        retarget(x,"emotion","https://example.org/story")
         x["content_values"]["payoff_description"]="获得有深度的情感共鸣和分享动机"
         x["signals"]=[{"kind":"original_case","url":"https://example.org/story",
                         "observed_result":"原创者故事与公开原始视频","read_scope":"actually_viewed_original"}]
         self.assertEqual(gate.review_one(x,set(),set(),set())["status"],"editorial_candidate")
     def test_information_only_payoff_can_pass_without_save_or_tutorial(self):
         x=record()
-        x["value_type"]="信息"
-        x["content_values"]["payoff_type"]="information"
+        retarget(x,"information","https://example.org/news")
         x["content_values"]["payoff_description"]="读者及时知道一项已核对的发布变化以及适用人群"
         x["signals"]=[{"kind":"official_release","url":"https://example.org/news",
                        "claim":"官方说明新变化","read_scope":"actual_official_release"}]
         self.assertNotIn("save_asset",x["content_values"])
         self.assertEqual(gate.review_one(x,set(),set(),set())["status"],"editorial_candidate")
 
-    def test_utility_payoff_and_learning_value_type_accepted(self):
+    def test_utility_payoff_and_value_type_match(self):
         x=record()
-        x["value_type"]="学习"
-        x["content_values"]["payoff_type"]="utility"
+        retarget(x,"utility","https://example.org/guide")
         x["content_values"]["payoff_description"]="能完成一个低成本实际任务"
         x["signals"]=[{"kind":"original_case","url":"https://example.org/guide",
                        "observed_result":"原作者公开的具体步骤","read_scope":"actually_read_original"}]
@@ -151,8 +174,7 @@ class GateTest(unittest.TestCase):
 
     def test_social_expression_payoff_can_pass_without_save(self):
         x=record()
-        x["value_type"]="社交表达"
-        x["content_values"]["payoff_type"]="social_expression"
+        retarget(x,"social_expression","https://example.org/opinion")
         x["content_values"]["payoff_description"]="读者获得可核对的观点与公共讨论角度"
         x["signals"]=[{"kind":"original_case","url":"https://example.org/opinion",
                        "observed_result":"作者公开原始观点","read_scope":"actually_read_original"}]
@@ -186,6 +208,7 @@ class GateTest(unittest.TestCase):
         x=record()
         x["signals"]=[{"kind":"original_case","url":"https://example.org/author/work",
                        "observed_result":"作者公开原始资料","read_scope":"actually_read_original"}]
+        x["value_proof"]["source_url"]="https://example.org/author/work"
         self.assertEqual(gate.review_one(x,set(),set(),set())["status"],"editorial_candidate")
     def test_history_and_batch_duplicates(self):
         with TemporaryDirectory() as d:

@@ -1,0 +1,27 @@
+name: Nine-Value Topic Gate Tests
+on:
+  pull_request:
+    paths:
+      - 'social-topic-radar/topic_quality_gate.py'
+      - 'social-topic-radar/tests/**'
+      - '.github/workflows/nine-value-topic-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'social-topic-radar/topic_quality_gate.py'
+      - 'social-topic-radar/tests/**'
+      - '.github/workflows/nine-value-topic-gate.yml'
+jobs:
+  nine-value-regressions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile the topic gate
+        run: python -m py_compile social-topic-radar/topic_quality_gate.py
+      - name: Run all topic radar regressions
+        run: python -m unittest discover -s social-topic-radar/tests -v

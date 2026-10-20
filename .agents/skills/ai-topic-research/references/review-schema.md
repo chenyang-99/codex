@@ -41,6 +41,27 @@
         "original_published_at": "2026-10-19",
         "freshness_reason": "最新原作者公开说明（样例字段，待真实核验）"
       },
+      "value_scan": {
+        "utility":"not_applicable","learning":"not_applicable",
+        "save":"not_applicable","decision":"not_applicable",
+        "insight":"primary","information":"not_applicable",
+        "emotion":"secondary","entertainment":"not_applicable",
+        "social_expression":"not_applicable"
+      },
+      "value_proof": {
+        "source_url":"https://example.org/creator-work",
+        "source_access":"original_viewed",
+        "evidence_status":"source_reviewed",
+        "observed_material":"已查看原作者的两段对照镜头（模拟样本）",
+        "reader_deliverable":"一个可根据画面反差检验的审美选择解释",
+        "verification_check":"对照原视频画面及原作者文字说明",
+        "limitations":"示范字段；不得当作真实观看和核实记录",
+        "category_evidence":{
+          "prior_understanding":"原先认为最佳画面只取决于清晰度",
+          "new_interpretation":"镜头表达可能优先于单纯细节丰富度",
+          "supporting_observation":"需从实际可观看的片段中引用一个具体例子"
+        }
+      },
       "social_pitch": {
         "platform": "x",
         "first_screen": "原作品中的两幅真实对照画面，须获合法展示来源（样例）",
@@ -113,3 +134,33 @@
 真实来源 `signals[].kind` 限 `user_post`、`user_comment`、`official_release`（有claim）、`original_case`（有observed_result）；搜索摘要和无法打开的素材仅是线索。用户否定、跨天重复、IP/肖像/商标版权、安全合规及未经验证的本人亲测仍可一票否决。
 
 `editorial_candidate` 仅代表机械资料门槛通过，不表示内容已复刻成功、用户审稿通过或已发布。
+
+## 2026-10-20｜九大价值兑现证据门禁（本分支升级草案）
+
+原有九类 `payoff_type` 保持不变。**逐条扫描九类，不表示九种价值必须同时具备。** 每条只允许一个 `primary`，可有 `secondary`，其余标 `not_applicable`。中文 `value_type` 必须与主导的英文 `payoff_type` 一致。不能拿高的四维 `content_scores` 绕过这道证据门禁。
+
+**新增 `value_scan`**：键固定为 `utility,learning,save,decision,insight,information,emotion,entertainment,social_expression` 九项，值只能是 `primary/secondary/not_applicable`。各项只表示是否适合素材；无需九项都高分，不规定每批配比。
+
+**新增 `value_proof`**：
+
+- `source_url` 必须是 `signals[].url` 中记录的原始材料 URL，不能凭空造一个可点链接。若尚未读取材料，就标研究线索，**不要伪造 `source_reviewed`**。
+- `source_access`：`original_read`、`original_viewed`、`official_document_read`、`independently_tested`；审美娱乐作品必须是后两种中的 `original_viewed` 或 `independently_tested`。
+- `evidence_status` 仅在确已完成上述查阅时填 `source_reviewed`，真的独立执行过才用 `independently_tested`；未核实应填 `pending`，会阻断正式候选。
+- `observed_material`：真正看到/读到的具体片段、数据或成品；`reader_deliverable`：读者实际拿到的内容/体验；`verification_check`：如何检查是否兑现；`limitations`：范围、成本、设备、授权及误差边界。
+- `category_evidence` 必须包含与主价值对应的以下**三个专用字段**，并填入与原始材料相关的实质内容：
+
+| 主导价值 | 必需证据字段 | 不能仅靠什么充数 |
+|---|---|---|
+| 实用 `utility` | `task_input`、`deliverable_example`、`success_check` | “这个工具可能方便” |
+| 学习 `learning` | `teachable_skill`、`steps_and_prerequisites`、`learner_verification` | “教你掌握 AI” |
+| 收藏 `save` | `reusable_asset`、`access_conditions`、`reuse_scenario` | 只有资源名称、没有真实入口 |
+| 决策 `decision` | `options_compared`、`tradeoffs`、`decision_rule` | 一方厂商宣称降价 |
+| 认知 `insight` | `prior_understanding`、`new_interpretation`、`supporting_observation` | 给新闻加“反直觉”标题 |
+| 信息 `information` | `new_fact`、`event_date`、`reader_impact` | “某公司又发布新模型” |
+| 情绪 `emotion` | `specific_story`、`emotional_turn`、`audience_connection` | “令人感动”的空洞评价 |
+| 审美娱乐 `entertainment` | `actually_viewed_work`、`standout_moment`、`experience_reason` | 未实际观看的媒体标题/缩略图 |
+| 社交表达 `social_expression` | `discussion_question`、`grounded_positions`、`reason_to_express` | 制造没有事实基础的争议 |
+
+**流程与诚实边界**：九价值审查应位于产品/热点发现之后、四维排名之前，由人审先选定主价值、检查原始材料和可兑现内容；字段不齐时审核器返回 `blocked`，无法自行把研究线索升为精选。机器可以验证类型、字段、URL是否与来源登记一致及部分口径逻辑，**不能自动判定文案深度、画质、情绪、真实读者需求或数据真假**。机械候选仍返回 `human_editorial_approval=false`、`value_proof_verdict=manual_value_review_required`。
+
+旧档案不批量重写：再次推荐前补齐 `value_scan` 和 `value_proof`。对已经明确否决的题仍执行历史阻断；不因改标题或换价值标签绕过。经过真人精选以后才提交最多3条带首屏与证据材料的候选，不足可报0条。用户同意研究并不等于批准出稿，更不是已发布。
