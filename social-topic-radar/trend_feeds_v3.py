@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 import json
 import re
 import xml.etree.ElementTree as ET
@@ -88,6 +89,16 @@ def unpack_trending_json(raw):
             "published_utc": None,  # publication of RSS archive != project creation date
         }
 
+def normalized_date(value):
+    if not isinstance(value, str) or not value: return None
+    try:
+        return datetime.fromisoformat(value.replace("Z","+00:00")).astimezone(timezone.utc).isoformat()
+    except ValueError:
+        try:
+            return parsedate_to_datetime(value).astimezone(timezone.utc).isoformat()
+        except (TypeError,ValueError,OverflowError):
+            return None
+
 def fetch_one(source, cfg, read=retrieve):
     raw = read(cfg["url"])
     candidates = (unpack_xml(raw) if cfg["type"] == "xml" else unpack_trending_json(raw))
@@ -102,7 +113,7 @@ def fetch_one(source, cfg, read=retrieve):
             "url": url, "source": source, "platform": cfg["platform"],
             "title": re.sub(r"\s+", " ", str(item["title"])).strip()[:650],
             "project_url": item.get("project_url") if str(item.get("project_url") or "").startswith("https://") else "",
-            "published_utc": item.get("published_utc"),
+            "published_utc": normalized_date(item.get("published_utc")),
             "collected_utc": now,
             "metrics": {},
             "read_scope": cfg["scope"], "editorial_status": "research_candidate_only",
