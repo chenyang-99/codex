@@ -29,6 +29,7 @@ FILES = (
     ("aicg-fresh-candidates.json", "items_undated_or_time_unverified", "aicg"),
     ("aicg-original-site-items.json", "items", "aicg"),
     ("external-discovery.json", "items", "external"),
+    ("external-discovery-devto-hf.json", "items", "external"),
 )
 
 
