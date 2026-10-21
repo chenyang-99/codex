@@ -29,9 +29,8 @@ FILES = (
     ("aicg-fresh-candidates.json", "items_undated_or_time_unverified", "aicg"),
     ("aicg-original-site-items.json", "items", "aicg"),
     ("external-discovery.json", "items", "external"),
+    ("external-discovery-devto-hf.json", "items", "devto_hf"),
     ("x-hot-curator-v3.json", "items", "x_hot_curator"),
-    ("external-discovery-devto-hf.json", "items", "external"),
-    ("x-hot-curator-v3.json", "items", "x"),
 )
 
 
@@ -235,6 +234,7 @@ def main():
         "platform_capability_is_not_verified_by_registry": True,
         "cross_day_history_loaded": history is not None,
         "observed_platform_health": (load(args.input_dir / "external-discovery.json") or {}).get("source_health", [])
+        + (load(args.input_dir / "external-discovery-devto-hf.json") or {}).get("source_health", [])
         + (load(args.input_dir / "x-hot-curator-v3.json") or {}).get("source_health", []),
         "limitations": [
             "All channels are discovery options, not claims of exhaustive access.",
