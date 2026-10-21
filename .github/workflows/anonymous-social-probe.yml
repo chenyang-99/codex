@@ -88,6 +88,9 @@ jobs:
         run: python social-topic-radar/public_hot_discovery_v3.py
       - name: Collect DEV and Hugging Face Spaces trends (V3 shadow)
         run: python social-topic-radar/public_hot_channels.py
+      - name: Collect Product Hunt, Lobsters and GitHub Trending leads (V3 evidence only)
+        continue-on-error: true
+        run: python social-topic-radar/trend_feeds_v3.py
       - name: Probe X public keyword and curator discovery (V3 experimental)
         timeout-minutes: 3
         continue-on-error: true
