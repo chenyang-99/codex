@@ -35,6 +35,21 @@ FEEDS = {
         "platform": "lobsters",
         "scope": "official public programming community hottest-feed snapshot",
     },
+    "youtube_matt_wolfe": {
+        "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UChpleBmo18P08aKCIgti38g",
+        "type": "xml", "platform": "youtube",
+        "scope": "official @mreflow channel uploads, NOT YouTube-wide trending or view count",
+    },
+    "youtube_fireship": {
+        "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCsBjURrPoezykLs9EqgamOA",
+        "type": "xml", "platform": "youtube",
+        "scope": "official @Fireship channel uploads, NOT YouTube-wide trending or view count",
+    },
+    "youtube_two_minute_papers": {
+        "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCbfYPyITQ-7l4upoX8nvctg",
+        "type": "xml", "platform": "youtube",
+        "scope": "official @TwoMinutePapers upload metadata, video content not independently watched",
+    },
     "github_trending_mirror": {
         "url": "https://cdn.jsdelivr.net/gh/Hyraze/trending-collection@main/api/daily/all.json",
         "type": "json",
