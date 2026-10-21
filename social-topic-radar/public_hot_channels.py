@@ -168,10 +168,7 @@ def huggingface():
 
 
 COLLECTORS = {
-    "hackernews_show": lambda: hnews("hackernews_show"),
-    "hackernews_top": lambda: hnews("hackernews_top"),
     "devto_top": devto,
-    "v2ex_hot": v2ex,
     "hf_spaces": huggingface,
 }
 
@@ -209,7 +206,7 @@ def main():
             "No public-media rights or topic suitability automatically verified.",
         ],
     }
-    (OUT / "external-discovery.json").write_text(
+    (OUT / "external-discovery-devto-hf.json").write_text(
         json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"records": len(records), "sources": health},
                      ensure_ascii=False))
