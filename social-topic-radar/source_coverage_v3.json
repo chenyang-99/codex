@@ -1,0 +1,322 @@
+{
+  "schema_version": "3.0-shadow",
+  "last_reviewed": "2026-10-21",
+  "policy": "未验证的访问能力和热度不可标为已覆盖；私有内容需授权；所有跨平台热度指标按平台独立解释。",
+  "status_definitions": {
+    "partial": "仓库有公开采集/有限样本，不代表平台完整覆盖",
+    "limited": "入口测试可读取少量公开信息，存在明确限制",
+    "restricted": "历史环境实际访问受限",
+    "permission_required": "需要合规权限或独立授权，不提供越权途径",
+    "planned": "发现优先级已纳入矩阵，但当前未实现自动收集",
+    "on_demand": "可在对话或搜索时研究，非定时自动化",
+    "seed_only": "仅用户提供的种子/人工记录，非自动采集"
+  },
+  "sources": [
+    {
+      "id": "x",
+      "platform": "X／Twitter",
+      "region": "海外社交",
+      "signals": "爆帖/引用/推荐/作者",
+      "status": "partial",
+      "note": "固定作者及AICG作者采集；全局热帖与引用网络尚未自动化",
+      "url": "https://x.com"
+    },
+    {
+      "id": "reddit",
+      "platform": "Reddit",
+      "region": "海外社区",
+      "signals": "热门帖子/实测/评论需求",
+      "status": "limited",
+      "note": "GitHub环境先前遇到403；仅限合规公开访问",
+      "url": "https://www.reddit.com"
+    },
+    {
+      "id": "hackernews",
+      "platform": "Hacker News / Show HN",
+      "region": "开发者社区",
+      "signals": "Show HN/热门讨论/新品",
+      "status": "partial",
+      "note": "现有public_platforms.py可取有限样本",
+      "url": "https://news.ycombinator.com"
+    },
+    {
+      "id": "github",
+      "platform": "GitHub Trending / Releases",
+      "region": "项目平台",
+      "signals": "热门项目/版本/Star增速",
+      "status": "partial",
+      "note": "已有公开项目来源，但未覆盖完整Trending与增长序列",
+      "url": "https://github.com/trending"
+    },
+    {
+      "id": "youtube",
+      "platform": "YouTube / Shorts",
+      "region": "视频平台",
+      "signals": "热门实测/教程/演示",
+      "status": "partial",
+      "note": "已有公开视频样本，尚非完整热门搜索",
+      "url": "https://www.youtube.com"
+    },
+    {
+      "id": "bluesky",
+      "platform": "Bluesky",
+      "region": "海外社交",
+      "signals": "热门工具帖/创作者",
+      "status": "partial",
+      "note": "现有公开平台采样",
+      "url": "https://bsky.app"
+    },
+    {
+      "id": "producthunt",
+      "platform": "Product Hunt",
+      "region": "产品社区",
+      "signals": "每日新品/榜单/讨论",
+      "status": "planned",
+      "note": "缺独立热榜采集；站内votes不可当作X传播",
+      "url": "https://www.producthunt.com"
+    },
+    {
+      "id": "huggingface",
+      "platform": "Hugging Face / Spaces",
+      "region": "模型及作品",
+      "signals": "模型/Spaces/社区作品",
+      "status": "partial",
+      "note": "已有部分AICG站点和Hub来源；非全量榜单",
+      "url": "https://huggingface.co/spaces"
+    },
+    {
+      "id": "devto",
+      "platform": "DEV.to",
+      "region": "开发者内容",
+      "signals": "热门教程/开源工具",
+      "status": "partial",
+      "note": "部分RSS覆盖；不等于热榜采集",
+      "url": "https://dev.to"
+    },
+    {
+      "id": "substack",
+      "platform": "Substack / newsletters",
+      "region": "作者内容",
+      "signals": "高质量工具测评/深度教程",
+      "status": "on_demand",
+      "note": "按公开RSS或文章逐源发现",
+      "url": "https://substack.com"
+    },
+    {
+      "id": "indiehackers",
+      "platform": "Indie Hackers",
+      "region": "产品社区",
+      "signals": "独立开发者项目/案例",
+      "status": "planned",
+      "note": "未部署自动化",
+      "url": "https://www.indiehackers.com"
+    },
+    {
+      "id": "telegram",
+      "platform": "Telegram公开频道",
+      "region": "社群",
+      "signals": "公开推荐帖/趋势",
+      "status": "planned",
+      "note": "仅公开频道；可评估Horizon实现，不碰私群",
+      "url": "https://t.me"
+    },
+    {
+      "id": "discord",
+      "platform": "Discord公开社区",
+      "region": "社群",
+      "signals": "公开发布/应用演示",
+      "status": "permission_required",
+      "note": "不采集私群；官方权限或合法公开索引方可接入",
+      "url": "https://discord.com"
+    },
+    {
+      "id": "tiktok",
+      "platform": "TikTok",
+      "region": "海外短视频",
+      "signals": "热门短视频/教程/演示",
+      "status": "permission_required",
+      "note": "尚无稳定合规原帖采集器",
+      "url": "https://www.tiktok.com"
+    },
+    {
+      "id": "instagram",
+      "platform": "Instagram / Reels",
+      "region": "海外短视频",
+      "signals": "创意演示/热门Reels",
+      "status": "permission_required",
+      "note": "尚无稳定合规原帖采集器",
+      "url": "https://www.instagram.com"
+    },
+    {
+      "id": "threads",
+      "platform": "Threads",
+      "region": "海外社交",
+      "signals": "热门工具话题/教程",
+      "status": "permission_required",
+      "note": "尚无稳定合规原帖采集器",
+      "url": "https://www.threads.net"
+    },
+    {
+      "id": "linkedin",
+      "platform": "LinkedIn",
+      "region": "职场社区",
+      "signals": "AI工作流/生产力案例",
+      "status": "permission_required",
+      "note": "遵守公开/授权范围，无自动内容采集器",
+      "url": "https://www.linkedin.com"
+    },
+    {
+      "id": "pinterest",
+      "platform": "Pinterest",
+      "region": "视觉发现",
+      "signals": "图文教程/视觉风格",
+      "status": "planned",
+      "note": "研究发现入口，素材权利另核",
+      "url": "https://www.pinterest.com"
+    },
+    {
+      "id": "behance",
+      "platform": "Behance / Dribbble / Awwwards",
+      "region": "设计作品",
+      "signals": "热门视觉/设计实践",
+      "status": "planned",
+      "note": "需要作品原链、时间与许可信息",
+      "url": "https://www.behance.net"
+    },
+    {
+      "id": "douyin",
+      "platform": "抖音",
+      "region": "国内短视频",
+      "signals": "热门视频/话题/创作者",
+      "status": "limited",
+      "note": "仅公开热榜、有限演示与诊断；原视频评论受限",
+      "url": "https://www.douyin.com"
+    },
+    {
+      "id": "xiaohongshu",
+      "platform": "小红书",
+      "region": "国内图文",
+      "signals": "高收藏笔记/教程/评论需求",
+      "status": "restricted",
+      "note": "现有GitHub云采集曾返回-101；可用公开索引人工核查",
+      "url": "https://www.xiaohongshu.com"
+    },
+    {
+      "id": "bilibili",
+      "platform": "Bilibili",
+      "region": "国内视频",
+      "signals": "热门教程/UP主/评论",
+      "status": "partial",
+      "note": "现有公开检索与评论样本；尚非全站热榜",
+      "url": "https://www.bilibili.com"
+    },
+    {
+      "id": "weibo",
+      "platform": "微博",
+      "region": "国内社交",
+      "signals": "热搜/工具帖/话题",
+      "status": "planned",
+      "note": "未部署自动采集",
+      "url": "https://weibo.com"
+    },
+    {
+      "id": "zhihu",
+      "platform": "知乎",
+      "region": "国内问答",
+      "signals": "热榜/高赞经验/实际需求",
+      "status": "planned",
+      "note": "未部署自动采集",
+      "url": "https://www.zhihu.com"
+    },
+    {
+      "id": "jike",
+      "platform": "即刻",
+      "region": "国内社交",
+      "signals": "创作者实操/高互动动态",
+      "status": "permission_required",
+      "note": "尚无稳定匿名采集器",
+      "url": "https://web.okjike.com"
+    },
+    {
+      "id": "kuaishou",
+      "platform": "快手",
+      "region": "国内短视频",
+      "signals": "热门演示/教程",
+      "status": "permission_required",
+      "note": "尚无稳定匿名采集器",
+      "url": "https://www.kuaishou.com"
+    },
+    {
+      "id": "wechat",
+      "platform": "微信公众号",
+      "region": "国内长文",
+      "signals": "工具盘点/实操深度解析",
+      "status": "on_demand",
+      "note": "公开索引与原文研究；不等于全文自动抓取",
+      "url": "https://mp.weixin.qq.com"
+    },
+    {
+      "id": "juejin",
+      "platform": "稀土掘金",
+      "region": "国内开发者",
+      "signals": "热点教程/开发者工具",
+      "status": "planned",
+      "note": "未部署自动采集",
+      "url": "https://juejin.cn"
+    },
+    {
+      "id": "v2ex",
+      "platform": "V2EX",
+      "region": "国内技术社区",
+      "signals": "热门工具/真实反馈",
+      "status": "partial",
+      "note": "现有公开采集有限样本",
+      "url": "https://www.v2ex.com"
+    },
+    {
+      "id": "linuxdo",
+      "platform": "LinuxDo",
+      "region": "国内技术社区",
+      "signals": "开源/AI产品/需求",
+      "status": "permission_required",
+      "note": "账户或社区规则限制；只通过合规公开入口",
+      "url": "https://linux.do"
+    },
+    {
+      "id": "36kr",
+      "platform": "36氪等科技媒体",
+      "region": "国内资讯",
+      "signals": "新品报道/创企案例",
+      "status": "on_demand",
+      "note": "公开RSS/搜索可作发现线索，不直接等于热帖",
+      "url": "https://36kr.com"
+    },
+    {
+      "id": "official",
+      "platform": "官网/官方博客/模型发布",
+      "region": "全球一手来源",
+      "signals": "新品/版本/案例",
+      "status": "partial",
+      "note": "24 RSS配置、独立官网素材抓取；仅覆盖已配置源",
+      "url": "https://openai.com"
+    },
+    {
+      "id": "curator",
+      "platform": "公开策展账号及引用网络",
+      "region": "跨平台来源",
+      "signals": "引用帖→作者→原始项目",
+      "status": "seed_only",
+      "note": "@ianlacerda及20条样本已入Sheet；代码自动挖掘尚未部署",
+      "url": "https://x.com/ianlacerda"
+    },
+    {
+      "id": "search_index",
+      "platform": "Google/Bing等公开索引",
+      "region": "跨平台发现",
+      "signals": "站点检索/时效/链接回溯",
+      "status": "on_demand",
+      "note": "对封闭平台有补充价值；不等于原帖正文或热度",
+      "url": "https://www.google.com"
+    }
+  ]
+}

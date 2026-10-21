@@ -1,0 +1,211 @@
+{
+  "schema_version": "v3-shadow-seed",
+  "created_utc": "2026-10-21",
+  "note": "20 user-provided source links from @ianlacerda quote/follow network (individual relation not verified); 4 distinct recent quotes independently verified. Seeds are not an automatic X crawler.",
+  "items": [
+    {
+      "source": "x",
+      "author": "jamesmv49",
+      "url": "https://x.com/jamesmv49/status/2112365873973641605",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "0xgky",
+      "url": "https://x.com/0xgky/status/2107927694000239096",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "iamtanzil_",
+      "url": "https://x.com/iamtanzil_/status/2108066324907962575",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "nini_incrypto_",
+      "url": "https://x.com/nini_incrypto_/status/2108215385485111316",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified",
+      "project_url": "https://github.com/anthropics/knowledge-work-plugins"
+    },
+    {
+      "source": "x",
+      "author": "0x0sojalsec",
+      "url": "https://x.com/0x0sojalsec/status/2108031166502896035",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "0x0sojalsec",
+      "url": "https://x.com/0x0sojalsec/status/2108365916895654105",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified",
+      "project_url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"
+    },
+    {
+      "source": "x",
+      "author": "oliviscusai",
+      "url": "https://x.com/oliviscusai/status/2108390106856071321",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "ogridpete",
+      "url": "https://x.com/ogridpete/status/2108618952054096303",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "midudev",
+      "url": "https://x.com/midudev/status/2110793074356195622",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "sammmaing",
+      "url": "https://x.com/sammmaing/status/2109708195031900310",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "grgerwcwetwet",
+      "url": "https://x.com/grgerwcwetwet/status/2109977287185903813",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "mileson07",
+      "url": "https://x.com/mileson07/status/2110014349247221869",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "huoshan007",
+      "url": "https://x.com/huoshan007/status/2110191359818596527",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "albacnt",
+      "url": "https://x.com/albacnt/status/2110326141210730563",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "lexnlin",
+      "url": "https://x.com/lexnlin/status/2110122106537050584",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified",
+      "project_url": "https://github.com/Leonxlnx/taste-skill"
+    },
+    {
+      "source": "x",
+      "author": "ai_jasonyu",
+      "url": "https://x.com/ai_jasonyu/status/2110357344479482270",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "tezumies",
+      "url": "https://x.com/tezumies/status/2110483316348784784",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "grgerwcwetwet",
+      "url": "https://x.com/grgerwcwetwet/status/2110697299819319741",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified",
+      "project_url": "https://github.com/Thysrael/Horizon"
+    },
+    {
+      "source": "x",
+      "author": "tomgreenwald",
+      "url": "https://x.com/tomgreenwald/status/2110718297255670071",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified",
+      "project_url": "https://github.com/magnitudedev/magnitude"
+    },
+    {
+      "source": "x",
+      "author": "spuicey",
+      "url": "https://x.com/spuicey/status/2112344791635681477",
+      "curator": "https://x.com/ianlacerda",
+      "quote_relationship_verified": false,
+      "read_scope": "user_supplied_seed; individual quote attribution unverified"
+    },
+    {
+      "source": "x",
+      "author": "ianlacerda",
+      "url": "https://x.com/ianlacerda/status/2112686061499326914",
+      "curator": "https://x.com/ianlacerda",
+      "quoted_post_url": "https://x.com/CY160909/status/2112400163906216404",
+      "quote_relationship_verified": true,
+      "read_scope": "2026-10-21 public fxtwitter nested quote inspected",
+      "project_url": "https://github.com/LudwigKienle/ai-video-production-editor"
+    },
+    {
+      "source": "x",
+      "author": "ianlacerda",
+      "url": "https://x.com/ianlacerda/status/2112694535251956155",
+      "curator": "https://x.com/ianlacerda",
+      "quoted_post_url": "https://x.com/bkdgiffug/status/2112334733006749813",
+      "quote_relationship_verified": true,
+      "read_scope": "2026-10-21 public fxtwitter nested quote inspected"
+    },
+    {
+      "source": "x",
+      "author": "ianlacerda",
+      "url": "https://x.com/ianlacerda/status/2112694419413512441",
+      "curator": "https://x.com/ianlacerda",
+      "quoted_post_url": "https://x.com/Gyome1_/status/2112567090997567775",
+      "quote_relationship_verified": true,
+      "read_scope": "2026-10-21 public fxtwitter nested quote inspected",
+      "project_url": "https://github.com/alexgaoth/awesome-reverse-engineered"
+    },
+    {
+      "source": "x",
+      "author": "ianlacerda",
+      "url": "https://x.com/ianlacerda/status/2112700837365416231",
+      "curator": "https://x.com/ianlacerda",
+      "quoted_post_url": "https://x.com/tantanyuli/status/2112582115955003471",
+      "quote_relationship_verified": true,
+      "read_scope": "2026-10-21 public fxtwitter nested quote inspected",
+      "project_url": "https://github.com/CarterPerez-dev/Cybersecurity-Projects"
+    }
+  ]
+}

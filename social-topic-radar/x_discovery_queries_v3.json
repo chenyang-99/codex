@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "curators": [
+    "ianlacerda"
+  ],
+  "queries": [
+    "\"AI tools\" min_faves:50",
+    "\"open source\" \"AI\" min_faves:40",
+    "\"vibe coding\" min_faves:40",
+    "\"AI video\" \"github\" min_faves:20",
+    "\"AI design\" \"tools\" min_faves:25",
+    "\"开源\" \"AI\" min_faves:40"
+  ],
+  "readme": "Queries are a test set, not all of X. The third-party pinned reader can be blocked or return partial results; failed calls are labeled."
+}
