@@ -97,6 +97,17 @@ class TrendFeedTests(unittest.TestCase):
         self.assertEqual("https://github.com/a/tool",rows[0]["project_url"])
         self.assertIsNone(rows[0]["published_utc"])
 
+    def test_lobsters_hot_json_has_site_native_metrics(self):
+        raw=json.dumps([{"title":"AI developer tooling","short_id_url":"https://lobste.rs/s/abc",
+            "url":"https://github.com/team/tool","score":37,
+            "comment_count":12,"created_at":"2026-10-20T12:00:00-05:00"}]).encode()
+        rows=f.fetch_one("lobsters_hot_json",f.FEEDS["lobsters_hot_json"],read=lambda _:raw)
+        self.assertEqual(1,len(rows))
+        self.assertEqual("https://lobste.rs/s/abc",rows[0]["url"])
+        self.assertEqual({"points":37,"comments":12},rows[0]["metrics"])
+        self.assertTrue(rows[0]["published_utc"].startswith("2026-10-20"))
+        self.assertEqual("https://github.com/team/tool",rows[0]["project_url"])
+
     def test_provider_failure_does_not_hide_success(self):
         tiny={"ok": {"url":"https://lobste.rs/hottest.rss","type":"xml",
                       "platform":"lobsters","scope":"public"},
