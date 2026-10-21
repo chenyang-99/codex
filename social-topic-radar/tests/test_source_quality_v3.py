@@ -4,6 +4,7 @@ import importlib.util
 import json
 from pathlib import Path
 import unittest
+from unittest import mock
 from urllib.error import HTTPError
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -120,7 +121,7 @@ class TrendFeedTests(unittest.TestCase):
             if url.endswith("UCsBjURrPoezykLs9EqgamOA") and "/xml/feeds/" not in url:
                 raise HTTPError(url,404,"temporary",{},None)
             return atom
-        with unittest.mock.patch.object(f.time,"sleep",lambda _:None):
+        with mock.patch.object(f.time,"sleep",lambda _:None):
             rows=f.fetch_one("youtube_fireship",source,read=getter)
         self.assertEqual(1,len(rows))
         self.assertEqual("official_alternate_path",rows[0]["retrieval_path"])
@@ -142,7 +143,7 @@ class TrendFeedTests(unittest.TestCase):
         source={"youtube_test":f.FEEDS["youtube_fireship"]}
         def getter(url):
             raise HTTPError(url,404,"temp",{},None)
-        with unittest.mock.patch.object(f.time,"sleep",lambda _:None):
+        with mock.patch.object(f.time,"sleep",lambda _:None):
             rows,health=f.collect(source,getter)
         self.assertEqual([],rows)
         self.assertEqual("unavailable",health[0]["status"])
