@@ -17,7 +17,7 @@ HERE = Path(__file__).resolve().parent
 OUT = HERE / "output"
 
 PATTERNS = {
-    "resource_collection": re.compile(r"\b(?:\d{1,3}\s+(?:tools|resources|prompts|skills|projects|websites|github)|awesome[- ]|collection|directory|bookmark)\b|合集|清单|资源库|收藏|盘点|开源项目", re.I),
+    "resource_collection": re.compile(r"\b(?:\d{1,3}\s+(?:\w+\s+){0,4}(?:tools|resources|prompts|skills|projects|websites|github)|awesome[- ]|collection|directory|bookmark)\b|合集|清单|资源库|收藏|盘点|开源项目", re.I),
     "tutorial_workflow": re.compile(r"\b(?:how to|tutorial|step by step|guide|walkthrough|workflow|recipe|hands.on)\b|教程|实操|如何|操作步骤|工作流|复刻", re.I),
     "creator_demonstration": re.compile(r"\b(?:demo|showcase|before.?after|generated|rendered|animation|ai film|visual)\b|演示|成片|对比|生成效果|视觉|短片|动效", re.I),
     "tool_launch": re.compile(r"\b(?:open.source|released?|launch|introduc(?:ing|ed)|github|new version|release v)\b|开源|发布|上线|新版本|升级", re.I),
