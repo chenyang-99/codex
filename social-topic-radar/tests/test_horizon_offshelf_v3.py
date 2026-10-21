@@ -16,6 +16,7 @@ a=load("x_horizon_search_test","horizon_apify_search_v3.py")
 b=load("social_index_test","indexed_social_discovery_v3.py")
 u=load("unified_offshelf_test","unified_topic_intake.py")
 y=load("youtube_official_test","youtube_official_search_v3.py")
+bs=load("bluesky_public_search_test","bluesky_public_search_v3.py")
 
 class XOffTheShelfTests(unittest.TestCase):
     def test_default_no_paid_calls(self):
@@ -116,5 +117,26 @@ class OfficialYouTubeTests(unittest.TestCase):
         rows,health=y.collect({"YOUTUBE_SEARCH_ENABLED":"0","YOUTUBE_DATA_API_KEY":"TEST"},api=lambda *a:None)
         self.assertEqual([],rows)
         self.assertEqual("disabled_by_default",health[0]["reason"])
+
+class FreeBlueskyTests(unittest.TestCase):
+    def test_mocked_native_public_search_no_token_required(self):
+        def fetch(url):
+            self.assertIn("public.api.bsky.app",url)
+            return {"posts":[{"uri":"at://did:plc:tester/app.bsky.feed.post/3lgabc",
+               "author":{"did":"did:plc:tester","handle":"tester.bsky.social"},
+               "record":{"text":"AI video tool","createdAt":"2026-10-20T10:00:00Z"},
+               "likeCount":37,"repostCount":5,"replyCount":4}]}
+        rows,health=bs.collect(("AI tools",),read=fetch)
+        self.assertEqual(1,len(rows))
+        self.assertEqual(37,rows[0]["metrics"]["likes"])
+        self.assertIn("/post/3lgabc",rows[0]["url"])
+        self.assertEqual("retrieved",health[0]["status"])
+
+    def test_public_search_failure_is_reported_not_faked(self):
+        def fail(_):raise OSError("blocked")
+        rows,health=bs.collect(("AI tools",),read=fail)
+        self.assertEqual([],rows)
+        self.assertEqual("unavailable",health[0]["status"])
+        self.assertIsNone(health[0]["items"])
 
 if __name__=="__main__":unittest.main()
