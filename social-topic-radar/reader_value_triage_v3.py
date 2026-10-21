@@ -28,7 +28,7 @@ def classify(entity):
     text = " ".join(str(p.get("title") or "")[:600] for p in posts[:12])
     families = set(entity.get("independent_source_families") or [])
     found = [key for key,pattern in PATTERNS.items() if pattern.search(text)]
-    if any(p.get("media") for p in posts) and "creator_demonstration" not in found:
+    if any(p.get("media") or p.get("media_metadata") for p in posts) and "creator_demonstration" not in found:
         found.append("creator_demonstration")
     has_project = bool(entity.get("project_url"))
     lanes = list(dict.fromkeys(found))
