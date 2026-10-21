@@ -10,7 +10,9 @@
     "planned": "发现优先级已纳入矩阵，但当前未实现自动收集",
     "on_demand": "可在对话或搜索时研究，非定时自动化",
     "seed_only": "仅用户提供的种子/人工记录，非自动采集",
-    "shadow_trial": "影子采集代码已连接，但本分支实际运行成功率尚待CI验证；不能称稳定覆盖"
+    "shadow_trial": "影子采集代码已连接，但本分支实际运行成功率尚待CI验证；不能称稳定覆盖",
+    "optional_off": "代码已合并但明确默认禁用；需要单独授权、令牌和费用上限后才允许实际调用",
+    "index_only": "只有公开搜索引擎的索引线索，不能等同目标平台热榜/原帖/真实互动"
   },
   "sources": [
     {
@@ -64,7 +66,7 @@
       "region": "海外社交",
       "signals": "热门工具帖/创作者",
       "status": "partial",
-      "note": "现有公开平台采样",
+      "note": "新增Bluesky公开AppView关键词searchPosts(top)，无需API Key；在本PR真实CI之前仍属影子试验，实际是否可访问以来源健康报告为准",
       "url": "https://bsky.app"
     },
     {
@@ -345,6 +347,42 @@
       "status": "shadow_trial",
       "note": "2026-10-21试接入 Matt Wolfe、Fireship、Two Minute Papers 官方频道 RSS；不是YouTube全站热榜，观看/分享/版权需二次核验",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UChpleBmo18P08aKCIgti38g"
+    },
+    {
+      "id": "x_horizon_apify_optional",
+      "platform": "Horizon兼容Apify Scweet X关键词",
+      "region": "海外社交",
+      "signals": "跨作者X关键词热门相关候选及互动快照",
+      "status": "optional_off",
+      "note": "真实源码确认支持query，零默认付费；仅明确用户预算+Token+CI启用后调用，尚未花钱或完成真实认证采集",
+      "url": "https://apify.com/altimis/scweet"
+    },
+    {
+      "id": "indexed_social_fallback",
+      "platform": "Google News公开索引备选发现",
+      "region": "国内外跨平台",
+      "signals": "X/小红书/抖音/TikTok/Instagram/YouTube被索引文章线索",
+      "status": "index_only",
+      "note": "仅索引层的RSS搜索，不能冒充站内爆帖、完整原帖或收藏/观看数据；作为广域搜索失败时的候选发现补充",
+      "url": "https://news.google.com"
+    },
+    {
+      "id": "youtube_official_api_optional",
+      "platform": "YouTube Data API 官方跨频道视频关键词",
+      "region": "海外视频",
+      "signals": "最新视频搜索＋限定时间窗口热门浏览信号",
+      "status": "optional_off",
+      "note": "官方search.list及videos.list有配额；代码适配器已建，但没有API Key不请求任何网络；不能宣称已覆盖全YouTube",
+      "url": "https://developers.google.com/youtube/v3/docs/search/list"
+    },
+    {
+      "id": "bluesky_native_search",
+      "platform": "Bluesky 公共 AppView 搜索",
+      "region": "海外社交",
+      "signals": "AI工具原帖／官方站内搜索与点赞转发讨论",
+      "status": "shadow_trial",
+      "note": "公开GET官方文档允许免登录调用；四组关键词最多140条原始候选/次；受限/失败显式记状态，非X搜索替代品",
+      "url": "https://docs.bsky.app/docs/api/app-bsky-feed-search-posts"
     }
   ]
 }

@@ -1,0 +1,68 @@
+{
+  "version": "3.2",
+  "reviewed_at": "2026-10-21",
+  "policy": "USER_CONFIRMED_FREE_FIRST",
+  "max_unapproved_spend_usd": 0,
+  "ranking": [
+    "public_first_party_no_key",
+    "free_permitted_open_source",
+    "public_rss_and_index",
+    "official_free_quota_with_optional_key",
+    "paid_provider_explicit_budget_only"
+  ],
+  "default_rule": "No provider that can create billable usage may be enabled in automated jobs without separate explicit user approval and enforced spend cap.",
+  "preferred_free_sources": [
+    {
+      "source": "Bluesky public AppView",
+      "credential_required": false,
+      "billing_required": false,
+      "real_availability": "CI proof pending"
+    },
+    {
+      "source": "GitHub, HN, V2EX, Product Hunt RSS, Lobsters JSON",
+      "credential_required": false,
+      "billing_required": false,
+      "real_availability": "previous GitHub Actions samples verified"
+    },
+    {
+      "source": "Google News public RSS indexing",
+      "credential_required": false,
+      "billing_required": false,
+      "real_availability": "CI proof pending; indexed headlines only"
+    },
+    {
+      "source": "YouTube channel RSS",
+      "credential_required": false,
+      "billing_required": false,
+      "real_availability": "intermittent availability"
+    }
+  ],
+  "optional_not_enabled": [
+    {
+      "source": "Horizon/Apify Scweet X search",
+      "reason": "can bill per actor run",
+      "required_for_use": "new user approval + capped budget + approved own token",
+      "status": "disabled"
+    },
+    {
+      "source": "YouTube Data API",
+      "reason": "usually available within an official no-charge quota but requires key and quota review",
+      "required_for_use": "user-owned key + explicit enable + quota review",
+      "status": "disabled"
+    },
+    {
+      "source": "X official / xAI X Search",
+      "reason": "paid or metered",
+      "required_for_use": "new user approval + capped budget + approved own token",
+      "status": "not_implemented"
+    }
+  ],
+  "rejected_for_production": [
+    {
+      "source": "NanmiCoder/MediaCrawler",
+      "reason": "README explicitly forbids commercial use; platform login and ToS risks",
+      "status": "research_only"
+    }
+  ],
+  "evaluation": "Channel adoption requires evidence of useful original leads, status health, editorial acceptance and total cost, not scraped item count."
+}

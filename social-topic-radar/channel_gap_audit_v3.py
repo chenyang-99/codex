@@ -22,6 +22,10 @@ SOURCES = {
     "external-discovery-devto-hf.json": ("source_health", "devto_hf"),
     "external-discovery-hot-extra.json": ("source_health", "trending_feeds"),
     "x-hot-curator-v3.json": ("source_health", "x_network"),
+    "x-horizon-apify-v3.json": ("source_health", "x_optional_apify"),
+    "indexed-social-leads-v3.json": ("source_health", "indexed_social"),
+    "youtube-official-keyword-v3.json": ("source_health", "youtube_api"),
+    "bluesky-public-search-v3.json": ("source_health", "bluesky_public"),
 }
 
 def read(path):
@@ -59,7 +63,7 @@ def assess(registry, collected_files, statuses):
     registry = registry.get("sources", []) if isinstance(registry, dict) else []
     known_ids = {str(s["id"]) for s in registry if isinstance(s, dict) and s.get("id")}
     healthy = sum(x["status"] in ("retrieved","verified") for x in statuses)
-    degraded = sum(x["status"] in ("partial","unavailable","error","blocked") for x in statuses)
+    degraded = sum(x["status"] in ("partial","unavailable","error","blocked","not_configured") for x in statuses)
     unable = sorted({x["provider"] for x in statuses
                      if x["status"] in ("unavailable","error","blocked")})
     discovered = sum(x["items"] for x in statuses if isinstance(x.get("items"), int)

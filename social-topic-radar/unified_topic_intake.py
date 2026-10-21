@@ -32,6 +32,10 @@ FILES = (
     ("external-discovery-devto-hf.json", "items", "devto_hf"),
     ("external-discovery-hot-extra.json", "items", "trending_rss"),
     ("x-hot-curator-v3.json", "items", "x_hot_curator"),
+    ("x-horizon-apify-v3.json", "items", "x_optional_apify"),
+    ("indexed-social-leads-v3.json", "items", "indexed_social"),
+    ("youtube-official-keyword-v3.json", "items", "youtube_api"),
+    ("bluesky-public-search-v3.json", "items", "bluesky_public"),
 )
 
 
@@ -286,7 +290,11 @@ def main():
         "observed_platform_health": (load(args.input_dir / "external-discovery.json") or {}).get("provider_status", [])
         + (load(args.input_dir / "external-discovery-devto-hf.json") or {}).get("source_health", [])
         + (load(args.input_dir / "external-discovery-hot-extra.json") or {}).get("source_health", [])
-        + (load(args.input_dir / "x-hot-curator-v3.json") or {}).get("source_health", []),
+        + (load(args.input_dir / "x-hot-curator-v3.json") or {}).get("source_health", [])
+        + (load(args.input_dir / "x-horizon-apify-v3.json") or {}).get("source_health", [])
+        + (load(args.input_dir / "indexed-social-leads-v3.json") or {}).get("source_health", [])
+        + (load(args.input_dir / "youtube-official-keyword-v3.json") or {}).get("source_health", [])
+        + (load(args.input_dir / "bluesky-public-search-v3.json") or {}).get("source_health", []),
         "limitations": [
             "All channels are discovery options, not claims of exhaustive access.",
             "Third-party counts, if present, are timed snapshots; unknown metrics remain unknown.",
