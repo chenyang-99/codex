@@ -36,6 +36,15 @@ def api(method,path,token,payload=None):
     if len(body)>2500000:raise ValueError("oversized_api_response")
     return json.loads(body)
 
+def to_iso(value):
+    if not isinstance(value,str): return None
+    try:
+        parsed=dt.datetime.strptime(value,"%a %b %d %H:%M:%S %z %Y")
+    except ValueError:
+        try: parsed=dt.datetime.fromisoformat(value.replace("Z","+00:00"))
+        except ValueError: return None
+    return parsed.astimezone(dt.timezone.utc).isoformat() if parsed.tzinfo else None
+
 def normalize(raw,checked_at):
     if not isinstance(raw,dict) or raw.get("noResults"):return None
     tid=str(raw.get("id_str") or raw.get("id") or "").removeprefix("tweet-")
@@ -58,7 +67,7 @@ def normalize(raw,checked_at):
                 break
     return {"url":f"https://x.com/{handle}/status/{tid}","source":"x_apify_keyword",
             "platform":"x","title":text[:2000],"author":handle,
-            "published_utc":raw.get("created_at"),"metrics":metrics,
+            "published_utc":to_iso(raw.get("created_at")),"metrics":metrics,
             "metrics_checked_at":checked_at,"external_links":links[:15],
             "project_url":links[0] if len(links)==1 else "",
             "retrieved_scope":"third_party_apify_search_single_query","editorial_status":"research_candidate_only"}
