@@ -95,6 +95,10 @@ jobs:
         timeout-minutes: 3
         continue-on-error: true
         run: python social-topic-radar/x_hot_curator_v3.py
+      - name: Probe optional Horizon Apify keyword adapter (NO paid requests without credentials and opt-in)
+        run: python social-topic-radar/horizon_apify_search_v3.py
+      - name: Collect indexed public social content leads (not native platform hot search)
+        run: python social-topic-radar/indexed_social_discovery_v3.py
       - name: Build evidence-labeled multi-source editorial shortlist
         run: python social-topic-radar/editorial.py
       - name: Audit V2 fifteen-domain and five-type discovery coverage
