@@ -64,7 +64,7 @@ def assess(registry, collected_files, statuses):
                      if x["status"] in ("unavailable","error","blocked")})
     discovered = sum(x["items"] for x in statuses if isinstance(x.get("items"), int)
                      and x["status"] in ("retrieved","partial","verified"))
-    x_queries = [s for s in statuses if s["provider"].startswith("x_query:")]
+    x_queries = [s for s in statuses if s["provider"].startswith(("x_query:", "query:"))]
     x_curator = [s for s in statuses if s["provider"].startswith("x_curator:")]
     missing_files = [x["file"] for x in collected_files if x["artifact_status"] != "observed"]
     return {
