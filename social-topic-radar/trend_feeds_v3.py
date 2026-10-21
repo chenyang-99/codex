@@ -29,11 +29,11 @@ FEEDS = {
         "platform": "producthunt",
         "scope": "official RSS launches, NOT independently verified top-ranking votes",
     },
-    "lobsters_hot_rss": {
-        "url": "https://lobste.rs/hottest.rss",
-        "type": "xml",
+    "lobsters_hot_json": {
+        "url": "https://lobste.rs/hottest.json",
+        "type": "lobsters_json",
         "platform": "lobsters",
-        "scope": "official public programming community hottest-feed snapshot",
+        "scope": "public Lobsters hottest JSON; points/comments are Lobsters-native only",
     },
     "youtube_matt_wolfe": {
         "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UChpleBmo18P08aKCIgti38g",
@@ -114,9 +114,29 @@ def normalized_date(value):
         except (TypeError,ValueError,OverflowError):
             return None
 
+def unpack_lobsters_json(raw):
+    data = json.loads(raw)
+    if not isinstance(data, list):
+        raise ValueError("unexpected_lobsters_hot_list")
+    for item in data[:30]:
+        if not isinstance(item, dict):
+            continue
+        url = item.get("short_id_url") or item.get("comments_url") or ""
+        original = str(item.get("url") or "")
+        yield {
+            "title": item.get("title") or "",
+            "url": url,
+            "project_url": original if original.startswith("https://github.com/") else "",
+            "published_utc": item.get("created_at"),
+            "metrics": {"points": item.get("score"),
+                        "comments": item.get("comment_count")},
+        }
+
 def fetch_one(source, cfg, read=retrieve):
     raw = read(cfg["url"])
-    candidates = (unpack_xml(raw) if cfg["type"] == "xml" else unpack_trending_json(raw))
+    candidates = (unpack_xml(raw) if cfg["type"] == "xml" else
+                  unpack_lobsters_json(raw) if cfg["type"] == "lobsters_json" else
+                  unpack_trending_json(raw))
     rows, seen = [], set()
     now = datetime.now(timezone.utc).isoformat()
     for item in candidates:
@@ -130,7 +150,9 @@ def fetch_one(source, cfg, read=retrieve):
             "project_url": item.get("project_url") if str(item.get("project_url") or "").startswith("https://") else "",
             "published_utc": normalized_date(item.get("published_utc")),
             "collected_utc": now,
-            "metrics": {},
+            "metrics": {k:v for k,v in (item.get("metrics") or {}).items()
+                        if isinstance(v, (int,float)) and not isinstance(v,bool) and v >= 0},
+            "metrics_checked_at": now if item.get("metrics") else None,
             "read_scope": cfg["scope"], "editorial_status": "research_candidate_only",
         })
     return rows
