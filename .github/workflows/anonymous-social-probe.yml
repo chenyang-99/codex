@@ -89,11 +89,9 @@ jobs:
       - name: Collect DEV and Hugging Face Spaces trends (V3 shadow)
         run: python social-topic-radar/public_hot_channels.py
       - name: Probe X public keyword and curator discovery (V3 experimental)
-        run: python social-topic-radar/x_hot_curator_v3.py
-        timeout-minutes: 2
+        timeout-minutes: 3
         continue-on-error: true
-      - name: Combine new-project and multi-platform hot posts (V3 shadow)
-        run: python social-topic-radar/unified_topic_intake.py
+        run: python social-topic-radar/x_hot_curator_v3.py
       - name: Build evidence-labeled multi-source editorial shortlist
         run: python social-topic-radar/editorial.py
       - name: Audit V2 fifteen-domain and five-type discovery coverage
@@ -108,19 +106,13 @@ jobs:
           key: topic-intake-v3-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             topic-intake-v3-${{ runner.os }}-
-      - name: Collect public multi-platform hot content (V3 shadow)
-        if: always()
-        run: python social-topic-radar/public_hot_channels.py
-      - name: Query public X hot tool posts and curator quote network (V3 shadow)
-        if: always()
-        run: python social-topic-radar/x_hot_curator_v3.py
-      - name: Unify platform sources and compare cross-run entity keys (V3 shadow)
+      - name: Unify public new-project and platform-hot discoveries (V3 shadow)
         if: always()
         run: >-
           python social-topic-radar/unified_topic_intake.py
           --history social-topic-radar/output/history-entities-v3.json
           --state-output social-topic-radar/output/history-entities-v3.json
-      - name: Cache V3 novelty keys for the next run
+      - name: Cache V3 novelty keys for next run
         if: always()
         uses: actions/cache/save@v4
         with:
