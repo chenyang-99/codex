@@ -100,6 +100,32 @@ jobs:
         run: python social-topic-radar/topic_catalog.py coverage --output-dir social-topic-radar/output
       - name: Consolidate source-specific domestic search and comment access status
         run: python social-topic-radar/domestic_status.py
+      - name: Restore V3 cross-run novelty cache
+        if: always()
+        uses: actions/cache/restore@v4
+        with:
+          path: social-topic-radar/output/history-entities-v3.json
+          key: topic-intake-v3-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            topic-intake-v3-${{ runner.os }}-
+      - name: Collect public multi-platform hot content (V3 shadow)
+        if: always()
+        run: python social-topic-radar/public_hot_channels.py
+      - name: Query public X hot tool posts and curator quote network (V3 shadow)
+        if: always()
+        run: python social-topic-radar/x_hot_curator_v3.py
+      - name: Unify platform sources and compare cross-run entity keys (V3 shadow)
+        if: always()
+        run: >-
+          python social-topic-radar/unified_topic_intake.py
+          --history social-topic-radar/output/history-entities-v3.json
+          --state-output social-topic-radar/output/history-entities-v3.json
+      - name: Cache V3 novelty keys for the next run
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: social-topic-radar/output/history-entities-v3.json
+          key: topic-intake-v3-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Verify topic evidence gate regression tests
         run: python -m unittest discover -s social-topic-radar/tests -v
       - name: Audit real collected topic signals without auto-approving publication
