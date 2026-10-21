@@ -22,6 +22,8 @@ SOURCES = {
     "external-discovery-devto-hf.json": ("source_health", "devto_hf"),
     "external-discovery-hot-extra.json": ("source_health", "trending_feeds"),
     "x-hot-curator-v3.json": ("source_health", "x_network"),
+    "x-horizon-apify-v3.json": ("source_health", "x_optional_apify"),
+    "indexed-social-leads-v3.json": ("source_health", "indexed_social"),
 }
 
 def read(path):
