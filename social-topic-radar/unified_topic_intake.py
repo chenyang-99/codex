@@ -51,6 +51,13 @@ def canonical(value):
         host = p.hostname.lower().removeprefix("www.")
         if host in ("twitter.com", "mobile.twitter.com"): host = "x.com"
         path = re.sub(r"/+$", "", p.path) or "/"
+        # README is the repository landing document, not a discussion post.
+        # Keep distinct issue/pull/release links intact for editorial history.
+        if host == "github.com":
+            parts = [x for x in path.split("/") if x]
+            if len(parts) == 2 or (len(parts) >= 5 and
+                   parts[2] == "blob" and parts[-1].lower().startswith("readme.")):
+                path = "/" + "/".join([parts[0].lower(), parts[1].lower()])
         q = parse_qs(p.query, keep_blank_values=False)
         keep = {}
         if host == "news.ycombinator.com" and path == "/item" and q.get("id"):
