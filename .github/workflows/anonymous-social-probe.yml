@@ -88,6 +88,10 @@ jobs:
         run: python social-topic-radar/public_hot_discovery_v3.py
       - name: Collect DEV and Hugging Face Spaces trends (V3 shadow)
         run: python social-topic-radar/public_hot_channels.py
+      - name: Probe X public keyword and curator discovery (V3 experimental)
+        run: python social-topic-radar/x_hot_curator_v3.py
+        timeout-minutes: 2
+        continue-on-error: true
       - name: Combine new-project and multi-platform hot posts (V3 shadow)
         run: python social-topic-radar/unified_topic_intake.py
       - name: Build evidence-labeled multi-source editorial shortlist
