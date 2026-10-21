@@ -136,6 +136,7 @@ def normalize(item, origin, now):
         "metrics_checked_at": observed_at,
         "metric_scope": "snapshot" if metrics and observed_at else "unverified_or_undated",
         "curator": item.get("curator") or "",
+        "quoted_post_url": canonical(item.get("quoted_post_url")),
         "quote_relationship_verified": item.get("quote_relationship_verified") is True,
         "read_scope": item.get("retrieved_scope") or item.get("verified_scope")
                       or item.get("evidence_level") or "discovery_lead_only",
