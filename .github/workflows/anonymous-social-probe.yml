@@ -86,6 +86,8 @@ jobs:
         run: python social-topic-radar/domestic_painpoints.py
       - name: Collect additional public multi-platform hot lists (V3 shadow)
         run: python social-topic-radar/public_hot_discovery_v3.py
+      - name: Collect DEV and Hugging Face Spaces trends (V3 shadow)
+        run: python social-topic-radar/public_hot_channels.py
       - name: Combine new-project and multi-platform hot posts (V3 shadow)
         run: python social-topic-radar/unified_topic_intake.py
       - name: Build evidence-labeled multi-source editorial shortlist
