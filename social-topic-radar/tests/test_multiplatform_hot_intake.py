@@ -20,6 +20,7 @@ def load(name, path):
 
 unified = load("unified_topic_intake_tested", "unified_topic_intake.py")
 hot = load("public_hot_channels_tested", "public_hot_channels.py")
+xhot = load("x_hot_curator_tested", "x_hot_curator_v3.py")
 
 
 class UnifiedIntakeTests(unittest.TestCase):
@@ -128,6 +129,40 @@ class PublicHotFeedTests(unittest.TestCase):
         self.assertEqual(1, len(result))
         self.assertEqual("https://github.com/Org/tool", result[0]["project_url"])
         self.assertEqual(17, result[0]["metrics"]["points"])
+
+
+class XSearchCuratorTests(unittest.TestCase):
+    def test_quote_expansion_keeps_original_and_quote_evidence(self):
+        original = {"url": "https://x.com/maker/status/91",
+                    "author": {"handle": "maker"},
+                    "text": "AI editor https://github.com/org/editor",
+                    "likes": 300, "views": 10000}
+        quote = {"url": "https://x.com/ianlacerda/status/92",
+                 "text": ".", "quoted": original,
+                 "author": {"handle": "ianlacerda"}}
+        rows, discovered = xhot.curator_rows([quote], "ianlacerda")
+        self.assertEqual(1, len(rows))
+        self.assertEqual("maker", rows[0]["author"])
+        self.assertTrue(rows[0]["quote_relationship_verified"])
+        self.assertEqual("https://x.com/ianlacerda/status/92",
+                         rows[0]["curator_quote_url"])
+        self.assertIn("maker", discovered)
+
+    def test_search_and_curator_parallel_source_health(self):
+        def f(kind, value):
+            if kind == "query" and value == "broken":
+                raise RuntimeError("blocked")
+            if kind == "curator":
+                return ([{"url": "https://x.com/z/status/2",
+                          "source": "x_curator_quote", "curator_quote_url": "https://x.com/ian/status/3"}],
+                        {"source": "curator", "status": "retrieved"}, set())
+            return ([{"url": "https://x.com/z/status/4", "source": "x_keyword_search"}],
+                    {"source": value, "status": "retrieved"}, set())
+        rows, health, authors = xhot.collect(
+            {"queries": ["working", "broken"], "curators": ["ianlacerda"]}, f)
+        self.assertEqual(2, len(rows))
+        self.assertTrue(any(i["status"] == "unavailable" for i in health))
+        self.assertEqual([], authors)
 
 
 if __name__ == "__main__":
