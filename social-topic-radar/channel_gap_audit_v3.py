@@ -25,6 +25,7 @@ SOURCES = {
     "x-horizon-apify-v3.json": ("source_health", "x_optional_apify"),
     "indexed-social-leads-v3.json": ("source_health", "indexed_social"),
     "youtube-official-keyword-v3.json": ("source_health", "youtube_api"),
+    "bluesky-public-search-v3.json": ("source_health", "bluesky_public"),
 }
 
 def read(path):
