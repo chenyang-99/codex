@@ -28,7 +28,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Verify copy preflight syntax
-        run: python -m py_compile .agents/skills/ai-copy-production/scripts/copy_quality_gate.py
+      - name: Verify both copy and editorial preflight syntax
+        run: |
+          python -m py_compile .agents/skills/ai-copy-production/scripts/copy_quality_gate.py
+          python -m py_compile .agents/skills/ai-copy-production/scripts/editorial_preflight.py
       - name: Run synthetic author-preservation and evidence tests
         run: python -m unittest discover -s .agents/skills/ai-copy-production/tests -p 'test_*.py' -v
