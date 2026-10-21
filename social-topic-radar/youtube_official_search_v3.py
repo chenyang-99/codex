@@ -14,7 +14,21 @@ from urllib.request import Request,urlopen
 HERE=Path(__file__).resolve().parent
 OUT=HERE/"output"
 API="https://www.googleapis.com/youtube/v3"
-QUERIES=("AI video editor tutorial","AI design tools workflow","open source AI animation")
+# Three daily query cohorts, rotating every three hours to cover both
+# creator demonstrations and reusable open-source resources.
+QUERY_GROUPS=(
+    ("AI video editor tutorial","AI design tools workflow","open source AI animation"),
+    ("AI filmmaking workflow","generative image consistency","open source AI video tools"),
+    ("AI art style prompt JSON","AI agent creative automation","AI motion graphics tutorial"),
+)
+MAX_SEARCH_CALLS_PER_RUN=3
+MAX_VIDEO_STATS_IDS_PER_REQUEST=50
+
+
+def select_queries(now):
+    """Eight scheduled runs/day × three queries = 24 of 100 default search calls."""
+    slot=(now.hour//3)%len(QUERY_GROUPS)
+    return QUERY_GROUPS[slot]
 def request(endpoint, params, key):
     # Only endpoints selected by local code.
     if endpoint not in ("search","videos"):raise ValueError("unsupported_endpoint")
@@ -39,7 +53,7 @@ def collect(env=None,api=request,clock=None):
     key=e["YOUTUBE_DATA_API_KEY"]
     found={}
     reports=[]
-    for term in QUERIES[:3]:
+    for term in select_queries(now)[:MAX_SEARCH_CALLS_PER_RUN]:
         try:
             data=api("search",{"part":"snippet","q":term,"type":"video","maxResults":20,
                   "order":"viewCount","safeSearch":"moderate","publishedAfter":since},key)
@@ -64,10 +78,11 @@ def collect(env=None,api=request,clock=None):
             reports.append({"source":"youtube_query:"+term,"status":"unavailable","items":None,
                             "error":type(err).__name__+": "+str(err)[:90]})
     ids=list(found)
-    # One videos.list request for all IDs; missing/private stats remain unknown.
-    if ids:
+    # Each videos.list supports up to 50 ids. Never silently lose last 10 of 60.
+    for offset in range(0, len(ids), MAX_VIDEO_STATS_IDS_PER_REQUEST):
         try:
-            data=api("videos",{"part":"statistics","id":",".join(ids[:50]),"maxResults":50},key)
+            batch=ids[offset:offset+MAX_VIDEO_STATS_IDS_PER_REQUEST]
+            data=api("videos",{"part":"statistics","id":",".join(batch),"maxResults":50},key)
             for item in data.get("items",[]):
                 vid=item.get("id")
                 if vid not in found:continue
@@ -78,9 +93,11 @@ def collect(env=None,api=request,clock=None):
                     if isinstance(val,str) and val.isdecimal():native[name]=int(val)
                 found[vid]["platform_native_metrics"]=native
                 found[vid]["metrics_checked_at"]=checked
-            reports.append({"source":"youtube_video_stats","status":"retrieved","items":len(data.get("items",[]))})
+            reports.append({"source":"youtube_video_stats","status":"retrieved",
+                            "items":len(data.get("items",[])), "batch_index":offset//MAX_VIDEO_STATS_IDS_PER_REQUEST})
         except (OSError,ValueError,TimeoutError) as err:
             reports.append({"source":"youtube_video_stats","status":"unavailable","items":None,
+                            "batch_index":offset//MAX_VIDEO_STATS_IDS_PER_REQUEST,
                             "error":type(err).__name__+": "+str(err)[:90]})
     return list(found.values()),reports
 
@@ -93,7 +110,8 @@ def main():
         "limitations":["Requires user-provided official YouTube Data API key and opt-in",
                        "Search snippets and native metrics are not actual video content inspection",
                        "Published-after + most-viewed search can omit significant videos",
-                       "Three searches plus one statistics call per run; platform quota limits apply"]},
+                       "At most three searches plus up to two videos.list calls per run; 24 default searches per scheduled day",
+                       "All API limits and account-specific quotas must be checked before enabling"]},
         ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps({"sources":health,"rows":len(rows)},ensure_ascii=False))
 if __name__=="__main__":main()
