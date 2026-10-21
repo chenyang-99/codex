@@ -120,7 +120,7 @@ def normalize(item, origin, now):
     if not isinstance(metrics_in, dict):
         metrics_in = {}
     metrics = {}
-    for metric in ("views", "likes", "bookmarks", "reposts", "replies", "comments"):
+    for metric in ("views", "likes", "bookmarks", "reposts", "replies", "comments", "points", "reactions", "trending_score"):
         number = safe_metric(metrics_in.get(metric, item.get(metric)))
         if number is not None:
             metrics[metric] = number
@@ -136,11 +136,13 @@ def normalize(item, origin, now):
         "platform_native_metrics": item.get("platform_native_metrics") or {},
         "metrics_checked_at": observed_at,
         "metric_scope": "snapshot" if metrics and observed_at else "unverified_or_undated",
+        "source_metric_platform": item.get("source_metric_platform") or source_type,
         "curator": item.get("curator") or "",
         "quoted_post_url": canonical(item.get("quoted_post_url")),
         "quote_relationship_verified": item.get("quote_relationship_verified") is True,
+        "quoted_post_url": item.get("quoted_post_url") or item.get("curator_quote_url") or "",
         "read_scope": item.get("retrieved_scope") or item.get("verified_scope")
-                      or item.get("evidence_level") or "discovery_lead_only",
+                      or item.get("evidence_level") or item.get("read_scope") or "discovery_lead_only",
         "editorial_status": "research_candidate_only",
     }
 
@@ -187,7 +189,7 @@ def assemble(rows, now):
         groups[row["entity_key"]].append(row)
     output = []
     for key, entries in groups.items():
-        posts = {p["source_url"]: p for p in entries}
+        posts = {(p["source_url"], p["source_type"]): p for p in entries}
         unique = list(posts.values())
         newest = min((p["age_days"] for p in unique
                       if p["age_days"] is not None and p["age_days"] >= 0), default=None)
@@ -228,6 +230,7 @@ def main():
         "raw_records": len(discovered), "distinct_entities": len(items),
         "platform_capability_is_not_verified_by_registry": True,
         "cross_day_history_loaded": history is not None,
+        "observed_platform_health": (load(args.input_dir / "external-discovery.json") or {}).get("source_health", []),
         "limitations": [
             "All channels are discovery options, not claims of exhaustive access.",
             "Third-party counts, if present, are timed snapshots; unknown metrics remain unknown.",
