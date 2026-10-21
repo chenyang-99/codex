@@ -365,6 +365,15 @@
       "status": "index_only",
       "note": "仅索引层的RSS搜索，不能冒充站内爆帖、完整原帖或收藏/观看数据；作为广域搜索失败时的候选发现补充",
       "url": "https://news.google.com"
+    },
+    {
+      "id": "youtube_official_api_optional",
+      "platform": "YouTube Data API 官方跨频道视频关键词",
+      "region": "海外视频",
+      "signals": "最新视频搜索＋限定时间窗口热门浏览信号",
+      "status": "optional_off",
+      "note": "官方search.list及videos.list有配额；代码适配器已建，但没有API Key不请求任何网络；不能宣称已覆盖全YouTube",
+      "url": "https://developers.google.com/youtube/v3/docs/search/list"
     }
   ]
 }
