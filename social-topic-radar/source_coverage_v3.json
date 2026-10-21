@@ -325,7 +325,7 @@
       "region": "海外开发者社区",
       "signals": "热门原创讨论/项目原链/评论",
       "status": "shadow_trial",
-      "note": "官方hottest.rss新增只读影子采集，尚待真实CI验证",
+      "note": "已改试公开hottest.json，2026-10-21前一次RSS地址返回404；实际可用性待下一轮CI验证",
       "url": "https://lobste.rs"
     },
     {
