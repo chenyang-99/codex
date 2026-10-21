@@ -115,6 +115,9 @@ jobs:
           python social-topic-radar/unified_topic_intake.py
           --history social-topic-radar/output/history-entities-v3.json
           --state-output social-topic-radar/output/history-entities-v3.json
+      - name: Route V3 discovery leads for human editorial review
+        if: always()
+        run: python social-topic-radar/reader_value_triage_v3.py
       - name: Audit real multi-platform coverage and unresolved blind spots (V3)
         if: always()
         run: python social-topic-radar/channel_gap_audit_v3.py
