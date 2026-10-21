@@ -133,6 +133,7 @@ def normalize(item, origin, now):
         "entity_key": entity_key(url, project_url),
         "published_utc": published_at, "age_days": age,
         "metrics": metrics,
+        "platform_native_metrics": item.get("platform_native_metrics") or {},
         "metrics_checked_at": observed_at,
         "metric_scope": "snapshot" if metrics and observed_at else "unverified_or_undated",
         "curator": item.get("curator") or "",
