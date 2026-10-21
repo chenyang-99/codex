@@ -13,7 +13,7 @@ import json
 import re
 from collections import defaultdict
 from pathlib import Path
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urlsplit, urlunsplit, parse_qs, urlencode
 
 HERE = Path(__file__).resolve().parent
 REGISTRY = HERE / "source_coverage_v3.json"
@@ -30,6 +30,7 @@ FILES = (
     ("aicg-original-site-items.json", "items", "aicg"),
     ("external-discovery.json", "items", "external"),
     ("external-discovery-devto-hf.json", "items", "devto_hf"),
+    ("external-discovery-hot-extra.json", "items", "trending_rss"),
     ("x-hot-curator-v3.json", "items", "x_hot_curator"),
 )
 
@@ -42,30 +43,56 @@ def load(path: Path):
 
 
 def canonical(value):
-    if not isinstance(value, str):
-        return ""
+    """Preserve identity query keys; drop tracking so stories do not collide."""
+    if not isinstance(value, str): return ""
     try:
         p = urlsplit(value.strip())
-        if p.scheme not in ("http", "https") or not p.hostname:
-            return ""
+        if p.scheme not in ("http", "https") or not p.hostname: return ""
         host = p.hostname.lower().removeprefix("www.")
+        if host in ("twitter.com", "mobile.twitter.com"): host = "x.com"
         path = re.sub(r"/+$", "", p.path) or "/"
-        if host == "twitter.com":
-            host = "x.com"
-        if host == "github.com":
-            bits = [x for x in path.split("/") if x]
-            if len(bits) >= 2:
-                path = "/" + "/".join(bits[:2]).lower()
-        return urlunsplit(("https", host, path, "", ""))
-    except ValueError:
-        return ""
+        q = parse_qs(p.query, keep_blank_values=False)
+        keep = {}
+        if host == "news.ycombinator.com" and path == "/item" and q.get("id"):
+            keep["id"] = q["id"][0]
+        if host in ("youtube.com", "m.youtube.com") and path == "/watch" and q.get("v"):
+            host = "youtube.com"
+            keep["v"] = q["v"][0]
+        return urlunsplit(("https", host, path, urlencode(keep), ""))
+    except ValueError: return ""
+
+
+def project_identity(value):
+    """Only infer an identity for an explicitly known project page."""
+    url = canonical(value)
+    if not url: return ""
+    p = urlsplit(url)
+    parts = [x for x in p.path.split("/") if x]
+    if p.hostname == "github.com":
+        return f"https://github.com/{parts[0].lower()}/{parts[1].lower()}" if len(parts) >= 2 else ""
+    if p.hostname == "huggingface.co":
+        if len(parts) >= 3 and parts[0] in ("spaces", "datasets"):
+            return f"https://huggingface.co/{parts[0]}/{parts[1]}/{parts[2]}"
+        if len(parts) >= 2 and parts[0] not in ("blog", "papers", "api", "docs"):
+            return f"https://huggingface.co/{parts[0]}/{parts[1]}"
+    return url
+
+
+def source_family(source_url, source_type, intake):
+    host = urlsplit(source_url).hostname or ""
+    if host == "x.com": return "x"
+    if host == "news.ycombinator.com": return "hackernews"
+    if host == "github.com": return "github"
+    if host == "huggingface.co": return "huggingface"
+    if host == "bilibili.com": return "bilibili"
+    if "reddit.com" in host: return "reddit"
+    if "producthunt.com" in host: return "producthunt"
+    return host or str(source_type)
 
 
 def entity_key(url, project_url):
-    proj = canonical(project_url)
-    if proj:
-        return "project:" + proj
-    return "post:" + canonical(url)
+    proj = project_identity(project_url)
+    return "project:" + proj if proj else "post:" + canonical(url)
 
 
 def valid_iso(value):
@@ -106,18 +133,29 @@ def normalize(item, origin, now):
     author = str(item.get("author") or item.get("original_author") or "")[:90]
     title = str(item.get("title") or item.get("title_or_excerpt")
                 or item.get("text_excerpt") or item.get("text") or "")[:600]
-    project_url = canonical(item.get("project_url"))
+    project_url = project_identity(item.get("project_url"))
     links = item.get("source_workflow_urls") or item.get("external_links") or []
     if not isinstance(links, list):
         links = []
-    # Project identity is inferred only for explicitly linked repository/model
-    # pages, never guessed from similarly worded names or a source domain.
+    # If a post lists many different projects, it is a COLLECTION, not
+    # a post about the first repo on the list.
     if not project_url:
+        projects = []
         for link in links:
             normalized = canonical(link)
             if urlsplit(normalized).hostname in ("github.com", "huggingface.co"):
-                project_url = normalized
-                break
+                identity = project_identity(link)
+                if identity and identity not in projects:
+                    projects.append(identity)
+        if len(projects) == 1:
+            project_url = projects[0]
+    if not project_url:
+        p = urlsplit(url)
+        parts = [x for x in p.path.split("/") if x]
+        if p.hostname == "github.com" and len(parts) == 2:
+            project_url = project_identity(url)
+        elif p.hostname == "huggingface.co" and len(parts) >= 3 and parts[0] in ("spaces", "datasets"):
+            project_url = project_identity(url)
     metrics_in = item.get("engagement_reported") or item.get("metrics") or {}
     if not isinstance(metrics_in, dict):
         metrics_in = {}
@@ -129,18 +167,19 @@ def normalize(item, origin, now):
     observed_at = item.get("metrics_checked_at") or item.get("checked_at")
     published_at = item.get("published_utc") or item.get("created_at") or item.get("original_published_at")
     age = iso_age_days(published_at, now)
+    native = item.get("platform_native_metrics") if isinstance(item.get("platform_native_metrics"), dict) else {}
     return {
         "source_url": url, "source_type": source_type, "intake": origin,
+        "source_family": source_family(url, source_type, origin),
         "author": author, "title": title, "project_url": project_url,
         "entity_key": entity_key(url, project_url),
         "published_utc": published_at, "age_days": age,
         "metrics": metrics,
-        "platform_native_metrics": item.get("platform_native_metrics") or {},
+        "platform_native_metrics": native,
         "metrics_checked_at": observed_at,
-        "metric_scope": "snapshot" if metrics and observed_at else "unverified_or_undated",
+        "metric_scope": "snapshot" if (metrics or native) and observed_at else "unverified_or_undated",
         "source_metric_platform": item.get("source_metric_platform") or source_type,
         "curator": item.get("curator") or "",
-        "quoted_post_url": canonical(item.get("quoted_post_url")),
         "quote_relationship_verified": item.get("quote_relationship_verified") is True,
         "quoted_post_url": item.get("quoted_post_url") or item.get("curator_quote_url") or "",
         "read_scope": item.get("retrieved_scope") or item.get("verified_scope")
@@ -195,12 +234,13 @@ def assemble(rows, now):
         unique = list(posts.values())
         newest = min((p["age_days"] for p in unique
                       if p["age_days"] is not None and p["age_days"] >= 0), default=None)
-        independent_sources = sorted(set(p["source_type"] for p in unique))
+        independent_sources = sorted(set(p["source_family"] for p in unique))
         recency = 3 if newest is not None and newest <= 3 else 2 if newest is not None and newest <= 7 else 1 if newest is not None and newest <= 30 else 0
         score = recency + min(3, len(independent_sources)-1) + int(key.startswith("project:"))
         output.append({
             "entity_key": key, "project_url": unique[0]["project_url"],
-            "source_count": len(unique), "source_types": independent_sources,
+            "source_count": len(unique), "source_types": sorted(set(p["source_type"] for p in unique)),
+            "independent_source_families": independent_sources,
             "heuristic_priority": score,
             "priority_explanation": "recency + independent source labels + explicit project identity; NOT comparable platform virality",
             "source_posts": unique, "ready_to_publish": False,
@@ -235,6 +275,7 @@ def main():
         "cross_day_history_loaded": history is not None,
         "observed_platform_health": (load(args.input_dir / "external-discovery.json") or {}).get("source_health", [])
         + (load(args.input_dir / "external-discovery-devto-hf.json") or {}).get("source_health", [])
+        + (load(args.input_dir / "external-discovery-hot-extra.json") or {}).get("source_health", [])
         + (load(args.input_dir / "x-hot-curator-v3.json") or {}).get("source_health", []),
         "limitations": [
             "All channels are discovery options, not claims of exhaustive access.",
