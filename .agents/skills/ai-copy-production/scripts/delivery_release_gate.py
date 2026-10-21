@@ -103,6 +103,13 @@ def validate(item: Any) -> dict:
         if form == "article" and item.get("account_articles_confirmed") is not True:
             block("x_article_entitlement_not_confirmed")
 
+    if ((platform == "xiaohongshu" and form in {"image_post", "carousel"})
+            or (platform == "douyin" and form in {"video", "video_post", "image_post", "carousel"})):
+        if item.get("media_required") is not True:
+            block("visual_format_requires_real_media")
+    if (platform == "douyin" and form == "video_script"
+            and item.get("video_deliverable_requested") is True):
+        block("video_script_is_not_finished_video")
     if item.get("media_required") is True:
         assets = item.get("media_assets")
         if not isinstance(assets, list) or not assets:
@@ -136,7 +143,11 @@ def validate(item: Any) -> dict:
         elif scope in {"opening_only", "ending_only", "minimal"}:
             warnings.append("human_must_verify_scoped_edit_against_original")
 
-    for phrase in item.get("protected_phrases", []):
+    protected = item.get("protected_phrases", [])
+    if not isinstance(protected, list):
+        block("invalid_protected_phrases")
+        protected = []
+    for phrase in protected:
         if not isinstance(phrase, str) or (phrase and phrase not in body):
             block("protected_phrase_lost")
 
