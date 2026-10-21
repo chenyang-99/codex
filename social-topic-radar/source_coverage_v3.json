@@ -9,7 +9,8 @@
     "permission_required": "需要合规权限或独立授权，不提供越权途径",
     "planned": "发现优先级已纳入矩阵，但当前未实现自动收集",
     "on_demand": "可在对话或搜索时研究，非定时自动化",
-    "seed_only": "仅用户提供的种子/人工记录，非自动采集"
+    "seed_only": "仅用户提供的种子/人工记录，非自动采集",
+    "shadow_trial": "影子采集代码已连接，但本分支实际运行成功率尚待CI验证；不能称稳定覆盖"
   },
   "sources": [
     {
@@ -71,8 +72,8 @@
       "platform": "Product Hunt",
       "region": "产品社区",
       "signals": "每日新品/榜单/讨论",
-      "status": "planned",
-      "note": "缺独立热榜采集；站内votes不可当作X传播",
+      "status": "shadow_trial",
+      "note": "2026-10-21新增官网RSS只读影子采集，用于新品线索，不等于投票/热榜；官方GraphQL商业使用与授权另行核实",
       "url": "https://www.producthunt.com"
     },
     {
@@ -317,6 +318,24 @@
       "status": "on_demand",
       "note": "对封闭平台有补充价值；不等于原帖正文或热度",
       "url": "https://www.google.com"
+    },
+    {
+      "id": "lobsters",
+      "platform": "Lobsters",
+      "region": "海外开发者社区",
+      "signals": "热门原创讨论/项目原链/评论",
+      "status": "shadow_trial",
+      "note": "官方hottest.rss新增只读影子采集，尚待真实CI验证",
+      "url": "https://lobste.rs"
+    },
+    {
+      "id": "github_trending_mirror",
+      "platform": "GitHub Trending 日榜第三方镜像",
+      "region": "全球项目趋势",
+      "signals": "真实Trending每日列表/开源项目",
+      "status": "shadow_trial",
+      "note": "使用Hyraze/trending-collection的公开镜像；非GitHub官方热榜API，需检查时点与可用性",
+      "url": "https://github.com/hanishrao/trending-collection"
     }
   ]
 }
