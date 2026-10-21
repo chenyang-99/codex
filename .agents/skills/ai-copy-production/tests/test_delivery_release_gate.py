@@ -142,6 +142,24 @@ class DeliveryReleaseTests(unittest.TestCase):
         p.pop("sources")
         self.assertEqual(gate.validate(p)["status"], "eligible_for_delivery")
 
+    def test_bad_protected_phrases_does_not_crash(self):
+        p = fixture()
+        p["protected_phrases"] = None
+        self.assertIn("invalid_protected_phrases", self.codes(p))
+
+    def test_xiaohongshu_visual_package_needs_media(self):
+        p = fixture()
+        p["platform"] = "xiaohongshu"
+        p["format"] = "carousel"
+        self.assertIn("visual_format_requires_real_media", self.codes(p))
+
+    def test_douyin_script_cannot_pass_as_finished_video(self):
+        p = fixture()
+        p["platform"] = "douyin"
+        p["format"] = "video_script"
+        p["video_deliverable_requested"] = True
+        self.assertIn("video_script_is_not_finished_video", self.codes(p))
+
     def test_cli_exit_status_is_hard_gate(self):
         p = fixture()
         p.pop("reviewer")
