@@ -4,7 +4,7 @@
 
 ## 新增
 - Product Hunt 官方 `/feed`：新品发布线索；不是投票热榜；无需调用有商业使用限制的 GraphQL API。
-- Lobsters `/hottest.rss`：编程社区热门讨论。
+- Lobsters `/hottest.json`：编程社区热门讨论。
 - GitHub Trending 第三方日榜 JSON：与“近14日高 Star 新仓库搜索”互补；非 GitHub 官方榜单 API，时间戳需核对。
 - 保留原官方 RSS、X 策展 Quote、固定作者、AICG、HN、V2EX、Bilibili、GitHub 搜索、Reddit（部分）、DEV、HuggingFace 等来源。
 
@@ -35,6 +35,6 @@ GitHub PR 必须先通过 `python -m unittest discover -s social-topic-radar/tes
 ## 公开参考
 - Product Hunt RSS: https://help.producthunt.com/en/articles/484970-does-product-hunt-have-an-rss-feed
 - Product Hunt 官方 GraphQL 使用边界: https://www.producthunt.com/v2/docs
-- Lobsters 官方 RSS: https://lobste.rs/hottest.rss
+- Lobsters 官方 RSS: https://lobste.rs/hottest.json
 - Github Trending 第三方镜像项目: https://github.com/hanishrao/trending-collection
 
