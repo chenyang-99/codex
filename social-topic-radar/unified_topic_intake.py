@@ -31,6 +31,7 @@ FILES = (
     ("external-discovery.json", "items", "external"),
     ("x-hot-curator-v3.json", "items", "x_hot_curator"),
     ("external-discovery-devto-hf.json", "items", "external"),
+    ("x-hot-curator-v3.json", "items", "x"),
 )
 
 
