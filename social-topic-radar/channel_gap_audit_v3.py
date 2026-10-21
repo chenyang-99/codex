@@ -61,7 +61,7 @@ def assess(registry, collected_files, statuses):
     registry = registry.get("sources", []) if isinstance(registry, dict) else []
     known_ids = {str(s["id"]) for s in registry if isinstance(s, dict) and s.get("id")}
     healthy = sum(x["status"] in ("retrieved","verified") for x in statuses)
-    degraded = sum(x["status"] in ("partial","unavailable","error","blocked") for x in statuses)
+    degraded = sum(x["status"] in ("partial","unavailable","error","blocked","not_configured") for x in statuses)
     unable = sorted({x["provider"] for x in statuses
                      if x["status"] in ("unavailable","error","blocked")})
     discovered = sum(x["items"] for x in statuses if isinstance(x.get("items"), int)
