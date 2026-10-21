@@ -15,6 +15,7 @@ def load(name,file):
 a=load("x_horizon_search_test","horizon_apify_search_v3.py")
 b=load("social_index_test","indexed_social_discovery_v3.py")
 u=load("unified_offshelf_test","unified_topic_intake.py")
+y=load("youtube_official_test","youtube_official_search_v3.py")
 
 class XOffTheShelfTests(unittest.TestCase):
     def test_default_no_paid_calls(self):
@@ -84,5 +85,36 @@ class IndexedLeadsTests(unittest.TestCase):
         filenames={f[0] for f in u.FILES}
         self.assertIn("x-horizon-apify-v3.json",filenames)
         self.assertIn("indexed-social-leads-v3.json",filenames)
+
+class OfficialYouTubeTests(unittest.TestCase):
+    def test_no_api_calls_without_key_or_explicit_enable(self):
+        def no_call(*args,**kwargs):raise AssertionError("network requested")
+        self.assertEqual("not_configured",y.collect({},api=no_call)[1][0]["status"])
+        self.assertEqual("not_configured",y.collect({"YOUTUBE_SEARCH_ENABLED":"1"},api=no_call)[1][0]["status"])
+
+    def test_mocked_search_and_native_views(self):
+        called=[]
+        def caller(endpoint, params, key):
+            called.append((endpoint,params))
+            if endpoint=="search":
+                return {"items":[{"id":{"videoId":"abc123"},
+                       "snippet":{"title":"AI animation tutorial","channelTitle":"Author",
+                                  "publishedAt":"2026-10-20T00:00:00Z"}}]}
+            return {"items":[{"id":"abc123","statistics":{"viewCount":"25000","likeCount":"250",
+                      "commentCount":"51"}}]}
+        import datetime as dt
+        rows,health=y.collect({"YOUTUBE_SEARCH_ENABLED":"1","YOUTUBE_DATA_API_KEY":"TEST"},api=caller,
+             clock=dt.datetime(2026,10,21,tzinfo=dt.timezone.utc))
+        self.assertEqual(1,len(rows))
+        self.assertEqual(25000,rows[0]["platform_native_metrics"]["views"])
+        self.assertEqual(4,len(called))
+        self.assertEqual("videos",called[-1][0])
+        self.assertTrue(all(s["status"]=="retrieved" for s in health))
+        self.assertEqual("https://www.youtube.com/watch?v=abc123",rows[0]["url"])
+
+    def test_video_api_not_an_automatic_trending_claim(self):
+        rows,health=y.collect({"YOUTUBE_SEARCH_ENABLED":"0","YOUTUBE_DATA_API_KEY":"TEST"},api=lambda *a:None)
+        self.assertEqual([],rows)
+        self.assertEqual("disabled_by_default",health[0]["reason"])
 
 if __name__=="__main__":unittest.main()
