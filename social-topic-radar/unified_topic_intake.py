@@ -176,6 +176,9 @@ def normalize(item, origin, now):
         "published_utc": published_at, "age_days": age,
         "metrics": metrics,
         "platform_native_metrics": native,
+        "media_metadata": (item.get("media") or item.get("media_metadata") or [])[:6]
+            if isinstance(item.get("media") or item.get("media_metadata") or [], list) else [],
+        "external_links": links[:12],
         "metrics_checked_at": observed_at,
         "metric_scope": "snapshot" if (metrics or native) and observed_at else "unverified_or_undated",
         "source_metric_platform": item.get("source_metric_platform") or source_type,
