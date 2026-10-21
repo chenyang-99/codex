@@ -217,6 +217,7 @@ def main():
     parser.add_argument("--output-dir", type=Path, default=HERE / "output")
     parser.add_argument("--seed", type=Path, default=HERE / "seed_x_curator_v3.json")
     parser.add_argument("--history", type=Path, default=None)
+    parser.add_argument("--state-output", type=Path, default=None)
     args = parser.parse_args()
     now = dt.datetime.now(dt.timezone.utc)
     discovered = list(iter_input(args.input_dir, args.seed))
@@ -251,6 +252,15 @@ def main():
                    ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (args.output_dir / "platform-coverage-v3.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if args.state_output:
+        # Runner state is ephemeral: caller must store this snapshot explicitly.
+        all_keys = sorted(old_keys | {p["entity_key"] for p in items})
+        args.state_output.parent.mkdir(parents=True, exist_ok=True)
+        args.state_output.write_text(json.dumps({
+            "schema_version": 1, "updated_at_utc": now.isoformat(),
+            "entity_keys": all_keys,
+            "limitations": "Keys-only novelty ledger; not a publishing history or guaranteed permanent store",
+        }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"candidate_records": len(discovered),
                       "distinct_entities": len(items),
                       "source_channels_in_registry": len(registry.get("sources", [])),
