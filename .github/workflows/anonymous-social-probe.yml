@@ -84,6 +84,10 @@ jobs:
         run: python douyin_creator_discovery.py
       - name: Aggregate evidence-linked domestic comment pain points
         run: python social-topic-radar/domestic_painpoints.py
+      - name: Collect additional public multi-platform hot lists (V3 shadow)
+        run: python social-topic-radar/public_hot_discovery_v3.py
+      - name: Combine new-project and multi-platform hot posts (V3 shadow)
+        run: python social-topic-radar/unified_topic_intake.py
       - name: Build evidence-labeled multi-source editorial shortlist
         run: python social-topic-radar/editorial.py
       - name: Audit V2 fifteen-domain and five-type discovery coverage
