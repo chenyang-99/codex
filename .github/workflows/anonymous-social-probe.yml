@@ -88,6 +88,9 @@ jobs:
         run: python social-topic-radar/public_hot_discovery_v3.py
       - name: Collect DEV and Hugging Face Spaces trends (V3 shadow)
         run: python social-topic-radar/public_hot_channels.py
+      - name: Collect Product Hunt, Lobsters and GitHub Trending leads (V3 evidence only)
+        continue-on-error: true
+        run: python social-topic-radar/trend_feeds_v3.py
       - name: Probe X public keyword and curator discovery (V3 experimental)
         timeout-minutes: 3
         continue-on-error: true
@@ -112,6 +115,12 @@ jobs:
           python social-topic-radar/unified_topic_intake.py
           --history social-topic-radar/output/history-entities-v3.json
           --state-output social-topic-radar/output/history-entities-v3.json
+      - name: Route V3 discovery leads for human editorial review
+        if: always()
+        run: python social-topic-radar/reader_value_triage_v3.py
+      - name: Audit real multi-platform coverage and unresolved blind spots (V3)
+        if: always()
+        run: python social-topic-radar/channel_gap_audit_v3.py
       - name: Cache V3 novelty keys for next run
         if: always()
         uses: actions/cache/save@v4
