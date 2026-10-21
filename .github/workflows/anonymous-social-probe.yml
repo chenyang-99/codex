@@ -99,6 +99,8 @@ jobs:
         run: python social-topic-radar/horizon_apify_search_v3.py
       - name: Collect indexed public social content leads (not native platform hot search)
         run: python social-topic-radar/indexed_social_discovery_v3.py
+      - name: Probe optional OFFICIAL YouTube keyword search (disabled without explicit API key)
+        run: python social-topic-radar/youtube_official_search_v3.py
       - name: Build evidence-labeled multi-source editorial shortlist
         run: python social-topic-radar/editorial.py
       - name: Audit V2 fifteen-domain and five-type discovery coverage
