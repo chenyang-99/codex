@@ -66,7 +66,7 @@
       "region": "海外社交",
       "signals": "热门工具帖/创作者",
       "status": "partial",
-      "note": "现有公开平台采样",
+      "note": "新增Bluesky公开AppView关键词searchPosts(top)，无需API Key；在本PR真实CI之前仍属影子试验，实际是否可访问以来源健康报告为准",
       "url": "https://bsky.app"
     },
     {
@@ -374,6 +374,15 @@
       "status": "optional_off",
       "note": "官方search.list及videos.list有配额；代码适配器已建，但没有API Key不请求任何网络；不能宣称已覆盖全YouTube",
       "url": "https://developers.google.com/youtube/v3/docs/search/list"
+    },
+    {
+      "id": "bluesky_native_search",
+      "platform": "Bluesky 公共 AppView 搜索",
+      "region": "海外社交",
+      "signals": "AI工具原帖／官方站内搜索与点赞转发讨论",
+      "status": "shadow_trial",
+      "note": "公开GET官方文档允许免登录调用；四组关键词最多140条原始候选/次；受限/失败显式记状态，非X搜索替代品",
+      "url": "https://docs.bsky.app/docs/api/app-bsky-feed-search-posts"
     }
   ]
 }
