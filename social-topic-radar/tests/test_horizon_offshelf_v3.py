@@ -113,6 +113,43 @@ class OfficialYouTubeTests(unittest.TestCase):
         self.assertTrue(all(s["status"]=="retrieved" for s in health))
         self.assertEqual("https://www.youtube.com/watch?v=abc123",rows[0]["url"])
 
+    def test_youtube_search_rotation_respects_100_daily_call_limit(self):
+        import datetime as dt
+        sets=[y.select_queries(dt.datetime(2026,10,21,h,tzinfo=dt.timezone.utc))
+              for h in range(0,24,3)]
+        self.assertEqual(8*3,sum(len(c) for c in sets))
+        self.assertEqual(9,len(set(q for qs in sets for q in qs)))
+        self.assertTrue(all(len(qs)<=3 for qs in sets))
+
+    def test_youtube_stats_pagination_covers_60_candidates(self):
+        import datetime as dt
+        calls=[]
+        batches={"count":0}
+        def api(endpoint,params,key):
+            calls.append((endpoint,params))
+            if endpoint=="search":
+                index=len([x for x in calls if x[0]=="search"])
+                return {"items":[{"id":{"videoId":f"v{index}_{i}"},
+                         "snippet":{"title":"Visual AI demo", "channelTitle":"Creator",
+                                    "publishedAt":"2026-10-20T09:00:00Z"}}
+                        for i in range(20)]}
+            ids=params["id"].split(",")
+            self.assertLessEqual(len(ids),50)
+            batches["count"]+=1
+            return {"items":[{"id":vid,"statistics":{"viewCount":"9000"}} for vid in ids]}
+        rows,health=y.collect({"YOUTUBE_SEARCH_ENABLED":"1","YOUTUBE_DATA_API_KEY":"DEMO"},
+                               api=api,clock=dt.datetime(2026,10,21,tzinfo=dt.timezone.utc))
+        self.assertEqual(60,len(rows))
+        self.assertEqual(2,batches["count"])
+        self.assertEqual(60,sum(len(c["platform_native_metrics"])>0 for c in rows))
+        self.assertTrue(all(z["status"]=="retrieved" for z in health))
+
+    def test_workflow_only_uses_key_on_explicit_scheduled_manual_run(self):
+        yaml=(ROOT.parent/".github/workflows/anonymous-social-probe.yml").read_text()
+        self.assertIn("secrets.YOUTUBE_DATA_API_KEY",yaml)
+        self.assertIn("vars.YOUTUBE_SEARCH_ENABLED",yaml)
+        self.assertIn("github.event_name == 'schedule'",yaml)
+
     def test_video_api_not_an_automatic_trending_claim(self):
         rows,health=y.collect({"YOUTUBE_SEARCH_ENABLED":"0","YOUTUBE_DATA_API_KEY":"TEST"},api=lambda *a:None)
         self.assertEqual([],rows)
