@@ -273,7 +273,7 @@ def main():
         "raw_records": len(discovered), "distinct_entities": len(items),
         "platform_capability_is_not_verified_by_registry": True,
         "cross_day_history_loaded": history is not None,
-        "observed_platform_health": (load(args.input_dir / "external-discovery.json") or {}).get("source_health", [])
+        "observed_platform_health": (load(args.input_dir / "external-discovery.json") or {}).get("provider_status", [])
         + (load(args.input_dir / "external-discovery-devto-hf.json") or {}).get("source_health", [])
         + (load(args.input_dir / "external-discovery-hot-extra.json") or {}).get("source_health", [])
         + (load(args.input_dir / "x-hot-curator-v3.json") or {}).get("source_health", []),
