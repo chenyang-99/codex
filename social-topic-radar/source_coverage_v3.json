@@ -336,6 +336,15 @@
       "status": "shadow_trial",
       "note": "使用Hyraze/trending-collection的公开镜像；非GitHub官方热榜API，需检查时点与可用性",
       "url": "https://github.com/hanishrao/trending-collection"
+    },
+    {
+      "id": "youtube_creator_rss",
+      "platform": "YouTube三位工具/技术创作者频道订阅",
+      "region": "海外视频",
+      "signals": "近期视频原题目/第一手工具演示/作者上传日期",
+      "status": "shadow_trial",
+      "note": "2026-10-21试接入 Matt Wolfe、Fireship、Two Minute Papers 官方频道 RSS；不是YouTube全站热榜，观看/分享/版权需二次核验",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UChpleBmo18P08aKCIgti38g"
     }
   ]
 }
