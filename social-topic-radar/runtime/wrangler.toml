@@ -1,0 +1,14 @@
+# Production Cloudflare Worker configuration snapshot: 2026-10-24
+# Restore from the same project directory; update database_id when using a new account.
+# DO NOT put ADMIN_KEY or third-party API keys into this file.
+name = "open-topic-radar-v01"
+main = "entry.py"
+compatibility_date = "2026-10-22"
+compatibility_flags = ["python_workers", "disable_python_external_sdk"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "open-topic-radar-v01"
+database_id = "f3d49164-48d0-49d4-8548-8df95bb3eaa2"
+
+# No [triggers] section: scheduled collection is a TODO, not enabled.
