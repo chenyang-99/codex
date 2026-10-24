@@ -21,7 +21,7 @@ function item({url,title,excerpt="",author="",published=null,metrics=null,scope=
  return {url:u,title:String(title).trim().slice(0,450),excerpt:String(excerpt||"").slice(0,900),author:String(author||"").slice(0,100),date:cleanDate(published),metrics:observed,scope,project_url:isHttps(project_url)};
 }
 async function getFromSource(src){
- if(!["hn_json","devto_json","v2ex_json","hf_json","lobsters_json","github_mirror_json"].includes(src.kind)){
+ if(!["hn_json","devto_json","v2ex_json","hf_json","hf_models_json","hf_spaces_recent_json","lobsters_json","github_mirror_json"].includes(src.kind)){
   const out=await capFetch(src.feed_url);return{status:out.status,items:out.items.map(z=>item({url:z.url,title:z.title,excerpt:z.excerpt,author:z.author,published:z.date,scope:src.kind==="indexed_rss"?"public_search_index_only_not_native_platform_posts":"rss_title_excerpt_only"})).filter(Boolean).slice(0,12)}
  }
  const data=await readJson(src.feed_url);const things=[];
@@ -30,6 +30,21 @@ async function getFromSource(src){
  if(src.kind==="devto_json"){if(!Array.isArray(data))throw Error("devto_invalid");for(const row of data.slice(0,12))things.push(item({url:row.url,title:row.title,excerpt:row.description,author:row.user?.username,published:row.published_at,metrics:{comments:row.comments_count,likes:row.positive_reactions_count},scope:"devto_native_metrics"}));}
  if(src.kind==="v2ex_json"){if(!Array.isArray(data))throw Error("v2ex_invalid");for(const row of data.slice(0,12))things.push(item({url:row.url,title:row.title,excerpt:row.content_rendered||"",author:row.member?.username,published:row.created,metrics:{comments:row.replies},scope:"v2ex_native_metrics"}));}
  if(src.kind==="hf_json"){if(!Array.isArray(data))throw Error("hf_invalid");for(const row of data.slice(0,12))things.push(item({url:"https://huggingface.co/spaces/"+row.id,title:row.cardData?.title||row.id,excerpt:row.cardData?.short_description||"",author:row.author,published:row.createdAt||row.lastModified,metrics:{likes:row.likes},scope:"huggingface_native_metrics",project_url:"https://huggingface.co/spaces/"+row.id}));}
+ 
+ if(src.kind==="hf_models_json"||src.kind==="hf_spaces_recent_json"){
+  if(!Array.isArray(data))throw Error("huggingface_data_not_array");
+  const visualTerms=["image","photo","video","visual","comfy","flux","wan","cinema","3d","seedance","anime","draw","portrait","motion","edit","recraft","kling","diffusion"];
+  for(const row of data.slice(0,50)){if(!row||typeof row!=="object"||row.private===true)continue;
+   const id=String(row.id||row.modelId||"");if(!/^[^/]+\/[^/]+$/.test(id))continue;
+   const tags=Array.isArray(row.tags)?row.tags.slice(0,20):[];
+   if(src.kind==="hf_spaces_recent_json"&&!visualTerms.some(term=>(id+" "+tags.join(" ")).toLowerCase().includes(term)))continue;
+   const u="https://huggingface.co/"+(src.kind==="hf_spaces_recent_json"?"spaces/":"")+id;
+   const notes="Official Hugging Face public metadata; tags: "+tags.join(", ").slice(0,360);
+   things.push(item({url:u,title:id,excerpt:notes,author:id.split("/")[0],published:row.createdAt||null,scope:"huggingface_first_party_aicg_metadata_not_original_media_viewed",project_url:u,metrics:{likes:row.likes}}));
+   if(things.length>=12)break;
+  }
+ }
+
  if(src.kind==="lobsters_json"){if(!Array.isArray(data))throw Error("lobsters_invalid");for(const row of data.slice(0,12))things.push(item({url:row.short_id_url||row.comments_url,title:row.title,author:row.submitter_user?.username,published:row.created_at,metrics:{points:row.score,comments:row.comment_count},scope:"lobsters_native_metrics"}));}
  if(src.kind==="github_mirror_json"){const rows=Array.isArray(data)?data:data?.items;if(!Array.isArray(rows))throw Error("github_mirror_invalid");for(const row of rows.slice(0,12))things.push(item({url:row.url,title:row.title||row.name,excerpt:row.description,scope:"third_party_trending_unverified",project_url:row.url}));}
  return{status:200,items:things.filter(Boolean)};
