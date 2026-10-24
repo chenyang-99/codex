@@ -37,10 +37,15 @@ async function htmlMetadata(url){
  const response=await fetch(url,{headers:{"user-agent":"AI30 Topic Radar/3.2 public metadata (no login)","accept":"text/html"},redirect:"follow",signal:AbortSignal.timeout(10000)});
  if(!response.ok)throw Error("http_"+response.status);
  if(!String(response.headers.get("content-type")||"").includes("html"))throw Error("not_html");
- const n=response.headers.get("content-length");if(n&&Number(n)>420000)throw Error("html_too_large");
- const html=await response.text();if(html.length>420000)throw Error("html_too_large");
- return html;
+ if(!response.body)throw Error("html_body_not_streamed");
+ const reader=response.body.getReader(),pieces=[];let n=0;
+ try{
+  while(n<360000){const v=await reader.read();if(v.done)break;if(!v.value||!v.value.length)continue;const part=v.value.subarray(0,360000-n);pieces.push(part);n+=part.length;}
+ }finally{try{await reader.cancel()}catch{}}
+ const buf=new Uint8Array(n);let offset=0;for(const p of pieces){buf.set(p,offset);offset+=p.length}
+ return new TextDecoder("utf-8",{fatal:false}).decode(buf);
 }
+
 function pageMeta(html){
  const meta=(key)=>{const tag=html.match(new RegExp('<meta\\b(?=[^>]*(?:name|property)\\s*=\\s*["\\x27]'+key.replace(/:/g,"\\:")+'["\\x27])[^>]*>','i'));if(!tag)return"";const c=tag[0].match(/\bcontent\s*=\s*["']([^"']*)["']/i);return c?xmlDecode(c[1]).slice(0,750):""};
  const title=meta("og:title")||xmlDecode((html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)||[])[1]||"");
