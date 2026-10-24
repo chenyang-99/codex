@@ -20,7 +20,44 @@ function item({url,title,excerpt="",author="",published=null,metrics=null,scope=
  const observed={};if(metrics&&typeof metrics==="object"){for(const k of ["points","comments","likes","bookmarks","views","reposts"]){const n=metric(metrics[k]);if(n!==null)observed[k]=n}}
  return {url:u,title:String(title).trim().slice(0,450),excerpt:String(excerpt||"").slice(0,900),author:String(author||"").slice(0,100),date:cleanDate(published),metrics:observed,scope,project_url:isHttps(project_url)};
 }
+
+const AICG_SITE_RULES={
+ "ComfyUI Workflows":{host:"comfy.org",path:/^\/workflows\/[a-f0-9-]{12,}\/?$/i},
+ "Runway Academy":{host:"academy.runway.com",path:/^\/courses\/[^/]+\/?$/i},
+ "Luma Learning Center":{host:"lumalabs.ai",path:/^\/learning-center\/[^/]+\/?$/i},
+ "Replicate Collections":{host:"replicate.com",path:/^\/collections\/[^/]+\/?$/i},
+ "Recraft Blog":{host:"www.recraft.ai",path:/^\/blog\/[^/]+\/?$/i},
+ "Google DeepMind Blog":{host:"deepmind.google",path:/^\/blog\/[^/]+\/?$/i},
+ "Black Forest Labs Blog":{host:"bfl.ai",path:/^\/blog\/[^/]+\/?$/i},
+ "Higgsfield Community":{host:"higgsfield.ai",path:/^\/community\/[a-z0-9/_-]+\/?$/i},
+ "Krea Community Apps":{host:"www.krea.ai",path:/^\/apps\/(?!community|background-remover)[a-z0-9/_-]+\/?$/i},
+ "Runway AI Festival":{host:"aif.runwayml.com",path:/^\/(?:films|film|projects|winners)\/[^/]+\/?$/i}
+};
+async function htmlMetadata(url){
+ const response=await fetch(url,{headers:{"user-agent":"AI30 Topic Radar/3.2 public metadata (no login)","accept":"text/html"},redirect:"follow",signal:AbortSignal.timeout(10000)});
+ if(!response.ok)throw Error("http_"+response.status);
+ if(!String(response.headers.get("content-type")||"").includes("html"))throw Error("not_html");
+ const n=response.headers.get("content-length");if(n&&Number(n)>420000)throw Error("html_too_large");
+ const html=await response.text();if(html.length>420000)throw Error("html_too_large");
+ return html;
+}
+function pageMeta(html){
+ const meta=(key)=>{const tag=html.match(new RegExp('<meta\\b(?=[^>]*(?:name|property)\\s*=\\s*["\\x27]'+key.replace(/:/g,"\\:")+'["\\x27])[^>]*>','i'));if(!tag)return"";const c=tag[0].match(/\bcontent\s*=\s*["']([^"']*)["']/i);return c?xmlDecode(c[1]).slice(0,750):""};
+ const title=meta("og:title")||xmlDecode((html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)||[])[1]||"");
+ return{title:title.slice(0,420),description:meta("og:description")||meta("description"),date:meta("article:published_time")||meta("datePublished")||null,has_og_image:!!meta("og:image")};
+}
+async function getAicgSiteDetails(src){
+ const spec=AICG_SITE_RULES[src.name];if(!spec)throw Error("source_not_whitelisted");
+ const root=new URL(src.feed_url);if(root.protocol!=="https:"||root.hostname!==spec.host)throw Error("source_root_host_mismatch");
+ const html=await htmlMetadata(src.feed_url),urls=[];
+ const anchors=html.matchAll(/<a\b[^>]*\bhref\s*=\s*(?:"([^"]+)"|'([^']+)')/gi);
+ for(const m of anchors){const ref=(m[1]||m[2]||"").replace(/&amp;/g,"&");let u;try{u=new URL(ref,root)}catch{continue}if(u.protocol!=="https:"||u.hostname!==spec.host||!spec.path.test(u.pathname))continue;u.search="";u.hash="";if(!urls.includes(u.toString()))urls.push(u.toString());if(urls.length>=3)break}
+ const results=await Promise.allSettled(urls.map(async u=>{const html=await htmlMetadata(u),p=pageMeta(html);return p.title?item({url:u,title:p.title,excerpt:p.description+(p.has_og_image?"; OG image metadata only; artwork not viewed":""),published:p.date,scope:"first_party_public_aicg_detail_metadata_not_media_or_rights_verified",project_url:u}):null}));
+ return{status:200,items:results.filter(x=>x.status==="fulfilled"&&x.value).map(x=>x.value)};
+}
+
 async function getFromSource(src){
+ if(src.kind==="aicg_site_html")return await getAicgSiteDetails(src);
  if(!["hn_json","devto_json","v2ex_json","hf_json","hf_models_json","hf_spaces_recent_json","lobsters_json","github_mirror_json"].includes(src.kind)){
   const out=await capFetch(src.feed_url);return{status:out.status,items:out.items.map(z=>item({url:z.url,title:z.title,excerpt:z.excerpt,author:z.author,published:z.date,scope:src.kind==="indexed_rss"?"public_search_index_only_not_native_platform_posts":"rss_title_excerpt_only"})).filter(Boolean).slice(0,12)}
  }
