@@ -15,10 +15,10 @@ function cleanDate(v){if(v===null||v===undefined||v==="")return null;let t=typeo
 async function readJson(url){const r=await fetch(url,{headers:{"accept":"application/json","user-agent":"AI30 Topic Radar/3.2 research metadata"},redirect:"follow",signal:AbortSignal.timeout(10000)});if(!r.ok)throw Error("http_"+r.status);const size=r.headers.get("content-length");if(size&&Number(size)>1500000)throw Error("json_too_large");const t=await r.text();if(t.length>1500000)throw Error("json_too_large");return JSON.parse(t);}
 function isHttps(url){return typeof url==="string"&&url.startsWith("https://")?canonical(url):""}
 function metric(n){return Number.isFinite(n)&&n>=0?n:null}
-function item({url,title,excerpt="",author="",published=null,metrics=null,scope="public_metadata",project_url=""}){
+function item({url,title,excerpt="",author="",published=null,metrics=null,scope="public_metadata",project_url="",preview_image=""}){
  const u=isHttps(url);if(!u||!String(title||"").trim())return null;
  const observed={};if(metrics&&typeof metrics==="object"){for(const k of ["points","comments","likes","bookmarks","views","reposts"]){const n=metric(metrics[k]);if(n!==null)observed[k]=n}}
- return {url:u,title:String(title).trim().slice(0,450),excerpt:String(excerpt||"").slice(0,900),author:String(author||"").slice(0,100),date:cleanDate(published),metrics:observed,scope,project_url:isHttps(project_url)};
+ return {url:u,title:String(title).trim().slice(0,450),excerpt:String(excerpt||"").slice(0,900),author:String(author||"").slice(0,100),date:cleanDate(published),metrics:observed,scope,project_url:isHttps(project_url),preview_image:isHttps(preview_image)};
 }
 
 const AICG_SITE_RULES={
@@ -49,7 +49,7 @@ async function htmlMetadata(url){
 function pageMeta(html){
  const meta=(key)=>{const tag=html.match(new RegExp('<meta\\b(?=[^>]*(?:name|property)\\s*=\\s*["\\x27]'+key.replace(/:/g,"\\:")+'["\\x27])[^>]*>','i'));if(!tag)return"";const c=tag[0].match(/\bcontent\s*=\s*["']([^"']*)["']/i);return c?xmlDecode(c[1]).slice(0,750):""};
  const title=meta("og:title")||xmlDecode((html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)||[])[1]||"");
- return{title:title.slice(0,420),description:meta("og:description")||meta("description"),date:meta("article:published_time")||meta("datePublished")||null,has_og_image:!!meta("og:image")};
+ return{title:title.slice(0,420),description:meta("og:description")||meta("description"),date:meta("article:published_time")||meta("datePublished")||null,has_og_image:!!meta("og:image"),preview_image:meta("og:image")};
 }
 async function getAicgSiteDetails(src){
  const spec=AICG_SITE_RULES[src.name];if(!spec)throw Error("source_not_whitelisted");
@@ -57,7 +57,7 @@ async function getAicgSiteDetails(src){
  const html=await htmlMetadata(src.feed_url),urls=[];
  const anchors=html.matchAll(/<a\b[^>]*\bhref\s*=\s*(?:"([^"]+)"|'([^']+)')/gi);
  for(const m of anchors){const ref=(m[1]||m[2]||"").replace(/&amp;/g,"&");let u;try{u=new URL(ref,root)}catch{continue}if(u.protocol!=="https:"||u.hostname!==spec.host||!spec.path.test(u.pathname))continue;u.search="";u.hash="";if(!urls.includes(u.toString()))urls.push(u.toString());if(urls.length>=3)break}
- const results=await Promise.allSettled(urls.map(async u=>{const html=await htmlMetadata(u),p=pageMeta(html);return p.title?item({url:u,title:p.title,excerpt:p.description+(p.has_og_image?"; OG image metadata only; artwork not viewed":""),published:p.date,scope:"first_party_public_aicg_detail_metadata_not_media_or_rights_verified",project_url:u}):null}));
+ const results=await Promise.allSettled(urls.map(async u=>{const html=await htmlMetadata(u),p=pageMeta(html);return p.title?item({url:u,title:p.title,excerpt:p.description+(p.has_og_image?"; OG image metadata only; artwork not viewed":""),published:p.date,scope:"first_party_public_aicg_detail_metadata_not_media_or_rights_verified",project_url:u,preview_image:p.preview_image}):null}));
  return{status:200,items:results.filter(x=>x.status==="fulfilled"&&x.value).map(x=>x.value)};
 }
 
@@ -163,7 +163,7 @@ async function persist(env,src,row,now){
  let families=[];try{families=JSON.parse(prev?.source_ids_json||"[]");if(!Array.isArray(families))families=[]}catch{families=[]}
  if(!families.includes(src.source_id))families.push(src.source_id);
  const prior=await env.DB.prepare("SELECT first_seen_utc FROM evidence WHERE source_id=? AND canonical_url=?").bind(src.source_id,row.url).first();
- await env.DB.prepare("INSERT INTO evidence(source_id,canonical_url,original_url,title,excerpt,author,published_utc,first_seen_utc,last_seen_utc,source_scope,observed_metrics_json,raw_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(source_id,canonical_url) DO UPDATE SET title=excluded.title,excerpt=excluded.excerpt,last_seen_utc=excluded.last_seen_utc,observed_metrics_json=excluded.observed_metrics_json,raw_json=excluded.raw_json").bind(src.source_id,row.url,row.url,row.title,row.excerpt,row.author,row.date,prior?.first_seen_utc||now,now,row.scope,JSON.stringify({metrics:row.metrics,scope:METRIC_SCOPE,checked_at:now}),JSON.stringify({url:row.url,title:row.title,excerpt:row.excerpt,project_url:row.project_url,lanes:lanesOf(row.title)})).run();
+ await env.DB.prepare("INSERT INTO evidence(source_id,canonical_url,original_url,title,excerpt,author,published_utc,first_seen_utc,last_seen_utc,source_scope,observed_metrics_json,raw_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(source_id,canonical_url) DO UPDATE SET title=excluded.title,excerpt=excluded.excerpt,last_seen_utc=excluded.last_seen_utc,observed_metrics_json=excluded.observed_metrics_json,raw_json=excluded.raw_json").bind(src.source_id,row.url,row.url,row.title,row.excerpt,row.author,row.date,prior?.first_seen_utc||now,now,row.scope,JSON.stringify({metrics:row.metrics,scope:METRIC_SCOPE,checked_at:now}),JSON.stringify({url:row.url,title:row.title,excerpt:row.excerpt,project_url:row.project_url,preview_image:row.preview_image||"",media_review_status:"not_viewed",rights_status:"not_verified",lanes:lanesOf(row.title)})).run();
  if(prev)await env.DB.prepare("UPDATE entities SET last_seen_utc=?,title=?,source_ids_json=?,cross_source_count=? WHERE entity_key=?").bind(now,row.title,JSON.stringify(families),families.length,ekey).run();
  else await env.DB.prepare("INSERT INTO entities(entity_key,canonical_url,title,first_seen_utc,last_seen_utc,cross_source_count,source_ids_json,state) VALUES(?,?,?,?,?,?,?,'research_only')").bind(ekey,row.url,row.title,now,now,1,JSON.stringify(families)).run();
  await env.DB.prepare("INSERT OR IGNORE INTO editorial_review(entity_key,value_scan_json,original_review_status,updated_utc) VALUES(?,?,'pending',?)").bind(ekey,JSON.stringify(NINE_VALUE_SCAN),now).run();

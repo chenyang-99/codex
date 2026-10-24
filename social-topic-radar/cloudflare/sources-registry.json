@@ -1,11 +1,11 @@
 {
-  "schema_version": "cf-ai30-v32-sources-1",
-  "created_utc": "2026-10-25T00:00:00Z",
-  "notes": "Public non-secret Cloudflare D1 registered discovery sources, NOT a claim of successful access or original platform virality. Snapshotted after restoring normal priorities and hourly cron.",
-  "sources_total": 82,
-  "enabled": 43,
-  "disabled": 39,
-  "source_snapshot": [
+  "version": "2026-10-25-cf-v32",
+  "source": "Cloudflare live D1 ai30-original-radar-v32",
+  "source_count": 82,
+  "active_count": 53,
+  "disabled_count": 29,
+  "provenance": "Source registration, not proof of successful native platform access; indirect site indexes not native hot posts; review/publish require human.",
+  "sources": [
     {
       "source_id": "aicg_hf_image_models",
       "name": "Hugging Face public text-to-image model metadata",
@@ -34,9 +34,9 @@
       "source_id": "aicg_site_1",
       "name": "Krea Community Apps",
       "feed_url": "https://www.krea.ai/apps/community",
-      "kind": "aicg_site_seed_only",
+      "kind": "aicg_site_html",
       "priority": 2,
-      "enabled": 0
+      "enabled": 1
     },
     {
       "source_id": "aicg_site_10",
@@ -50,17 +50,17 @@
       "source_id": "aicg_site_11",
       "name": "Replicate Collections",
       "feed_url": "https://replicate.com/collections",
-      "kind": "aicg_site_seed_only",
+      "kind": "aicg_site_html",
       "priority": 2,
-      "enabled": 0
+      "enabled": 1
     },
     {
       "source_id": "aicg_site_12",
       "name": "Runway AI Festival",
       "feed_url": "https://aif.runwayml.com/",
-      "kind": "aicg_site_seed_only",
+      "kind": "aicg_site_html",
       "priority": 2,
-      "enabled": 0
+      "enabled": 1
     },
     {
       "source_id": "aicg_site_13",
@@ -90,25 +90,25 @@
       "source_id": "aicg_site_16",
       "name": "Recraft Blog",
       "feed_url": "https://www.recraft.ai/blog",
-      "kind": "aicg_site_seed_only",
+      "kind": "aicg_site_html",
       "priority": 2,
-      "enabled": 0
+      "enabled": 1
     },
     {
       "source_id": "aicg_site_17",
       "name": "Google DeepMind Blog",
       "feed_url": "https://deepmind.google/blog/",
-      "kind": "aicg_site_seed_only",
+      "kind": "aicg_site_html",
       "priority": 2,
-      "enabled": 0
+      "enabled": 1
     },
     {
       "source_id": "aicg_site_18",
       "name": "Black Forest Labs Blog",
       "feed_url": "https://bfl.ai/blog/",
-      "kind": "aicg_site_seed_only",
+      "kind": "aicg_site_html",
       "priority": 2,
-      "enabled": 0
+      "enabled": 1
     },
     {
       "source_id": "aicg_site_2",
@@ -122,9 +122,9 @@
       "source_id": "aicg_site_3",
       "name": "Higgsfield Community",
       "feed_url": "https://higgsfield.ai/community",
-      "kind": "aicg_site_seed_only",
+      "kind": "aicg_site_html",
       "priority": 2,
-      "enabled": 0
+      "enabled": 1
     },
     {
       "source_id": "aicg_site_4",
@@ -138,9 +138,9 @@
       "source_id": "aicg_site_5",
       "name": "ComfyUI Workflows",
       "feed_url": "https://comfy.org/workflows",
-      "kind": "aicg_site_seed_only",
+      "kind": "aicg_site_html",
       "priority": 2,
-      "enabled": 0
+      "enabled": 1
     },
     {
       "source_id": "aicg_site_6",
@@ -154,17 +154,17 @@
       "source_id": "aicg_site_7",
       "name": "Runway Academy",
       "feed_url": "https://academy.runway.com/courses",
-      "kind": "aicg_site_seed_only",
+      "kind": "aicg_site_html",
       "priority": 2,
-      "enabled": 0
+      "enabled": 1
     },
     {
       "source_id": "aicg_site_8",
       "name": "Luma Learning Center",
       "feed_url": "https://lumalabs.ai/learning-center",
-      "kind": "aicg_site_seed_only",
+      "kind": "aicg_site_html",
       "priority": 2,
-      "enabled": 0
+      "enabled": 1
     },
     {
       "source_id": "aicg_site_9",
