@@ -315,6 +315,69 @@ function editorialPreflightSelfTest(){
  return{pass:tests.every(x=>x.pass),passed:tests.filter(x=>x.pass).length,total:tests.length,tests,publication_approved:false,scope:"nonblocking editorial preflight hints"};
 }
 
+
+const COPY_EDIT_SCOPES=new Set(["new_draft","review_only","title_only","opening_only","ending_only","minimal","substantive_rewrite"]);
+const COPY_FACT_STATUS=new Set(["user_verified","original_source","third_party_claim","proposed","unknown"]);
+const COPY_PAYOFF_TYPES=new Set(["utility","learning","save","insight","decision","information","emotion","entertainment","social_expression"]);
+function copyQualityPreflight(p){
+ if(!p||typeof p!=="object"||Array.isArray(p))return{status:"blocked",blocking_reasons:["record_not_object"],warnings:[],preserved:{},manually_verified:false,published:false};
+ const s=x=>typeof x==="string"?x:"",mode=s(p.edit_scope),original=s(p.original),body=s(p.draft),errors=[],warnings=[],block=x=>{if(!errors.includes(x))errors.push(x)};
+ if(!COPY_EDIT_SCOPES.has(mode))block("invalid_or_missing_edit_scope");
+ if(!["douyin","xiaohongshu","x","multi","unspecified"].includes(p.platform))warnings.push("platform_unset_or_invalid");
+ if(!s(p.audience).trim())block("missing_target_audience");
+ if(!s(p.central_claim).trim())block("missing_central_claim");
+ if(mode!=="review_only"&&!body.trim())block("empty_draft");
+ if(mode!=="new_draft"&&!original.trim())block("missing_original_for_edit");
+ if(mode==="review_only"){if(body!==original)block("review_only_must_not_rewrite");if(s(p.headline_new)!==s(p.headline_original))block("review_only_must_not_change_title")}
+ if(mode==="title_only"&&body!==original)block("title_only_body_changed");
+ if(["opening_only","ending_only"].includes(mode)&&body!==original)warnings.push("partial_scope_requires_human_diff_review");
+ let diagnostic=null;
+ if(mode==="minimal"&&original){const a=[...original].length,b=[...body].length;diagnostic=Math.round((2*Math.min(a,b)/(a+b||1))*1000)/1000;if(diagnostic<0.8)block("minimal_edit_extensively_rewritten");else if(body!==original)warnings.push("minimal_edit_exact_SequenceMatcher_not_ported_manual_review_required")}
+ let keep=p.protected_phrases??[],terms=p.required_terms??[];
+ if(!Array.isArray(keep)||keep.some(x=>typeof x!=="string")){block("invalid_protected_phrases");keep=[]}
+ if(!Array.isArray(terms)||terms.some(x=>typeof x!=="string")){block("invalid_required_terms");terms=[]}
+ const missingKeep=keep.filter(x=>x&&!body.toLowerCase().includes(x.toLowerCase())),missingRequired=terms.filter(x=>x&&!body.toLowerCase().includes(x.toLowerCase()));
+ if(missingKeep.length)block("protected_content_lost");
+ if(missingRequired.length)block("required_content_missing");
+ if(["minimal","title_only","opening_only","ending_only"].includes(mode)&&keep.length===0)warnings.push("no_explicitly_protected_author_voice_fragments");
+ let claims=p.claims??[];if(!Array.isArray(claims)){block("claims_not_a_list");claims=[]}
+ for(let i=0;i<claims.length;i++){const x=claims[i];if(!x||typeof x!=="object"){block("claim_"+i+"_invalid");continue}const status=x.evidence_status;if(!s(x.text).trim()||!COPY_FACT_STATUS.has(status))block("claim_"+i+"_missing_evidence_provenance");if(x.presented_as_tested&&status!=="user_verified")block("claim_"+i+"_unverified_experience_claim");if(["proposed","unknown"].includes(status)&&x.presented_as_fact)block("claim_"+i+"_unverified_statement_of_fact");if(status==="third_party_claim"&&x.first_person_experience)block("claim_"+i+"_source_laundered_as_personal_experience")}
+ if(p.content_type==="tutorial"){if(!s(p.proof_plan))warnings.push("tutorial_missing_verification_plan");if(claims.length===0)warnings.push("tutorial_no_claim_inventory")}
+ if(["new_draft","substantive_rewrite"].includes(mode)){
+  const research=p.research;if(!research||typeof research!=="object"||Array.isArray(research))block("research_dossier_missing");else{for(const k of ["question","summary","limitations"])if(!s(research[k]).trim())block("research_"+k+"_missing");if(!Array.isArray(research.sources)||!research.sources.length)block("research_sources_missing");else for(let i=0;i<research.sources.length;i++){const a=research.sources[i];if(!a||typeof a!=="object"||!s(a.locator).trim()||!s(a.supports).trim())block("research_source_"+i+"_incomplete")}}
+  const delivery=p.value_delivery;if(!delivery||typeof delivery!=="object"||Array.isArray(delivery))block("value_delivery_missing");else{for(const k of ["hook","shareability","readability","primary_payoff"])if(!s(delivery[k]).trim())block("value_"+k+"_missing");if(!s(delivery.primary_payoff_type).trim())block("value_primary_payoff_type_missing");else if(!COPY_PAYOFF_TYPES.has(delivery.primary_payoff_type))block("value_primary_payoff_type_invalid");const extra=delivery.secondary_payoffs??[];if(!Array.isArray(extra)||extra.some(x=>!COPY_PAYOFF_TYPES.has(x)))block("value_secondary_payoffs_invalid")}
+ }
+ if(/100%成功|百分百保证|保证(?:涨粉|播放|变现)|零失误|永久(?:免费|有效)/.test(body))warnings.push("absolute_promise_detected_check_if_supported");
+ if(/评论区(?:打|扣|留下)(?:1|666|YES)|点赞(?:收藏)?关注三连|求个三连/.test(body))warnings.push("formulaic_engagement_bait");
+ warnings.push("semantic_truth_author_voice_and_platform_compliance_require_human_review");
+ return{case_id:s(p.case_id),status:errors.length?"blocked":"requires_editorial_review",blocking_reasons:errors,warnings:[...new Set(warnings)],preserved:{protected_count:keep.length-missingKeep.length,protected_total:keep.length,missing_protected:missingKeep,missing_required:missingRequired,minimal_similarity_diagnostic:diagnostic},manually_verified:false,published:false,note:"Structural port of copy_quality_gate.py. Python SequenceMatcher minimal-diff parity not implemented, manual/original Python review required."};
+}
+function copyQualitySelfTest(){
+ const old="今天给豆姐安装了工具。按提示扫码授权，然后试了两分钟课程。后面的整套课程还没测。我的建议是先从第一节试。当然，如果你的课有老师手把手辅导，那当我没说。";
+ const fixture=()=>({edit_scope:"minimal",platform:"xiaohongshu",content_type:"tutorial",audience:"需要学习的人",central_claim:"AI可能帮助学习",original:old,draft:old.replace("我的建议是","我建议"),headline_original:"标题",headline_new:"标题",protected_phrases:["豆姐","两分钟课程","整套课程还没测","那当我没说"],required_terms:["授权","第一节"],proof_plan:"检查课程是否一致",claims:[{text:"两分钟课程",evidence_status:"user_verified",presented_as_tested:true},{text:"完整课程",evidence_status:"proposed"}]});
+ const tests=[],add=(n,ok)=>tests.push({name:n,pass:!!ok}),fails=(p,k)=>copyQualityPreflight(p).blocking_reasons.includes(k);let p;
+ p=fixture();add("small_edit_requires_editorial_review",copyQualityPreflight(p).status==="requires_editorial_review"&&copyQualityPreflight(p).preserved.protected_count===4);
+ p=fixture();p.edit_scope="review_only";p.draft=p.original+"修改";add("review_only_must_not_rewrite",fails(p,"review_only_must_not_rewrite"));
+ p=fixture();p.edit_scope="review_only";p.draft=p.original;add("review_only_unchanged_valid",copyQualityPreflight(p).status==="requires_editorial_review");
+ p=fixture();p.edit_scope="title_only";add("title_only_body_locked",fails(p,"title_only_body_changed"));
+ p=fixture();p.draft="只有这一句";add("minimal_mass_deletion_blocked",fails(p,"minimal_edit_extensively_rewritten"));
+ p=fixture();p.draft=p.draft.replace("那当我没说","大家一起加油");add("protected_phrase_blocked",fails(p,"protected_content_lost"));
+ p=fixture();p.draft=p.draft.replace("扫码授权","扫码");add("required_terms_blocked",fails(p,"required_content_missing"));
+ p=fixture();p.claims=[{text:"第三方演示",evidence_status:"third_party_claim",presented_as_tested:true,first_person_experience:true}];add("thirdparty_not_personal_test",fails(p,"claim_0_unverified_experience_claim")&&fails(p,"claim_0_source_laundered_as_personal_experience"));
+ p=fixture();p.claims[1].presented_as_tested=true;add("proposed_not_verified",fails(p,"claim_1_unverified_experience_claim"));
+ p=fixture();p.claims=[{text:"1000次实测",evidence_status:"unknown",presented_as_fact:true}];add("unknown_not_fact",fails(p,"claim_0_unverified_statement_of_fact"));
+ p=fixture();p.edit_scope="new_draft";p.original="";p.protected_phrases=[];add("research_and_value_missing",fails(p,"research_dossier_missing")&&fails(p,"value_delivery_missing"));
+ p=fixture();p.edit_scope="new_draft";p.original="";p.protected_phrases=[];p.research={question:"目标问题",summary:"归纳",limitations:"不代表实测",sources:[{locator:"https://example.org",supports:"用途"}]};p.value_delivery={hook:"价值点",shareability:"传播理由",readability:"通俗",primary_payoff:"收获学习技能",primary_payoff_type:"learning"};add("valid_research_requires_editor",copyQualityPreflight(p).status==="requires_editorial_review");
+ p=fixture();p.edit_scope="new_draft";p.research={question:"问题",summary:"归纳",limitations:"边界",sources:[]};p.value_delivery={hook:"开头",shareability:"理由"};add("missing_sources_and_readability",fails(p,"research_sources_missing")&&fails(p,"value_readability_missing"));
+ p=fixture();p.edit_scope="new_draft";p.research={question:"问题",summary:"归纳",limitations:"有限",sources:[{locator:"用户文字",supports:"观点"}]};p.value_delivery={hook:"钩子",shareability:"共鸣",readability:"自然",primary_payoff:"获得理解",primary_payoff_type:"emotion"};add("emotion_without_learning_valid",copyQualityPreflight(p).status==="requires_editorial_review");
+ p=fixture();p.edit_scope="new_draft";p.research={question:"问题",summary:"归纳",limitations:"有限",sources:[{locator:"用户文字",supports:"观点"}]};p.value_delivery={hook:"钩子",shareability:"共鸣",readability:"自然",primary_payoff:"价值",primary_payoff_type:"fake_viral"};add("invalid_payoff_type",fails(p,"value_primary_payoff_type_invalid"));
+ p=fixture();p.edit_scope="substantive_rewrite";add("major_rewrite_needs_research",fails(p,"research_dossier_missing"));
+ p=fixture();p.proof_plan="";add("tutorial_proof_plan_warning",copyQualityPreflight(p).warnings.includes("tutorial_missing_verification_plan"));
+ p=fixture();add("no_machine_publication",copyQualityPreflight(p).manually_verified===false&&copyQualityPreflight(p).published===false);
+ add("bad_input",fails("text","record_not_object"));
+ return{pass:tests.every(x=>x.pass),total:tests.length,passed:tests.filter(x=>x.pass).length,failed:tests.filter(x=>!x.pass).map(x=>x.name),tests,warning:"Minimal similarity only uses a conservative length diagnostic; exact Python difflib remains a gap."};
+}
+
 async function persist(env,src,row,now){
  const ekey=entityIdentity(row);const prev=await env.DB.prepare("SELECT source_ids_json FROM entities WHERE entity_key=?").bind(ekey).first();
  let families=[];try{families=JSON.parse(prev?.source_ids_json||"[]");if(!Array.isArray(families))families=[]}catch{families=[]}
@@ -367,6 +430,8 @@ export default{
  if(u.pathname==="/readiness")return json({full_parity:false,runtime:"CF_only",configured_source_categories:["24 originally configured RSS sources; one paused after invalid 404","11 original public community, hot and video metadata adapters","six free Google News indirect site-index discovery feeds (not original posts)","three Hugging Face first-party AICG model/Spaces metadata streams","38 X creator/AICG website seeds disabled unless legally verified"],implemented:["persistent D1 source/evidence/entity datasets","per-source HTTP success, empty and failure receipts","canonical URL and project-level across-day dedup","private queryable editorial review queue","structural nine-reader-value and four-score gate with manual veto","original X 280 weighted-char conservative format check","positive, negative, incomplete and visual-unviewed fixture tests"],missing:["global original X keyword and AICG author content collector","original media playback and visual quality acceptance","original native Douyin and Xiaohongshu search/comments","full 119 original Python quality regressions inside CF","original copy P0 full release gate running on CF rather than ChatGPT editorial skill","actual human-reviewed and approved content delivery"],publication_approved:0,production_autopublish:false,capability_status:"partial_functionality_validated_not_full_parity"});
  if(u.pathname==="/copy-release-self-test")return json(copyReleaseSelfTest());
  if(u.pathname==="/editorial-preflight-self-test")return json(editorialPreflightSelfTest());
+ if(u.pathname==="/copy-quality-self-test")return json(copyQualitySelfTest());
+ if(u.pathname==="/copy-quality-contract")return json({source:"copy_quality_gate.py",implemented:["edit_scope","protect_original","required_terms","claims_status","research_dossier","payoff_type"],not_exact:["difflib SequenceMatcher minimal change ratio"],human_editorial_review_required:true,no_public_draft_submission:true});
  if(u.pathname==="/editorial-preflight-contract")return json({source:"Original editorial_preflight.py",mode:"nonblocking hints only",stored_drafts:false,external_submission:false,can_approve:false,can_publish:false,codes:["duplicate_paragraph","required_facts_missing","protected_phrase_changed","generic_promo_phrase","absolute_claim_check","first_person_test_unverified","source_gap","edit_scope_changed_body"]});
  if(u.pathname==="/copy-release-contract")return json({source:"Original delivery_release_gate.py v3.1.0",required_p0_gates:COPY_P0_GATES,external_genres:[...COPY_EXTERNAL],platforms:[...COPY_PLATFORMS],x_forms:[...COPY_X_FORMS],human_signoff_required:true,format_only:false,users_must_publish_manually:true,draft_submit_api:"not_publicly_exposed_without_authentication",mode:"synthetic_test_and_private_function_only"});
  if(u.pathname==="/quality-contract")return json({status:"metadata_and_human_gated",score_caps:LEGACY_SCORE_CAPS,score_minima:LEGACY_SCORE_MINS,total_required:85,dimensions:LEGACY_VALUE_LABELS,required_primary_count:1,original_source_required:true,social_pitch_required:true,human_editorial_approval:true,visual_originals_must_be_seen:true,copy_delivery_10_p0_gate:"ChatGPT ai-copy-production v3.1 original skill / release_gate.py; not executed on Cloudflare",automatic_publishing:false});
