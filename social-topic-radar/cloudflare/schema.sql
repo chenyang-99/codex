@@ -1,7 +1,17 @@
--- Cloudflare production D1 schema snapshot, 2026-10-25, after quality-gate blocker column and private review views.
--- From live sqlite_master; no business data, passwords or user records.
--- Original pre-ban source baseline: 24a8413586fdc58276df2fb5e2b8a6b769161c3c.
--- Public/safe source tree backup; CF remains the only execution environment.
+-- Live Cloudflare D1 schema snapshot (2026-10-25). All content is non-sensitive schema, no business rows.
+-- Worker: ai30-original-radar-v32. Copies original 2026-10-21 project's research- and editorial-related metadata gates.
+
+CREATE TABLE copy_release_jobs(
+ job_id TEXT PRIMARY KEY,
+ packet_json TEXT,
+ created_utc TEXT NOT NULL,
+ processing_started_utc TEXT,
+ finished_utc TEXT,
+ status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','processing','blocked','eligible_for_delivery','error')),
+ report_json TEXT,
+ submission_origin TEXT NOT NULL DEFAULT 'authorized_manual_connector',
+ retention_mode TEXT NOT NULL DEFAULT 'discard_packet_after_check'
+);
 
 CREATE TABLE editorial_review(entity_key TEXT PRIMARY KEY,value_scan_json TEXT,main_reader_value TEXT,value_proof_json TEXT,original_review_status TEXT NOT NULL DEFAULT 'pending',attraction_score INTEGER,spread_score INTEGER,payoff_score INTEGER,credibility_score INTEGER,user_decision TEXT NOT NULL DEFAULT 'unreviewed',publication_status TEXT NOT NULL DEFAULT 'not_published',updated_utc TEXT NOT NULL, machine_blockers_json TEXT NOT NULL DEFAULT '["missing_nine_value_scan","missing_value_proof","missing_social_pitch","missing_content_values","missing_or_invalid_content_scores","no_recheckable_primary_evidence"]');
 
@@ -16,6 +26,8 @@ CREATE TABLE run_source_health(run_id TEXT NOT NULL,source_id TEXT NOT NULL, sta
 CREATE TABLE runs(run_id TEXT PRIMARY KEY, trigger_kind TEXT NOT NULL, started_utc TEXT NOT NULL, finished_utc TEXT, status TEXT NOT NULL, feeds_checked INTEGER NOT NULL DEFAULT 0, retrieved INTEGER NOT NULL DEFAULT 0, new_entities INTEGER NOT NULL DEFAULT 0, errors_json TEXT, provenance_commit TEXT NOT NULL);
 
 CREATE TABLE sources(source_id TEXT PRIMARY KEY, name TEXT NOT NULL, feed_url TEXT NOT NULL, kind TEXT NOT NULL, priority INTEGER NOT NULL, enabled INTEGER NOT NULL DEFAULT 1, created_utc TEXT NOT NULL, last_checked_utc TEXT, last_result TEXT);
+
+CREATE INDEX idx_copy_release_pending ON copy_release_jobs(status,created_utc);
 
 CREATE INDEX idx_entities_lastseen ON entities(last_seen_utc DESC);
 
