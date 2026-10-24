@@ -1,0 +1,8 @@
+.dev.vars
+.env
+.env.*
+*.sqlite
+*.sqlite3
+*.db
+.wrangler/
+__pycache__/

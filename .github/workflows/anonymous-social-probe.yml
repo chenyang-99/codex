@@ -1,15 +1,10 @@
 name: Anonymous social content probe
 
+# Legacy project collector retained for manual diagnostics only.
+# GitHub is a backup; Cloudflare remains the sole production runner.
+# Do not run on push or timer until automated collection is explicitly approved.
 on:
-  push:
-    paths:
-      - "social-topic-radar/**"
-      - "douyin_creator_discovery.py"
-      - ".github/workflows/anonymous-social-probe.yml"
   workflow_dispatch:
-  schedule:
-    # Every 3 hours; scheduled GitHub Actions runs may be delayed.
-    - cron: "15 */3 * * *"
 
 permissions:
   contents: read
