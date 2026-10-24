@@ -1,18 +1,11 @@
 {
-  "description": "Cloudflare D1 source registry non-sensitive configuration backup; sources enabled=1 are only scheduled targets, not necessarily successfully fetched",
-  "snapshot_date": "2026-10-25",
-  "cloudflare_worker": "ai30-original-radar-v32",
-  "baseline_git_commit": "24a8413586fdc58276df2fb5e2b8a6b769161c3c",
-  "source_count": 82,
-  "active_count": 43,
-  "disabled_count": 39,
-  "notes": [
-    "indexed_rss are indirect Google News site-query leads, not target-platform-native posts or verified heat",
-    "x_creator_seed_only and aicg_site_seed_only are disabled registry entries",
-    "Only data and source health from actual CF runs establish access; no paid/private capture",
-    "Human quality gates and manual publication remain required"
-  ],
-  "sources": [
+  "schema_version": "cf-ai30-v32-sources-1",
+  "created_utc": "2026-10-25T00:00:00Z",
+  "notes": "Public non-secret Cloudflare D1 registered discovery sources, NOT a claim of successful access or original platform virality. Snapshotted after restoring normal priorities and hourly cron.",
+  "sources_total": 82,
+  "enabled": 43,
+  "disabled": 39,
+  "source_snapshot": [
     {
       "source_id": "aicg_hf_image_models",
       "name": "Hugging Face public text-to-image model metadata",
@@ -34,7 +27,7 @@
       "name": "Hugging Face public image-to-video model metadata",
       "feed_url": "https://huggingface.co/api/models?pipeline_tag=image-to-video&sort=lastModified&direction=-1&limit=40",
       "kind": "hf_models_json",
-      "priority": 8,
+      "priority": 4,
       "enabled": 1
     },
     {
@@ -354,7 +347,7 @@
       "name": "Google News indirect index: douyin_index",
       "feed_url": "https://news.google.com/rss/search?q=site%3Adouyin.com%2Fvideo%20AI%20%E5%B7%A5%E5%85%B7%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
       "kind": "indexed_rss",
-      "priority": 9,
+      "priority": 2,
       "enabled": 1
     },
     {
@@ -394,7 +387,7 @@
       "name": "Google News indirect index: instagram_index",
       "feed_url": "https://news.google.com/rss/search?q=site%3Ainstagram.com%2Freel%20AI%20generated%20video%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
       "kind": "indexed_rss",
-      "priority": 9,
+      "priority": 2,
       "enabled": 1
     },
     {
@@ -610,7 +603,7 @@
       "name": "Google News indirect index: tiktok_index",
       "feed_url": "https://news.google.com/rss/search?q=site%3Atiktok.com%20AI%20video%20editing%20tools%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
       "kind": "indexed_rss",
-      "priority": 9,
+      "priority": 2,
       "enabled": 1
     },
     {
@@ -626,7 +619,7 @@
       "name": "Google News indirect index: x_tool_index",
       "feed_url": "https://news.google.com/rss/search?q=site%3Ax.com%20AI%20tools%20GitHub%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
       "kind": "indexed_rss",
-      "priority": 9,
+      "priority": 2,
       "enabled": 1
     },
     {
@@ -634,7 +627,7 @@
       "name": "Google News indirect index: xiaohongshu_index",
       "feed_url": "https://news.google.com/rss/search?q=site%3Axiaohongshu.com%20AI%20%E5%B7%A5%E5%85%B7%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
       "kind": "indexed_rss",
-      "priority": 9,
+      "priority": 2,
       "enabled": 1
     },
     {
@@ -650,7 +643,7 @@
       "name": "Google News indirect index: youtube_index",
       "feed_url": "https://news.google.com/rss/search?q=site%3Ayoutube.com%2Fwatch%20open%20source%20AI%20tools%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
       "kind": "indexed_rss",
-      "priority": 9,
+      "priority": 2,
       "enabled": 1
     },
     {

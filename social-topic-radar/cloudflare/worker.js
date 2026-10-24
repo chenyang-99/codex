@@ -1,5 +1,5 @@
 const BASE_COMMIT="24a8413586fdc58276df2fb5e2b8a6b769161c3c";
-const VERSION="v3.2-cf-migration-rss1";
+const VERSION="v3.2-cf-migration-phase4";
 const VALUES=["utility","learning","save","decision","insight","information","emotion","entertainment","social_expression"];
 const headers={"content-type":"application/json; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff"};
 function json(obj,status=200){return new Response(JSON.stringify(obj),{status,headers});}
@@ -97,6 +97,25 @@ function auditLegacyTopic(topic){
  return{status:errors.length?"blocked":"manual_editorial_review_required",blocking_reasons:[...new Set(errors)],machine_approval:false,human_editorial_approval:false,user_approved:false,published:false,contract:"original_python_topic_quality_gate_v3.2_structural_subset",notice:"Source truth, 85pt editorial evidence, actual artwork viewing and final content judgement require a human. Even zero blockers is not publishing authorization."};
 }
 
+
+function xConservativeLength(body){
+ const normalized=String(body||"").replace(/https?:\/\/[^\s<>\u3000]+/gi,"\uFFF0");
+ return [...normalized].reduce((sum,ch)=>sum+(ch==="\uFFF0"?23:ch.codePointAt(0)<128?1:2),0);
+}
+function qaSyntheticFixture(){
+ const url="https://example.org/original";
+ const scans=Object.fromEntries(Object.keys(LEGACY_VALUE_LABELS).map(key=>[key,key==="learning"?"primary":"not_applicable"]));
+ return {
+ topic_id:"synthetic",problem_key:"one-task",title:"Reproducible AI example",audience:"AI learners",trigger:"new workflow",job:"learn method",outcome:"replicable output",angle:"source-led tutorial",promise:"tested workflow",proof_plan:"check original documents",competitor_gap:"others skip limitations",difference_rationale:"verified key steps",source_limitations:"example only",value_type:"学习",
+ content_values:{attraction:"Specific first-screen value",spread_mechanism:"Learnable resource",payoff_description:"Reusable skill",payoff_type:"learning",spread_class:"fresh_potential",spread_source_url:url,original_published_at:"2026-10-24T00:00:00Z",freshness_reason:"new official source"},
+ content_scores:{attraction:22,spread:25,payoff:25,credibility:14},score_evidence:{attraction:"Original useful entry",spread:"Shareable worked steps",payoff:"Reusable method",credibility:"Direct original reference"},
+ value_scan:scans,
+ value_proof:{observed_material:"documentation observed",reader_deliverable:"repeatable steps",verification_check:"expected output",limitations:"synthetic only",evidence_status:"source_reviewed",source_access:"official_document_read",source_url:url,category_evidence:{teachable_skill:"study method",steps_and_prerequisites:"setup and tools",learner_verification:"compare result"}},
+ social_pitch:{platform:"x",first_screen:"source-backed learning example",proof_object:"original documented workflow",why_share_or_save:"reusable how-to",account_fit:"educational AI use",support_observation:"fictional test only",support_type:"original_work",support_url:url,original_published_at:"2026-10-24",editorial_hypothesis:"likely useful to learners"},
+ signals:[{url,kind:"official_release",read_scope:"official_read",claim:"documented method for this purely synthetic example"}]
+ };
+}
+
 async function persist(env,src,row,now){
  const ekey=entityIdentity(row);const prev=await env.DB.prepare("SELECT source_ids_json FROM entities WHERE entity_key=?").bind(ekey).first();
  let families=[];try{families=JSON.parse(prev?.source_ids_json||"[]");if(!Array.isArray(families))families=[]}catch{families=[]}
@@ -135,10 +154,18 @@ async function inspect(env){const [src,ev,ent,run,pending]=await Promise.all([
 async function selfTest(){const fixture='<rss><channel><item><title>A&amp;B AI tutorial</title><link>https://example.org/a?utm_source=tracker</link><description>Short demo</description></item></channel></rss>';const parsed=rssList(fixture);const n=parsed[0]&&item({url:parsed[0].url,title:parsed[0].title,excerpt:parsed[0].excerpt});const key=n?entityIdentity(n):null;return{pass:parsed.length===1&&n?.title==="A&B AI tutorial"&&key==="post:https://example.org/a"&&Object.keys(NINE_VALUE_SCAN).length===9,fixture_count:parsed.length,normalized_url:n?.url,review_initial_state:"not_assessed",automatic_approval:false}}
 export default{
  async fetch(request,env){const u=new URL(request.url);if(request.method!=="GET")return json({error:"read_only_http",automatic_posting:false},405);
- if(u.pathname==="/"||u.pathname==="/health"){try{return json({name:"30天图文账号 Cloudflare V3.2 source migration",version:"v3.2-cf-migration-phase2",source_commit:BASE_COMMIT,stage:"controlled_staging",automation_enabled:env.ENABLE_COLLECTION==="true",publication_auto_approved:false,manual_publish_only:true,db:await inspect(env)});}catch(e){return json({status:"db_error",detail:String(e).slice(0,160)},503)}}
+ if(u.pathname==="/"||u.pathname==="/health"){try{return json({name:"30天图文账号 Cloudflare V3.2 source migration",version:"v3.2-cf-migration-phase4",source_commit:BASE_COMMIT,stage:"controlled_staging",automation_enabled:env.ENABLE_COLLECTION==="true",publication_auto_approved:false,manual_publish_only:true,db:await inspect(env)});}catch(e){return json({status:"db_error",detail:String(e).slice(0,160)},503)}}
  if(u.pathname==="/self-test")return json(await selfTest());
- if(u.pathname==="/quality-self-test"){const none=auditLegacyTopic({}),headline=auditLegacyTopic({title:"A news headline",signals:[{url:"https://example.org/source",read_scope:"headline_only"}]});return json({pass:none.status==="blocked"&&none.blocking_reasons.includes("missing_nine_value_scan")&&headline.blocking_reasons.includes("no_recheckable_primary_evidence")&&headline.machine_approval===false,empty: {blocked: none.status==="blocked",reason_count:none.blocking_reasons.length},headline_only:{blocked:headline.status==="blocked",has_primary_evidence:!headline.blocking_reasons.includes("no_recheckable_primary_evidence")},machine_approval:false,legal_media_and_visual_review:"manual_required"}); }
- if(u.pathname==="/readiness")return json({full_parity:false,implemented:["24 original RSS feeds","11 additional public discovery channels","38 AICG and X seed-only entries disabled","source-by-source errors","D1 durable evidence, URL/project dedupe","nine-value unassessed placeholders","human editorial queue"],missing:["native X global search (historically failed)","X creator content collector","AICG original-image viewing and quality gate","domestic Douyin/XHS native access","Python advanced editorial/copy gates port","verified historical parity against all 119 tests"],publication_approved:0,production_autopublish:false});
+ if(u.pathname==="/quality-self-test"){
+ const empty=auditLegacyTopic({}),headline=auditLegacyTopic({title:"Headline-only",signals:[{url:"https://example.org/post",read_scope:"headline_only"}]});
+ const example=qaSyntheticFixture(),complete=auditLegacyTopic(example);
+ const low=auditLegacyTopic({...example,content_scores:{...example.content_scores,payoff:22}});
+ const artistic=auditLegacyTopic({...example,value_type:"审美娱乐",content_values:{...example.content_values,payoff_type:"entertainment"},value_scan:Object.fromEntries(Object.keys(LEGACY_VALUE_LABELS).map(k=>[k,k==="entertainment"?"primary":"not_applicable"])),value_proof:{...example.value_proof,source_access:"original_read",category_evidence:{actually_viewed_work:"sample artwork",standout_moment:"sample shot",experience_reason:"sample expression"}}});
+ const checks={no_evidence_blocked:empty.status==="blocked"&&headline.blocking_reasons.includes("no_recheckable_primary_evidence"),synthetic_complete_structure_needs_human:complete.blocking_reasons.length===0&&complete.status==="manual_editorial_review_required"&&complete.machine_approval===false,score_below_85_blocked:low.blocking_reasons.includes("content_score_total_below_85"),unviewed_aicg_blocked:artistic.blocking_reasons.includes("visual_work_not_viewed"),x_length_limit:xConservativeLength("你".repeat(141))>280&&xConservativeLength("你好")===4&&xConservativeLength("https://example.org")===23};
+ return json({pass:Object.values(checks).every(Boolean),checks,checks_count:Object.keys(checks).length,automatic_publication:false,limitation:"Static fixtures do not prove complete Python test parity or human visual review."});
+}
+
+ if(u.pathname==="/readiness")return json({full_parity:false,runtime:"CF_only",configured_source_categories:["24 originally configured RSS sources; one paused after invalid 404","11 original public community, hot and video metadata adapters","six free Google News indirect site-index discovery feeds (not original posts)","three Hugging Face first-party AICG model/Spaces metadata streams","38 X creator/AICG website seeds disabled unless legally verified"],implemented:["persistent D1 source/evidence/entity datasets","per-source HTTP success, empty and failure receipts","canonical URL and project-level across-day dedup","private queryable editorial review queue","structural nine-reader-value and four-score gate with manual veto","original X 280 weighted-char conservative format check","positive, negative, incomplete and visual-unviewed fixture tests"],missing:["global original X keyword and AICG author content collector","original media playback and visual quality acceptance","original native Douyin and Xiaohongshu search/comments","full 119 original Python quality regressions inside CF","original copy P0 full release gate running on CF rather than ChatGPT editorial skill","actual human-reviewed and approved content delivery"],publication_approved:0,production_autopublish:false,capability_status:"partial_functionality_validated_not_full_parity"});
  if(u.pathname==="/quality-contract")return json({status:"metadata_and_human_gated",score_caps:LEGACY_SCORE_CAPS,score_minima:LEGACY_SCORE_MINS,total_required:85,dimensions:LEGACY_VALUE_LABELS,required_primary_count:1,original_source_required:true,social_pitch_required:true,human_editorial_approval:true,visual_originals_must_be_seen:true,copy_delivery_10_p0_gate:"ChatGPT ai-copy-production v3.1 original skill / release_gate.py; not executed on Cloudflare",automatic_publishing:false});
  if(u.pathname==="/coverage"){const data=(await env.DB.prepare("SELECT kind,enabled,COUNT(*) AS n,SUM(CASE WHEN last_result='retrieved' THEN 1 ELSE 0 END) AS last_success,SUM(CASE WHEN last_result='failed' THEN 1 ELSE 0 END) AS last_failed FROM sources GROUP BY kind,enabled ORDER BY kind").all()).results;return json({basis:"registered sources, not all verified accessible",sources:data,metric_scope:METRIC_SCOPE});}
  return json({error:"not_found"},404);
