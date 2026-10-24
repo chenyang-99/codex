@@ -94,7 +94,12 @@ jobs:
         run: python social-topic-radar/horizon_apify_search_v3.py
       - name: Collect indexed public social content leads (not native platform hot search)
         run: python social-topic-radar/indexed_social_discovery_v3.py
-      - name: Probe optional OFFICIAL YouTube keyword search (disabled without explicit API key)
+      - name: Probe optional OFFICIAL YouTube keyword search (no key = no request)
+        # Site owner configures Actions secret and explicit variable separately.
+        # Push/PR smoke tests NEVER consume API quota.
+        env:
+          YOUTUBE_DATA_API_KEY: ${{ secrets.YOUTUBE_DATA_API_KEY }}
+          YOUTUBE_SEARCH_ENABLED: ${{ ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && vars.YOUTUBE_SEARCH_ENABLED == '1') && '1' || '0' }}
         run: python social-topic-radar/youtube_official_search_v3.py
       - name: Discover free public Bluesky tool posts (no token or paid account)
         run: python social-topic-radar/bluesky_public_search_v3.py

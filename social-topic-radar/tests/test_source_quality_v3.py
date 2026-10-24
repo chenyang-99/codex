@@ -4,6 +4,8 @@ import importlib.util
 import json
 from pathlib import Path
 import unittest
+from unittest import mock
+from urllib.error import HTTPError
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -107,6 +109,45 @@ class TrendFeedTests(unittest.TestCase):
         self.assertEqual({"points":37,"comments":12},rows[0]["metrics"])
         self.assertTrue(rows[0]["published_utc"].startswith("2026-10-20"))
         self.assertEqual("https://github.com/team/tool",rows[0]["project_url"])
+
+    def test_youtube_official_atom_rss_404_first_party_recovery(self):
+        source=f.FEEDS["youtube_fireship"]
+        atom=b'''<feed xmlns="http://www.w3.org/2005/Atom"><entry>
+          <title>New AI video editor</title><link href="https://www.youtube.com/watch?v=xyz123"/>
+          <published>2026-10-21T01:00:00Z</published></entry></feed>'''
+        calls=[]
+        def getter(url):
+            calls.append(url)
+            if url.endswith("UCsBjURrPoezykLs9EqgamOA") and "/xml/feeds/" not in url:
+                raise HTTPError(url,404,"temporary",{},None)
+            return atom
+        with mock.patch.object(f.time,"sleep",lambda _:None):
+            rows=f.fetch_one("youtube_fireship",source,read=getter)
+        self.assertEqual(1,len(rows))
+        self.assertEqual("official_alternate_path",rows[0]["retrieval_path"])
+        self.assertEqual(2,len(calls))
+        self.assertEqual("https://www.youtube.com/watch?v=xyz123",rows[0]["url"])
+
+    def test_youtube_403_is_not_bypassed_or_hidden(self):
+        source=f.FEEDS["youtube_fireship"]
+        called=[]
+        def getter(url):
+            called.append(url)
+            raise HTTPError(url,403,"not permitted",{},None)
+        with self.assertRaises(HTTPError):
+            f.fetch_rss_with_official_retry("youtube_fireship",source,read=getter,
+                                           sleep=lambda _:None)
+        self.assertEqual(1,len(called))
+
+    def test_youtube_all_official_endpoints_failed_reports_unavailable(self):
+        source={"youtube_test":f.FEEDS["youtube_fireship"]}
+        def getter(url):
+            raise HTTPError(url,404,"temp",{},None)
+        with mock.patch.object(f.time,"sleep",lambda _:None):
+            rows,health=f.collect(source,getter)
+        self.assertEqual([],rows)
+        self.assertEqual("unavailable",health[0]["status"])
+        self.assertIn("HTTPError",health[0]["error"])
 
     def test_provider_failure_does_not_hide_success(self):
         tiny={"ok": {"url":"https://lobste.rs/hottest.rss","type":"xml",

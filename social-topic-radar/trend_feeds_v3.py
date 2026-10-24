@@ -15,7 +15,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, parse_qs
+import time
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "output"
@@ -132,8 +133,43 @@ def unpack_lobsters_json(raw):
                         "comments": item.get("comment_count")},
         }
 
+def fetch_rss_with_official_retry(source, cfg, read=retrieve, sleep=time.sleep):
+    """Read YouTube Atom RSS with bounded retries; do not bypass 403 or auth.
+
+    YouTube's known intermittent 404/5xx RSS failures also affect valid channels.
+    The alternate URL is a YouTube-origin topic path (not a proxy). Neither
+    retry nor alternate path guarantees availability.
+    """
+    if cfg.get("platform") != "youtube":
+        return read(cfg["url"]), "primary"
+    url = cfg["url"]
+    try:
+        return read(url), "primary"
+    except HTTPError as exc:
+        if exc.code not in (404, 500, 502, 503, 504):
+            raise
+    except (TimeoutError, URLError):
+        pass
+    parsed = urlsplit(url)
+    ids = parse_qs(parsed.query).get("channel_id", [])
+    if (parsed.hostname not in ("youtube.com", "www.youtube.com")
+            or not ids or not ids[0].startswith("UC")):
+        raise ValueError("invalid_official_youtube_channel_id")
+    alternative = "https://www.youtube.com/xml/feeds/videos.xml?channel_id=" + ids[0]
+    sleep(1)
+    try:
+        return read(alternative), "official_alternate_path"
+    except HTTPError as exc:
+        if exc.code not in (404, 500, 502, 503, 504):
+            raise
+    except (TimeoutError, URLError):
+        pass
+    sleep(1)
+    return read(url), "retried_primary"
+
+
 def fetch_one(source, cfg, read=retrieve):
-    raw = read(cfg["url"])
+    raw, retrieval_path = fetch_rss_with_official_retry(source, cfg, read=read)
     candidates = (unpack_xml(raw) if cfg["type"] == "xml" else
                   unpack_lobsters_json(raw) if cfg["type"] == "lobsters_json" else
                   unpack_trending_json(raw))
@@ -153,7 +189,8 @@ def fetch_one(source, cfg, read=retrieve):
             "metrics": {k:v for k,v in (item.get("metrics") or {}).items()
                         if isinstance(v, (int,float)) and not isinstance(v,bool) and v >= 0},
             "metrics_checked_at": now if item.get("metrics") else None,
-            "read_scope": cfg["scope"], "editorial_status": "research_candidate_only",
+            "read_scope": cfg["scope"], "retrieval_path": retrieval_path,
+            "editorial_status": "research_candidate_only",
         })
     return rows
 
@@ -167,7 +204,9 @@ def collect(feeds=FEEDS, read=retrieve):
                 rows = future.result()
                 records.extend(rows)
                 health.append({"source": name, "status": "retrieved" if rows else "empty",
-                               "items": len(rows), "checked_at": datetime.now(timezone.utc).isoformat()})
+                               "items": len(rows),
+                               "retrieval_path": rows[0].get("retrieval_path") if rows else None,
+                               "checked_at": datetime.now(timezone.utc).isoformat()})
             except (OSError, ValueError, ET.ParseError, HTTPError, URLError, TimeoutError) as exc:
                 health.append({"source": name, "status": "unavailable", "items": 0,
                                "error": f"{type(exc).__name__}: {str(exc)[:145]}",
