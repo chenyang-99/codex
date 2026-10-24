@@ -1,14 +1,10 @@
 name: Google Gemini 4 official monitor
 
+# Legacy project collector retained for manual diagnostics only.
+# GitHub is a backup; Cloudflare remains the sole production runner.
+# Do not run on push or timer until automated collection is explicitly approved.
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "social-topic-radar/google_gemini4_watch.py"
-      - ".github/workflows/google-gemini4-watch.yml"
-  schedule:
-    # Hourly UTC, best-effort: GitHub Actions schedules may be delayed.
-    - cron: "11 * * * *"
 
 permissions:
   contents: read
