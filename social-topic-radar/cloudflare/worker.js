@@ -458,5 +458,5 @@ export default{
  if(u.pathname==="/coverage"){const data=(await env.DB.prepare("SELECT kind,enabled,COUNT(*) AS n,SUM(CASE WHEN last_result='retrieved' THEN 1 ELSE 0 END) AS last_success,SUM(CASE WHEN last_result='failed' THEN 1 ELSE 0 END) AS last_failed FROM sources GROUP BY kind,enabled ORDER BY kind").all()).results;return json({basis:"registered sources, not all verified accessible",sources:data,metric_scope:METRIC_SCOPE});}
  return json({error:"not_found"},404);
  },
- async scheduled(event,env,ctx){if(env.ENABLE_COLLECTION!=="true")return;ctx.waitUntil((async()=>{const results=await Promise.allSettled([processRun(env,"cf_cron_incremental"),processCopyReleaseJobs(env)]);for(const [i,v] of results.entries())if(v.status==="rejected")console.error(i===0?"radar_collection_failed":"copy_quality_queue_failed",String(v.reason).slice(0,120));})());}
+ async scheduled(event,env,ctx){if(env.ENABLE_COLLECTION!=="true")return;if(event.cron==="*/2 * * * *"){ctx.waitUntil(processCopyReleaseJobs(env));return;}ctx.waitUntil((async()=>{const results=await Promise.allSettled([processRun(env,"cf_cron_incremental"),processCopyReleaseJobs(env)]);for(const [i,v] of results.entries())if(v.status==="rejected")console.error(i===0?"radar_collection_failed":"copy_quality_queue_failed",String(v.reason).slice(0,120));})());}
 };
