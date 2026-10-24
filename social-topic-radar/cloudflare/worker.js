@@ -378,6 +378,26 @@ function copyQualitySelfTest(){
  return{pass:tests.every(x=>x.pass),total:tests.length,passed:tests.filter(x=>x.pass).length,failed:tests.filter(x=>!x.pass).map(x=>x.name),tests,warning:"Minimal similarity only uses a conservative length diagnostic; exact Python difflib remains a gap."};
 }
 
+
+async function processCopyReleaseJobs(env){
+ const jobs=(await env.DB.prepare("SELECT job_id,packet_json FROM copy_release_jobs WHERE status='pending' ORDER BY created_utc ASC LIMIT 3").all()).results||[];
+ const stats={checked:0,blocked:0,eligible:0,failed:0};
+ for(const job of jobs){
+  const claim=await env.DB.prepare("UPDATE copy_release_jobs SET status='processing',processing_started_utc=? WHERE job_id=? AND status='pending'").bind(new Date().toISOString(),job.job_id).run();
+  if(claim.meta?.changes!==1)continue;
+  try{
+   const packet=JSON.parse(job.packet_json||"null"),gate=validateCopyRelease(packet),factual=copyQualityPreflight(packet),editorial=editorialPreflight(packet);
+   const blocked=gate.status!=="eligible_for_delivery"||factual.status==="blocked"||editorial.status==="invalid_input";
+   const summary={release_status:gate.status,release_blockers:gate.blocking_reasons||[],release_warnings:gate.warnings||[],quality_status:factual.status,quality_blockers:factual.blocking_reasons||[],quality_warnings:factual.warnings||[],editorial_hint_codes:(editorial.hints||[]).map(x=>x.code),editorial_status:editorial.status,published:false,user_approved:false,machine_approval:false,requires_human_signoff:true,checked_utc:new Date().toISOString()};
+   await env.DB.prepare("UPDATE copy_release_jobs SET packet_json=NULL,status=?,finished_utc=?,report_json=? WHERE job_id=? AND status='processing'").bind(blocked?"blocked":"eligible_for_delivery",new Date().toISOString(),JSON.stringify(summary),job.job_id).run();
+   stats.checked++;if(blocked)stats.blocked++;else stats.eligible++;
+  }catch(error){
+   await env.DB.prepare("UPDATE copy_release_jobs SET packet_json=NULL,status='error',finished_utc=?,report_json=? WHERE job_id=? AND status='processing'").bind(new Date().toISOString(),JSON.stringify({code:"invalid_packet_or_gate_failure",published:false,requires_human_signoff:true}),job.job_id).run();stats.failed++;
+  }
+ }
+ return stats;
+}
+
 async function persist(env,src,row,now){
  const ekey=entityIdentity(row);const prev=await env.DB.prepare("SELECT source_ids_json FROM entities WHERE entity_key=?").bind(ekey).first();
  let families=[];try{families=JSON.parse(prev?.source_ids_json||"[]");if(!Array.isArray(families))families=[]}catch{families=[]}
@@ -438,5 +458,5 @@ export default{
  if(u.pathname==="/coverage"){const data=(await env.DB.prepare("SELECT kind,enabled,COUNT(*) AS n,SUM(CASE WHEN last_result='retrieved' THEN 1 ELSE 0 END) AS last_success,SUM(CASE WHEN last_result='failed' THEN 1 ELSE 0 END) AS last_failed FROM sources GROUP BY kind,enabled ORDER BY kind").all()).results;return json({basis:"registered sources, not all verified accessible",sources:data,metric_scope:METRIC_SCOPE});}
  return json({error:"not_found"},404);
  },
- async scheduled(event,env,ctx){if(env.ENABLE_COLLECTION!=="true")return;ctx.waitUntil(processRun(env,"cf_cron_incremental"));}
+ async scheduled(event,env,ctx){if(env.ENABLE_COLLECTION!=="true")return;ctx.waitUntil((async()=>{const results=await Promise.allSettled([processRun(env,"cf_cron_incremental"),processCopyReleaseJobs(env)]);for(const [i,v] of results.entries())if(v.status==="rejected")console.error(i===0?"radar_collection_failed":"copy_quality_queue_failed",String(v.reason).slice(0,120));})());}
 };
