@@ -1,11 +1,15 @@
 name = "ai30-original-radar-v32"
 main = "worker.js"
 compatibility_date = "2026-10-24"
-# Archived source-side runtime config. Deployed via Cloudflare API; read back from settings.
-# Original Python V3.2 system is NOT yet completely ported.
-# No scheduled executions while migration is incomplete.
+
+# CF production deployment settings recorded after read-back. Never commit secrets.
+# This staging-phase hourly scan is limited to 4 public sources per invocation.
+# Full original Python V3.2 + AICG visual review + QA parity is NOT yet proven.
 [triggers]
-crons = []
+crons = ["0 * * * *"]
+
+[vars]
+ENABLE_COLLECTION = "true"
 
 [[d1_databases]]
 binding = "DB"
