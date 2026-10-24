@@ -1,0 +1,13 @@
+name = "ai30-original-radar-v32"
+main = "worker.js"
+compatibility_date = "2026-10-24"
+# Archived source-side runtime config. Deployed via Cloudflare API; read back from settings.
+# Original Python V3.2 system is NOT yet completely ported.
+# No scheduled executions while migration is incomplete.
+[triggers]
+crons = []
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ai30-original-radar-v32"
+database_id = "77385365-96d9-4ec6-94ff-66843638efd0"
