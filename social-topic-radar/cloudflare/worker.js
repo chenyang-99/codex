@@ -1,5 +1,5 @@
 const BASE_COMMIT="24a8413586fdc58276df2fb5e2b8a6b769161c3c";
-const VERSION="v3.2-cf-migration-phase5";
+const VERSION="v3.2-cf-limited-production-r2-integrity";
 const VALUES=["utility","learning","save","decision","insight","information","emotion","entertainment","social_expression"];
 const headers={"content-type":"application/json; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff"};
 function json(obj,status=200){return new Response(JSON.stringify(obj),{status,headers});}
@@ -410,11 +410,49 @@ async function persist(env,src,row,now){
  await env.DB.prepare("UPDATE editorial_review SET machine_blockers_json=? WHERE entity_key=? AND original_review_status='pending'").bind(JSON.stringify(auditLegacyTopic({title:row.title,signals:[{url:row.url,read_scope:row.scope}]}).blocking_reasons),ekey).run();
  return !prev;
 }
+
+// Run-integrity guard for Cloudflare scheduled collection. Synthetic tests never write production D1.
+const STALE_RUN_MS=90*60*1000;
+function staleRunCutoff(nowMs){return new Date(nowMs-STALE_RUN_MS).toISOString();}
+async function finalizeInterruptedRun(env,runId,checked,retrieved,added,errorText,finishedUtc){
+ const note=JSON.stringify([{code:"run_aborted_unexpected_exception",detail:errorText}]);
+ return env.DB.prepare("UPDATE runs SET status='interrupted',finished_utc=?,feeds_checked=?,retrieved=?,new_entities=?,errors_json=? WHERE run_id=? AND status='running'").bind(finishedUtc,checked,retrieved,added,note,runId).run();
+}
+async function recoverStaleRuns(env,nowMs=Date.now()){
+ const cutoff=staleRunCutoff(nowMs);
+ const note=JSON.stringify([{code:"stale_run_reclassified",reason:"Task did not finalize within 90 minutes; cause unknown; not evidence of successful completion."}]);
+ const outcome=await env.DB.prepare("UPDATE runs SET status='interrupted',errors_json=? WHERE status='running' AND finished_utc IS NULL AND started_utc<?").bind(note,cutoff).run();
+ const changed=outcome?.meta?.changes||0;
+ if(changed>0)console.warn("stale_run_reclassified",changed,cutoff);
+ return changed;
+}
+async function collectWithRecovery(env,trigger){
+ try{await recoverStaleRuns(env);}
+ catch(err){console.error("run_stale_sweep_failed",String(err).slice(0,160));}
+ return processRun(env,trigger);
+}
+async function runIntegritySelfTest(){
+ const seen=[];
+ const fake={DB:{prepare(sql){return{bind(...args){return{run:async()=>{seen.push({sql,args});return{meta:{changes:1}}}}}}}}};
+ await finalizeInterruptedRun(fake,"synthetic-run",2,12,1,"synthetic_failure","2026-10-25T04:00:00.000Z");
+ await recoverStaleRuns(fake,Date.parse("2026-10-25T04:00:00.000Z"));
+ const tests={
+  failure_is_interrupted:seen[0]?.sql.includes("status='interrupted'")&&seen[0]?.sql.includes("WHERE run_id=? AND status='running'"),
+  failure_receipt_counts:seen[0]?.args?.slice(0,4).join(",")==="2026-10-25T04:00:00.000Z,2,12,1",
+  no_mutation_in_test:seen.length===2,
+  old_run_guard:seen[1]?.sql.includes("status='running' AND finished_utc IS NULL AND started_utc<?"),
+  stale_cutoff:seen[1]?.args?.[1]==="2026-10-25T02:30:00.000Z",
+  stale_keeps_null_end:!seen[1]?.sql.includes("finished_utc=?"),
+  no_autoapproval:!seen.some(x=>x.sql.includes("editorial_review")||x.sql.includes("publication_status"))
+ };
+ return {pass:Object.values(tests).every(Boolean),checks:tests,synthetic_only:true,production_data_unchanged:true};
+}
 async function processRun(env,trigger){
  const started=new Date().toISOString(),run_id=crypto.randomUUID();
  await env.DB.prepare("INSERT INTO runs(run_id,trigger_kind,started_utc,status,provenance_commit) VALUES(?, ?, ?, 'running', ?)").bind(run_id,trigger,started,BASE_COMMIT).run();
- const sources=(await env.DB.prepare("SELECT source_id,name,feed_url,kind FROM sources WHERE enabled=1 ORDER BY coalesce(last_checked_utc,''), priority DESC, source_id LIMIT 4").all()).results||[];
  let checked=0,found=0,added=0,failures=[];
+ try{
+ const sources=(await env.DB.prepare("SELECT source_id,name,feed_url,kind FROM sources WHERE enabled=1 ORDER BY coalesce(last_checked_utc,''), priority DESC, source_id LIMIT 4").all()).results||[];
  for(const src of sources){let status="retrieved",http=200,rows=[];
  try{const res=await getFromSource(src);http=res.status;rows=res.items;if(!rows.length)status="empty_or_unparsed";
  for(const entry of rows){const isNew=await persist(env,src,entry,new Date().toISOString());if(isNew)added++;}
@@ -425,6 +463,11 @@ async function processRun(env,trigger){
  }
  await env.DB.prepare("UPDATE runs SET finished_utc=?,status=?,feeds_checked=?,retrieved=?,new_entities=?,errors_json=? WHERE run_id=?").bind(new Date().toISOString(),failures.length?"partial":"complete",checked,found,added,JSON.stringify(failures),run_id).run();
  return {run_id,checked,found,added,failed:failures.length,publication_approved:0};
+ }catch(err){
+  try{await finalizeInterruptedRun(env,run_id,checked,found,added,String(err).slice(0,180),new Date().toISOString());}
+  catch(markErr){console.error("run_state_finalize_failed",run_id,String(markErr).slice(0,160));}
+  throw err;
+ }
 }
 async function inspect(env){const [src,ev,ent,run,pending]=await Promise.all([
  env.DB.prepare("SELECT COUNT(*) AS n,SUM(CASE WHEN enabled=1 THEN 1 ELSE 0 END) AS live FROM sources").first(),
@@ -436,7 +479,8 @@ async function inspect(env){const [src,ev,ent,run,pending]=await Promise.all([
 async function selfTest(){const fixture='<rss><channel><item><title>A&amp;B AI tutorial</title><link>https://example.org/a?utm_source=tracker</link><description>Short demo</description></item></channel></rss>';const parsed=rssList(fixture);const n=parsed[0]&&item({url:parsed[0].url,title:parsed[0].title,excerpt:parsed[0].excerpt});const key=n?entityIdentity(n):null;return{pass:parsed.length===1&&n?.title==="A&B AI tutorial"&&key==="post:https://example.org/a"&&Object.keys(NINE_VALUE_SCAN).length===9,fixture_count:parsed.length,normalized_url:n?.url,review_initial_state:"not_assessed",automatic_approval:false}}
 export default{
  async fetch(request,env){const u=new URL(request.url);if(request.method!=="GET")return json({error:"read_only_http",automatic_posting:false},405);
- if(u.pathname==="/"||u.pathname==="/health"){try{return json({name:"30天图文账号 Cloudflare V3.2 source migration",version:"v3.2-cf-migration-phase5",source_commit:BASE_COMMIT,stage:"controlled_staging",automation_enabled:env.ENABLE_COLLECTION==="true",publication_auto_approved:false,manual_publish_only:true,db:await inspect(env)});}catch(e){return json({status:"db_error",detail:String(e).slice(0,160)},503)}}
+ if(u.pathname==="/"||u.pathname==="/health"){try{return json({name:"30天图文账号 Cloudflare V3.2 source migration",version:VERSION,source_commit:BASE_COMMIT,stage:"limited_production",launch_date:"2026-10-25",release_scope:"free_public_metadata_and_private_editorial_preflight_only",full_original_parity:false,automation_enabled:env.ENABLE_COLLECTION==="true",publication_auto_approved:false,manual_publish_only:true,db:await inspect(env)});}catch(e){return json({status:"db_error",detail:String(e).slice(0,160)},503)}}
+ if(u.pathname==="/run-integrity-self-test")return json(await runIntegritySelfTest());
  if(u.pathname==="/self-test")return json(await selfTest());
  if(u.pathname==="/quality-self-test"){
  const empty=auditLegacyTopic({}),headline=auditLegacyTopic({title:"Headline-only",signals:[{url:"https://example.org/post",read_scope:"headline_only"}]});
@@ -447,7 +491,7 @@ export default{
  return json({pass:Object.values(checks).every(Boolean),checks,checks_count:Object.keys(checks).length,automatic_publication:false,limitation:"Static fixtures do not prove complete Python test parity or human visual review."});
 }
 
- if(u.pathname==="/readiness")return json({full_parity:false,runtime:"CF_only",configured_source_categories:["24 originally configured RSS sources; one paused after invalid 404","11 original public community, hot and video metadata adapters","six free Google News indirect site-index discovery feeds (not original posts)","three Hugging Face first-party AICG model/Spaces metadata streams","38 X creator/AICG website seeds disabled unless legally verified"],implemented:["persistent D1 source/evidence/entity datasets","per-source HTTP success, empty and failure receipts","canonical URL and project-level across-day dedup","private queryable editorial review queue","structural nine-reader-value and four-score gate with manual veto","original X 280 weighted-char conservative format check","positive, negative, incomplete and visual-unviewed fixture tests"],missing:["global original X keyword and AICG author content collector","original media playback and visual quality acceptance","original native Douyin and Xiaohongshu search/comments","full 119 original Python quality regressions inside CF","full human editorial integration and visual/factual semantic verification; private D1 queue handles original 10 P0 structural release gate","actual human-reviewed and approved content delivery"],publication_approved:0,production_autopublish:false,capability_status:"partial_functionality_validated_not_full_parity"});
+ if(u.pathname==="/readiness")return json({full_parity:false,runtime:"CF_only",release_stage:"limited_production",authorized_launch_date:"2026-10-25",configured_source_categories:["24 originally configured RSS sources; one paused after invalid 404","11 original public community, hot and video metadata adapters","six free Google News indirect site-index discovery feeds (not original posts)","three Hugging Face first-party AICG model/Spaces metadata streams","ten public AICG detail-page adapters with first-party metadata only; creator/other restricted seeds remain disabled"],implemented:["persistent D1 source/evidence/entity datasets","per-source HTTP success, empty and failure receipts","canonical URL and project-level across-day dedup","private queryable editorial review queue","structural nine-reader-value and four-score gate with manual veto","original X 280 weighted-char conservative format check","positive/negative visual-unviewed fixtures, copy V3.1 P0 and private CF D1 queue; 56 synthetic copy checks passed"],missing:["global original X keyword and AICG author content collector","original media playback and visual quality acceptance","original native Douyin and Xiaohongshu search/comments","full 119 original Python quality regressions inside CF","full human editorial integration and visual/factual semantic verification; private D1 queue handles original 10 P0 structural release gate","actual human-reviewed and approved content delivery"],publication_approved:0,production_autopublish:false,capability_status:"partial_functionality_validated_not_full_parity"});
  if(u.pathname==="/copy-release-self-test")return json(copyReleaseSelfTest());
  if(u.pathname==="/editorial-preflight-self-test")return json(editorialPreflightSelfTest());
  if(u.pathname==="/copy-quality-self-test")return json(copyQualitySelfTest());
@@ -458,5 +502,5 @@ export default{
  if(u.pathname==="/coverage"){const data=(await env.DB.prepare("SELECT kind,enabled,COUNT(*) AS n,SUM(CASE WHEN last_result='retrieved' THEN 1 ELSE 0 END) AS last_success,SUM(CASE WHEN last_result='failed' THEN 1 ELSE 0 END) AS last_failed FROM sources GROUP BY kind,enabled ORDER BY kind").all()).results;return json({basis:"registered sources, not all verified accessible",sources:data,metric_scope:METRIC_SCOPE});}
  return json({error:"not_found"},404);
  },
- async scheduled(event,env,ctx){if(env.ENABLE_COLLECTION!=="true")return;ctx.waitUntil((async()=>{const results=await Promise.allSettled([processRun(env,"cf_cron_incremental"),processCopyReleaseJobs(env)]);for(const [i,v] of results.entries())if(v.status==="rejected")console.error(i===0?"radar_collection_failed":"copy_quality_queue_failed",String(v.reason).slice(0,120));})());}
+ async scheduled(event,env,ctx){if(env.ENABLE_COLLECTION!=="true"||event.cron!=="0 * * * *")return;ctx.waitUntil((async()=>{const results=await Promise.allSettled([collectWithRecovery(env,"cf_cron_incremental"),processCopyReleaseJobs(env)]);for(const [i,v] of results.entries())if(v.status==="rejected")console.error(i===0?"radar_collection_failed":"copy_quality_queue_failed",String(v.reason).slice(0,120));})());}
 };
