@@ -158,6 +158,123 @@ function qaSyntheticFixture(){
  };
 }
 
+
+const COPY_P0_GATES=["audience_promise","primary_payoff","original_angle","specificity_and_completeness","truth_and_provenance","structure_and_pacing","natural_voice","platform_publishability","delivery_package","rights_and_authorization"];
+const COPY_ANCHORED=new Set(["audience_promise","primary_payoff","original_angle","specificity_and_completeness","structure_and_pacing","natural_voice"]);
+const COPY_EXTERNAL=new Set(["tool","news","review","benchmark","tutorial","technical","policy"]);
+const COPY_PLATFORMS=new Set(["x","xiaohongshu","douyin","multi"]);
+const COPY_X_FORMS=new Set(["short_text","image_post","thread","long_post","article"]);
+const COPY_URL_RE=/https?:\/\/[^\s<>\u3000]+/gi;
+const COPY_PLACEHOLDER=/\[(?:待补|待填|插入图片|这里放|TODO|待核)[^\]]{0,30}\]|【(?:此处插|待补|待填)[^】]{0,30}】|<\s*(?:insert|replace|placeholder)\s*>|待补链接|待核实后补上/i;
+const COPY_BAIT=/(?:评论区(?:打|扣)(?:1|666)|点赞收藏关注三连)/;
+function copyText(value){return typeof value==="string"?value:"";}
+function copyXWeightedLength(value){return [...copyText(value).replace(COPY_URL_RE,"\uFFF0")].reduce((n,c)=>n+(c==="\uFFF0"?23:c.codePointAt(0)<128?1:2),0);}
+function validateCopyRelease(packet){
+ if(!packet||typeof packet!=="object"||Array.isArray(packet))return{status:"blocked",blocking_reasons:["release_packet_not_object"],warnings:[],machine_approval:false};
+ const errors=[],warnings=[],block=k=>{if(!errors.includes(k))errors.push(k)};
+ const platform=copyText(packet.platform),form=copyText(packet.format);
+ if(!COPY_PLATFORMS.has(platform))block("invalid_or_missing_platform");
+ if(platform==="x"&&!COPY_X_FORMS.has(form))block("invalid_x_format");
+ if(!form)block("missing_publish_format");
+ let parts,body;
+ if(platform==="x"&&form==="thread"){
+  parts=packet.posts;
+  if(!Array.isArray(parts)||parts.length<2||parts.some(p=>typeof p!=="string"||!p.trim())){block("thread_requires_complete_posts");parts=[];}
+  if(copyText(packet.draft).trim())block("thread_draft_must_use_posts_only");
+  body=parts.join("\n\n");
+ }else{
+  body=copyText(packet.draft);
+  if(packet.posts!==undefined&&packet.posts!==null)block("single_post_must_not_include_parts");
+  parts=[body];
+ }
+ if(!body.trim())block("empty_release_body");
+ if(COPY_PLACEHOLDER.test(body))block("unresolved_publish_placeholder");
+ if(COPY_BAIT.test(body))warnings.push("engagement_bait_must_be_removed_or_justified");
+ if(platform==="x"){
+  if(["short_text","image_post","thread"].includes(form))for(let i=0;i<parts.length;i++){
+   const len=copyXWeightedLength(parts[i]);
+   if(len>280)block("x_post_"+(i+1)+"_over_280_conservative_weight");
+   else if(len>265)warnings.push("x_post_"+(i+1)+"_close_to_limit_verify_in_composer");
+  }
+  if(form==="long_post"&&packet.account_long_posts_confirmed!==true)block("x_long_post_entitlement_not_confirmed");
+  if(form==="article"&&packet.account_articles_confirmed!==true)block("x_article_entitlement_not_confirmed");
+ }
+ if((platform==="xiaohongshu"&&["image_post","carousel"].includes(form))||(platform==="douyin"&&["video","video_post","image_post","carousel"].includes(form))){
+  if(packet.media_required!==true)block("visual_format_requires_real_media");
+ }
+ if(platform==="douyin"&&form==="video_script"&&packet.video_deliverable_requested===true)block("video_script_is_not_finished_video");
+ if(packet.media_required===true){
+  const assets=packet.media_assets;
+  if(!Array.isArray(assets)||assets.length===0)block("required_media_unavailable");
+  else for(let i=0;i<assets.length;i++)if(!assets[i]||typeof assets[i]!=="object"||assets[i].ready!==true||assets[i].rights_cleared!==true)block("required_media_"+(i+1)+"_not_ready_or_rights_uncleared");
+ }
+ if(packet.disclosure_required===true){
+  const phrase=copyText(packet.disclosure_text).trim();
+  if(!phrase||!body.includes(phrase))block("mandatory_disclosure_not_in_publish_text");
+ }
+ if(COPY_EXTERNAL.has(copyText(packet.genre))){
+  const links=packet.sources;
+  if(!Array.isArray(links)||!links.length||links.some(x=>!x||typeof x!=="object"||!copyText(x.locator).trim()||!copyText(x.supports).trim()))block("no_claim_specific_external_sources");
+ }
+ const scope=copyText(packet.edit_scope);
+ if(scope==="review_only")block("review_only_is_not_release");
+ if(["title_only","opening_only","ending_only","minimal"].includes(scope)){
+  if(!copyText(packet.original).trim())block("missing_original_for_scoped_edit");
+  else if(scope==="title_only"&&body!==packet.original)block("title_only_modified_body");
+  else if(["opening_only","ending_only","minimal"].includes(scope))warnings.push("human_must_verify_scoped_edit_against_original");
+ }
+ let protectedPhrases=packet.protected_phrases===undefined?[]:packet.protected_phrases;
+ if(!Array.isArray(protectedPhrases)){block("invalid_protected_phrases");protectedPhrases=[];}
+ for(const phrase of protectedPhrases)if(typeof phrase!=="string"||(phrase&&!body.includes(phrase)))block("protected_phrase_lost");
+ const checks=packet.acceptance&&typeof packet.acceptance==="object"&&!Array.isArray(packet.acceptance)?packet.acceptance:{};
+ if(!packet.acceptance||typeof packet.acceptance!=="object"||Array.isArray(packet.acceptance))block("acceptance_record_missing");
+ for(const gate of COPY_P0_GATES){
+  const c=checks[gate];
+  if(!c||typeof c!=="object"||Array.isArray(c)||c.status!=="pass"){block(gate+"_not_signed_off");continue;}
+  if(copyText(c.evidence).trim().length<12)block(gate+"_evidence_insufficient");
+  if(COPY_ANCHORED.has(gate)){
+   const anchor=copyText(c.anchor).trim();
+   if(anchor.length<4||!body.includes(anchor))block(gate+"_missing_real_draft_anchor");
+  }
+ }
+ const reviewer=packet.reviewer;
+ if(!reviewer||typeof reviewer!=="object"||["editorial_reviewed","facts_and_rights_checked","final_publish_previewed"].some(k=>reviewer[k]!==true))block("reviewer_attestation_incomplete");
+ return{status:errors.length?"blocked":"eligible_for_delivery",blocking_reasons:errors,warnings,x_conservative_weights:platform==="x"?parts.map(copyXWeightedLength):[],machine_approval:false,user_approved:false,published:false,notice:"eligible_for_delivery requires actual human/editorial verification; this check only validates declared evidence, package shape and length. Source truth and actual account entitlements still need human verification."};
+}
+function copyReleaseFixture(){
+ const draft="这款开源工具帮助AI网站开发者检查布局和文字层级。先说明产品受众，再检查页面设计问题。项目与安装方法见 https://example.org/tool";
+ const acceptance=Object.fromEntries(COPY_P0_GATES.map(n=>[n,{status:"pass",evidence:"编辑复核了这条具体文案的相关部分；以下锚点确实存在。",anchor:COPY_ANCHORED.has(n)?"产品受众":""}]));
+ return{draft,platform:"x",format:"short_text",genre:"tool",edit_scope:"new_draft",sources:[{locator:"https://example.org/tool",supports:"工具定位与基本安装说明"}],acceptance,reviewer:{editorial_reviewed:true,facts_and_rights_checked:true,final_publish_previewed:true}};
+}
+function copyReleaseSelfTest(){
+ const check=(name,cond)=>({name,pass:!!cond});const out=[];
+ const base=copyReleaseFixture();let p;
+ out.push(check("complete_fixture_eligible_but_never_approved",validateCopyRelease(base).status==="eligible_for_delivery"&&!validateCopyRelease(base).machine_approval&&!validateCopyRelease(base).published));
+ p=copyReleaseFixture();delete p.acceptance.original_angle;out.push(check("missing_gate",validateCopyRelease(p).blocking_reasons.includes("original_angle_not_signed_off")));
+ p=copyReleaseFixture();p.acceptance.primary_payoff.evidence="好";out.push(check("short_evidence",validateCopyRelease(p).blocking_reasons.includes("primary_payoff_evidence_insufficient")));
+ p=copyReleaseFixture();p.acceptance.natural_voice.anchor="此处根本不存在的句子";out.push(check("nonexistent_anchor",validateCopyRelease(p).blocking_reasons.includes("natural_voice_missing_real_draft_anchor")));
+ p=copyReleaseFixture();p.reviewer.final_publish_previewed=false;out.push(check("missing_editorial_reviewer",validateCopyRelease(p).blocking_reasons.includes("reviewer_attestation_incomplete")));
+ out.push(check("x_chinese_weight",copyXWeightedLength("你".repeat(140))===280&&copyXWeightedLength("你".repeat(141))===282));
+ out.push(check("x_url_fixed_weight",copyXWeightedLength("链接：https://example.org/"+"a".repeat(300))===29));
+ p=copyReleaseFixture();p.draft="AI网站为什么总有模板感？"+"我们用具体设计准则检查页面。".repeat(35);out.push(check("oversize_x_280",validateCopyRelease(p).blocking_reasons.includes("x_post_1_over_280_conservative_weight")));
+ p=copyReleaseFixture();p.format="long_post";out.push(check("long_post_account_permission",validateCopyRelease(p).blocking_reasons.includes("x_long_post_entitlement_not_confirmed")));p.account_long_posts_confirmed=true;out.push(check("long_post_authorized_fixture",validateCopyRelease(p).status==="eligible_for_delivery"));
+ p=copyReleaseFixture();p.format="article";out.push(check("articles_account_permission",validateCopyRelease(p).blocking_reasons.includes("x_article_entitlement_not_confirmed")));
+ p=copyReleaseFixture();p.format="thread";out.push(check("thread_requires_parts",validateCopyRelease(p).blocking_reasons.includes("thread_requires_complete_posts")));p.draft="";p.posts=["产品受众，第一页说明产品问题。","第二页给可用的安装入口 https://example.org/tool"];out.push(check("complete_thread_fixture",validateCopyRelease(p).status==="eligible_for_delivery"));
+ p=copyReleaseFixture();p.media_required=true;out.push(check("missing_media",validateCopyRelease(p).blocking_reasons.includes("required_media_unavailable")));p.media_assets=[{ready:true,rights_cleared:false}];out.push(check("uncleared_media_rights",validateCopyRelease(p).blocking_reasons.includes("required_media_1_not_ready_or_rights_uncleared")));
+ p=copyReleaseFixture();p.disclosure_required=true;p.disclosure_text="广告合作";out.push(check("disclosure_missing",validateCopyRelease(p).blocking_reasons.includes("mandatory_disclosure_not_in_publish_text")));
+ p=copyReleaseFixture();p.sources=[{locator:"https://example.org"}];out.push(check("claim_specific_sources",validateCopyRelease(p).blocking_reasons.includes("no_claim_specific_external_sources")));
+ p=copyReleaseFixture();p.draft+="\n[待补截图]";out.push(check("unresolved_placeholder",validateCopyRelease(p).blocking_reasons.includes("unresolved_publish_placeholder")));
+ p=copyReleaseFixture();p.edit_scope="review_only";out.push(check("review_only_not_release",validateCopyRelease(p).blocking_reasons.includes("review_only_is_not_release")));
+ p=copyReleaseFixture();p.edit_scope="title_only";p.original="另一版本正文";out.push(check("title_scope_preserved",validateCopyRelease(p).blocking_reasons.includes("title_only_modified_body")));
+ p=copyReleaseFixture();p.platform="xiaohongshu";p.format="text";p.genre="emotion";delete p.sources;out.push(check("poetry_no_forced_sources",validateCopyRelease(p).status==="eligible_for_delivery"));
+ p=copyReleaseFixture();p.protected_phrases=null;out.push(check("invalid_protected_phrases",validateCopyRelease(p).blocking_reasons.includes("invalid_protected_phrases")));
+ p=copyReleaseFixture();p.platform="xiaohongshu";p.format="carousel";out.push(check("xiaohongshu_media_requirement",validateCopyRelease(p).blocking_reasons.includes("visual_format_requires_real_media")));
+ p=copyReleaseFixture();p.platform="douyin";p.format="video_script";p.video_deliverable_requested=true;out.push(check("douyin_script_not_video",validateCopyRelease(p).blocking_reasons.includes("video_script_is_not_finished_video")));
+ p=copyReleaseFixture();delete p.reviewer;out.push(check("missing_reviewer_hard_block",validateCopyRelease(p).status==="blocked"));
+ out.push(check("invalid_packet",validateCopyRelease(null).blocking_reasons.includes("release_packet_not_object")));
+ return{pass:out.every(x=>x.pass),total:out.length,passed:out.filter(x=>x.pass).length,failed:out.filter(x=>!x.pass).map(x=>x.name),checks:out,public_release_authorized:false,machine_approval:false,important:"Synthetic parity checks do not verify real facts, copyright or editorial judgement."};
+}
+
 async function persist(env,src,row,now){
  const ekey=entityIdentity(row);const prev=await env.DB.prepare("SELECT source_ids_json FROM entities WHERE entity_key=?").bind(ekey).first();
  let families=[];try{families=JSON.parse(prev?.source_ids_json||"[]");if(!Array.isArray(families))families=[]}catch{families=[]}
@@ -208,6 +325,8 @@ export default{
 }
 
  if(u.pathname==="/readiness")return json({full_parity:false,runtime:"CF_only",configured_source_categories:["24 originally configured RSS sources; one paused after invalid 404","11 original public community, hot and video metadata adapters","six free Google News indirect site-index discovery feeds (not original posts)","three Hugging Face first-party AICG model/Spaces metadata streams","38 X creator/AICG website seeds disabled unless legally verified"],implemented:["persistent D1 source/evidence/entity datasets","per-source HTTP success, empty and failure receipts","canonical URL and project-level across-day dedup","private queryable editorial review queue","structural nine-reader-value and four-score gate with manual veto","original X 280 weighted-char conservative format check","positive, negative, incomplete and visual-unviewed fixture tests"],missing:["global original X keyword and AICG author content collector","original media playback and visual quality acceptance","original native Douyin and Xiaohongshu search/comments","full 119 original Python quality regressions inside CF","original copy P0 full release gate running on CF rather than ChatGPT editorial skill","actual human-reviewed and approved content delivery"],publication_approved:0,production_autopublish:false,capability_status:"partial_functionality_validated_not_full_parity"});
+ if(u.pathname==="/copy-release-self-test")return json(copyReleaseSelfTest());
+ if(u.pathname==="/copy-release-contract")return json({source:"Original delivery_release_gate.py v3.1.0",required_p0_gates:COPY_P0_GATES,external_genres:[...COPY_EXTERNAL],platforms:[...COPY_PLATFORMS],x_forms:[...COPY_X_FORMS],human_signoff_required:true,format_only:false,users_must_publish_manually:true,draft_submit_api:"not_publicly_exposed_without_authentication",mode:"synthetic_test_and_private_function_only"});
  if(u.pathname==="/quality-contract")return json({status:"metadata_and_human_gated",score_caps:LEGACY_SCORE_CAPS,score_minima:LEGACY_SCORE_MINS,total_required:85,dimensions:LEGACY_VALUE_LABELS,required_primary_count:1,original_source_required:true,social_pitch_required:true,human_editorial_approval:true,visual_originals_must_be_seen:true,copy_delivery_10_p0_gate:"ChatGPT ai-copy-production v3.1 original skill / release_gate.py; not executed on Cloudflare",automatic_publishing:false});
  if(u.pathname==="/coverage"){const data=(await env.DB.prepare("SELECT kind,enabled,COUNT(*) AS n,SUM(CASE WHEN last_result='retrieved' THEN 1 ELSE 0 END) AS last_success,SUM(CASE WHEN last_result='failed' THEN 1 ELSE 0 END) AS last_failed FROM sources GROUP BY kind,enabled ORDER BY kind").all()).results;return json({basis:"registered sources, not all verified accessible",sources:data,metric_scope:METRIC_SCOPE});}
  return json({error:"not_found"},404);
