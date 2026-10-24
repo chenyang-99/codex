@@ -22,7 +22,7 @@ function item({url,title,excerpt="",author="",published=null,metrics=null,scope=
 }
 async function getFromSource(src){
  if(!["hn_json","devto_json","v2ex_json","hf_json","lobsters_json","github_mirror_json"].includes(src.kind)){
-  const out=await capFetch(src.feed_url);return{status:out.status,items:out.items.map(z=>item({url:z.url,title:z.title,excerpt:z.excerpt,author:z.author,published:z.date,scope:"rss_title_excerpt_only"})).filter(Boolean).slice(0,12)}
+  const out=await capFetch(src.feed_url);return{status:out.status,items:out.items.map(z=>item({url:z.url,title:z.title,excerpt:z.excerpt,author:z.author,published:z.date,scope:src.kind==="indexed_rss"?"public_search_index_only_not_native_platform_posts":"rss_title_excerpt_only"})).filter(Boolean).slice(0,12)}
  }
  const data=await readJson(src.feed_url);const things=[];
  if(src.kind==="hn_json"){if(!Array.isArray(data))throw Error("hn_list_invalid");const ids=data.filter(n=>Number.isInteger(n)&&n>0).slice(0,6);const results=await Promise.allSettled(ids.map(n=>readJson("https://hacker-news.firebaseio.com/v0/item/"+n+".json")));
@@ -49,6 +49,39 @@ function lanesOf(title){
  return out.length?out:["unclassified_research"];
 }
 const NINE_VALUE_SCAN={utility:"not_assessed",learning:"not_assessed",save:"not_assessed",decision:"not_assessed",insight:"not_assessed",information:"not_assessed",emotion:"not_assessed",entertainment:"not_assessed",social_expression:"not_assessed"};
+
+const VALUE_PROOF_FIELDS_CF={utility:["task_input","deliverable_example","success_check"],learning:["teachable_skill","steps_and_prerequisites","learner_verification"],save:["reusable_asset","access_conditions","reuse_scenario"],decision:["options_compared","tradeoffs","decision_rule"],insight:["prior_understanding","new_interpretation","supporting_observation"],information:["new_fact","event_date","reader_impact"],emotion:["specific_story","emotional_turn","audience_connection"],entertainment:["actually_viewed_work","standout_moment","experience_reason"],social_expression:["discussion_question","grounded_positions","reason_to_express"]};
+const LEGACY_SCORE_CAPS={attraction:25,spread:30,payoff:30,credibility:15},LEGACY_SCORE_MINS={attraction:20,spread:23,payoff:21,credibility:10};
+const LEGACY_VALUE_LABELS={utility:"实用",learning:"学习",save:"收藏",decision:"决策",insight:"认知",information:"信息",emotion:"情绪",entertainment:"审美娱乐",social_expression:"社交表达"};
+function auditLegacyTopic(topic){
+ const t=topic&&typeof topic==="object"?topic:{},errors=[],need=(obj,fields,pre)=>{for(const key of fields)if(typeof obj?.[key]!=="string"||!obj[key].trim())errors.push(pre+key)};
+ need(t,["topic_id","problem_key","title","audience","trigger","job","outcome","angle","promise","proof_plan","competitor_gap","difference_rationale","source_limitations"],"missing_");
+ if(!Object.values(LEGACY_VALUE_LABELS).includes(t.value_type))errors.push("missing_or_invalid_value_type");
+ if(t.requires_test&&!t.test_gap)errors.push("missing_preproduction_test_gap");
+ const cv=t.content_values&&typeof t.content_values==="object"?t.content_values:{};
+ need(cv,["attraction","spread_mechanism","payoff_description"],"missing_content_value_");
+ const payoff=cv.payoff_type;if(!Object.keys(LEGACY_VALUE_LABELS).includes(payoff))errors.push("missing_or_invalid_payoff_type");
+ if(!["verified_viral","fresh_potential"].includes(cv.spread_class))errors.push("missing_or_unverified_spread_class");
+ if(!canonical(cv.spread_source_url))errors.push("missing_spread_primary_source");
+ if(cv.spread_class==="verified_viral")need(cv,["spread_metric","spread_checked_at"],"missing_verified_");
+ if(cv.spread_class==="fresh_potential")need(cv,["original_published_at","freshness_reason"],"missing_");
+ const scores=t.content_scores;
+ if(!scores||typeof scores!=="object")errors.push("missing_content_scores");
+ else if(Object.entries(LEGACY_SCORE_CAPS).some(([k,cap])=>typeof scores[k]!=="number"||!Number.isFinite(scores[k])||scores[k]<0||scores[k]>cap))errors.push("invalid_content_scores");
+ else {for(const [k,min] of Object.entries(LEGACY_SCORE_MINS))if(scores[k]<min)errors.push("content_score_below_minimum_"+k);if(Object.keys(LEGACY_SCORE_CAPS).reduce((sum,k)=>sum+scores[k],0)<85)errors.push("content_score_total_below_85");if(!t.score_evidence||Object.keys(LEGACY_SCORE_CAPS).some(k=>!String(t.score_evidence[k]||"").trim()))errors.push("missing_score_evidence_by_dimension")}
+ const scan=t.value_scan&&typeof t.value_scan==="object"?t.value_scan:null;
+ if(!scan)errors.push("missing_nine_value_scan");
+ else{for(const k of Object.keys(LEGACY_VALUE_LABELS))if(!["primary","secondary","not_applicable"].includes(scan[k]))errors.push("missing_or_invalid_value_scan_"+k);if(Object.keys(scan).some(k=>!(k in LEGACY_VALUE_LABELS)))errors.push("unknown_value_scan_dimension");const primary=Object.keys(LEGACY_VALUE_LABELS).filter(k=>scan[k]==="primary");if(primary.length!==1)errors.push("nine_value_scan_requires_one_primary");if(primary.length===1&&primary[0]!==payoff)errors.push("primary_value_mismatch")}
+ if(t.value_type!==LEGACY_VALUE_LABELS[payoff])errors.push("chinese_value_label_mismatch");
+ const proof=t.value_proof;if(!proof||typeof proof!=="object")errors.push("missing_value_proof");
+ else{need(proof,["observed_material","reader_deliverable","verification_check","limitations"],"missing_value_proof_");if(!["source_reviewed","independently_tested"].includes(proof.evidence_status))errors.push("unverified_value_evidence");if(!["original_read","original_viewed","official_document_read","independently_tested"].includes(proof.source_access))errors.push("unverified_value_source_access");const linked=canonical(proof.source_url);if(!linked)errors.push("missing_value_proof_source_url");else if(!(t.signals||[]).some(s=>canonical(s?.url)===linked))errors.push("unlinked_value_proof_source");if(!proof.category_evidence||typeof proof.category_evidence!=="object")errors.push("missing_category_value_evidence");else need(proof.category_evidence,VALUE_PROOF_FIELDS_CF[payoff]||[],"missing_value_"+payoff+"_");if(payoff==="entertainment"&&!["original_viewed","independently_tested"].includes(proof.source_access))errors.push("visual_work_not_viewed")}
+ const pitch=t.social_pitch;if(!pitch||typeof pitch!=="object")errors.push("missing_social_pitch");
+ else{if(!["x","xiaohongshu","douyin"].includes(pitch.platform))errors.push("missing_target_platform");need(pitch,["first_screen","proof_object","why_share_or_save","account_fit","support_observation"],"missing_social_");if(!["own_post","same_platform_post","original_work"].includes(pitch.support_type))errors.push("missing_or_invalid_social_support_type");if(!canonical(pitch.support_url))errors.push("missing_social_support_url");if(["own_post","same_platform_post"].includes(pitch.support_type))need(pitch,["support_metric","support_checked_at"],"missing_social_");if(pitch.support_type==="original_work")need(pitch,["original_published_at","editorial_hypothesis"],"missing_social_")}
+ const signals=Array.isArray(t.signals)?t.signals:[];const valid=signals.filter(s=>s&&canonical(s.url)&&["user_post","user_comment","official_release","original_case"].includes(s.kind)&&s.read_scope&&!["search_snippet_only","headline_only","unavailable","unknown"].includes(s.read_scope)&&((["user_post","user_comment"].includes(s.kind)&&s.quote)||(s.kind==="official_release"&&s.claim)||(s.kind==="original_case"&&s.observed_result)));
+ if(valid.length===0){errors.push("no_recheckable_primary_evidence");errors.push("no_direct_user_official_or_original_evidence");errors.push("no_independent_source_context")}
+ return{status:errors.length?"blocked":"manual_editorial_review_required",blocking_reasons:[...new Set(errors)],machine_approval:false,human_editorial_approval:false,user_approved:false,published:false,contract:"original_python_topic_quality_gate_v3.2_structural_subset",notice:"Source truth, 85pt editorial evidence, actual artwork viewing and final content judgement require a human. Even zero blockers is not publishing authorization."};
+}
+
 async function persist(env,src,row,now){
  const ekey=entityIdentity(row);const prev=await env.DB.prepare("SELECT source_ids_json FROM entities WHERE entity_key=?").bind(ekey).first();
  let families=[];try{families=JSON.parse(prev?.source_ids_json||"[]");if(!Array.isArray(families))families=[]}catch{families=[]}
@@ -58,6 +91,7 @@ async function persist(env,src,row,now){
  if(prev)await env.DB.prepare("UPDATE entities SET last_seen_utc=?,title=?,source_ids_json=?,cross_source_count=? WHERE entity_key=?").bind(now,row.title,JSON.stringify(families),families.length,ekey).run();
  else await env.DB.prepare("INSERT INTO entities(entity_key,canonical_url,title,first_seen_utc,last_seen_utc,cross_source_count,source_ids_json,state) VALUES(?,?,?,?,?,?,?,'research_only')").bind(ekey,row.url,row.title,now,now,1,JSON.stringify(families)).run();
  await env.DB.prepare("INSERT OR IGNORE INTO editorial_review(entity_key,value_scan_json,original_review_status,updated_utc) VALUES(?,?,'pending',?)").bind(ekey,JSON.stringify(NINE_VALUE_SCAN),now).run();
+ await env.DB.prepare("UPDATE editorial_review SET machine_blockers_json=? WHERE entity_key=? AND original_review_status='pending'").bind(JSON.stringify(auditLegacyTopic({title:row.title,signals:[{url:row.url,read_scope:row.scope}]}).blocking_reasons),ekey).run();
  return !prev;
 }
 async function processRun(env,trigger){
@@ -88,7 +122,9 @@ export default{
  async fetch(request,env){const u=new URL(request.url);if(request.method!=="GET")return json({error:"read_only_http",automatic_posting:false},405);
  if(u.pathname==="/"||u.pathname==="/health"){try{return json({name:"30天图文账号 Cloudflare V3.2 source migration",version:"v3.2-cf-migration-phase2",source_commit:BASE_COMMIT,stage:"controlled_staging",automation_enabled:env.ENABLE_COLLECTION==="true",publication_auto_approved:false,manual_publish_only:true,db:await inspect(env)});}catch(e){return json({status:"db_error",detail:String(e).slice(0,160)},503)}}
  if(u.pathname==="/self-test")return json(await selfTest());
+ if(u.pathname==="/quality-self-test"){const none=auditLegacyTopic({}),headline=auditLegacyTopic({title:"A news headline",signals:[{url:"https://example.org/source",read_scope:"headline_only"}]});return json({pass:none.status==="blocked"&&none.blocking_reasons.includes("missing_nine_value_scan")&&headline.blocking_reasons.includes("no_recheckable_primary_evidence")&&headline.machine_approval===false,empty: {blocked: none.status==="blocked",reason_count:none.blocking_reasons.length},headline_only:{blocked:headline.status==="blocked",has_primary_evidence:!headline.blocking_reasons.includes("no_recheckable_primary_evidence")},machine_approval:false,legal_media_and_visual_review:"manual_required"}); }
  if(u.pathname==="/readiness")return json({full_parity:false,implemented:["24 original RSS feeds","11 additional public discovery channels","38 AICG and X seed-only entries disabled","source-by-source errors","D1 durable evidence, URL/project dedupe","nine-value unassessed placeholders","human editorial queue"],missing:["native X global search (historically failed)","X creator content collector","AICG original-image viewing and quality gate","domestic Douyin/XHS native access","Python advanced editorial/copy gates port","verified historical parity against all 119 tests"],publication_approved:0,production_autopublish:false});
+ if(u.pathname==="/quality-contract")return json({status:"metadata_and_human_gated",score_caps:LEGACY_SCORE_CAPS,score_minima:LEGACY_SCORE_MINS,total_required:85,dimensions:LEGACY_VALUE_LABELS,required_primary_count:1,original_source_required:true,social_pitch_required:true,human_editorial_approval:true,visual_originals_must_be_seen:true,copy_delivery_10_p0_gate:"ChatGPT ai-copy-production v3.1 original skill / release_gate.py; not executed on Cloudflare",automatic_publishing:false});
  if(u.pathname==="/coverage"){const data=(await env.DB.prepare("SELECT kind,enabled,COUNT(*) AS n,SUM(CASE WHEN last_result='retrieved' THEN 1 ELSE 0 END) AS last_success,SUM(CASE WHEN last_result='failed' THEN 1 ELSE 0 END) AS last_failed FROM sources GROUP BY kind,enabled ORDER BY kind").all()).results;return json({basis:"registered sources, not all verified accessible",sources:data,metric_scope:METRIC_SCOPE});}
  return json({error:"not_found"},404);
  },
