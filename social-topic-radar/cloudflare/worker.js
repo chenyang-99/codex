@@ -275,6 +275,46 @@ function copyReleaseSelfTest(){
  return{pass:out.every(x=>x.pass),total:out.length,passed:out.filter(x=>x.pass).length,failed:out.filter(x=>!x.pass).map(x=>x.name),checks:out,public_release_authorized:false,machine_approval:false,important:"Synthetic parity checks do not verify real facts, copyright or editorial judgement."};
 }
 
+
+const EDITORIAL_CLICHES=["在这个飞速发展的时代","在这个信息爆炸的时代","颠覆你的认知","彻底改变行业","不看后悔","震惊全网","史上最强","真正重要的是","建议先收藏","点赞收藏关注","看完这篇你就懂了","开启全新篇章","赋能千行百业"];
+const EDITORIAL_ABSOLUTES=/100\s*[%％]\s*(?:成功|准确|有效)|(?:保证|必定)(?:爆火|涨粉|变现|播放)|(?:永久免费|完全免费且无限制|随便商用|绕过平台检测|不会被平台检测)/;
+const EDITORIAL_TEST=/(?:我|本人)(?:亲测|实测|实际跑通|已经跑通|都试过)|亲测有效/;
+function editorialPreflight(record){
+ if(!record||typeof record!=="object"||Array.isArray(record))return{status:"invalid_input",hints:[{code:"input_not_object"}],approved:false,claim_verified:false,virality_prediction:null};
+ if(typeof record.draft!=="string"&&record.draft!==undefined)return{status:"invalid_input",hints:[{code:"draft_must_be_string"}],approved:false,claim_verified:false,virality_prediction:null};
+ const body=record.draft||"",hints=[],add=(code,evidence,suggestion)=>hints.push({code,evidence,suggestion});
+ if(!body.trim())add("empty_draft","","没有正文。此工具不代替正式出稿。");
+ const paras=body.split(/\n\s*\n/).map(s=>s.replace(/\s+/g,"").replace(/^[ \t，。！？.!?：:;；]+|[ \t，。！？.!?：:;；]+$/g,"")).filter(Boolean);
+ const count=new Map();for(const para of paras)if([...para].length>=18)count.set(para,(count.get(para)||0)+1);
+ for(const [para,n] of count)if(n>1)add("duplicate_paragraph",para.slice(0,65),"确认是否刻意复沓；若无独立表达价值，合并重复段。");
+ const missing=[];for(const f of Array.isArray(record.required_facts)?record.required_facts:[])if(typeof f==="string"&&f&&!body.toLowerCase().includes(f.toLowerCase()))missing.push(f);
+ if(missing.length)add("required_facts_missing",missing,"与原始资料逐项核对；不能只靠编辑预先列出的事实清单。");
+ for(const phrase of Array.isArray(record.protected_phrases)?record.protected_phrases:[])if(typeof phrase==="string"&&phrase&&!body.includes(phrase))add("protected_phrase_changed",phrase,"如果属于保真修改，请保留原话或取得用户明确授权。");
+ for(const phrase of EDITORIAL_CLICHES)if(body.includes(phrase))add("generic_promo_phrase",phrase,"检查它是否增加具体事实或作者真实语气；否则用有证据的细节表达。");
+ const absolute=EDITORIAL_ABSOLUTES.exec(body);if(absolute)add("absolute_claim_check",absolute[0],"核对限定条件、证据/商业条款，必要时降低绝对承诺。");
+ const personal=EDITORIAL_TEST.exec(body);if(personal&&record.test_status!=="user_verified")add("first_person_test_unverified",personal[0],"仅用户本人已明确提供真实操作证据时才能使用第一人称亲测。");
+ if(COPY_EXTERNAL.has(record.genre)&&!record.sources?.length)add("source_gap",record.genre,"请人工检查关键技术、时间、性能、价格和许可主张的一手来源。");
+ if(typeof record.original==="string"&&["review_only","title_only"].includes(record.edit_scope)&&record.original!==body)add("edit_scope_changed_body",record.edit_scope,"纯审稿或只改标题不能修改正文；以原有质量门禁为准。");
+ return{status:"editorial_hints_only",approved:false,claim_verified:false,virality_prediction:null,hints,notice:"仅做机械预检；不重写、不裁定风格或事实、不能证明传播表现。"};
+}
+function editorialPreflightSelfTest(){
+ const check=(name,ok)=>({name,pass:!!ok});const tests=[];
+ const has=(p,k)=>editorialPreflight(p).hints.some(x=>x.code===k);
+ tests.push(check("empty_draft",has({draft:""},"empty_draft")));
+ tests.push(check("duplicate_paragraph",has({draft:"AI信息每次出现都要核对原始发布时间。\n\nAI信息每次出现都要核对原始发布时间。"},"duplicate_paragraph")));
+ tests.push(check("required_facts_missing",has({draft:"这是一则新工具新闻。",required_facts:["原始发布日期"]},"required_facts_missing")));
+ tests.push(check("protected_phrase_changed",has({draft:"原文未保留",protected_phrases:["用户坚持保留的话"]},"protected_phrase_changed")));
+ tests.push(check("promo_cliche",has({draft:"不看后悔"},"generic_promo_phrase")));
+ tests.push(check("absolute_claim_check",has({draft:"保证涨粉"},"absolute_claim_check")));
+ tests.push(check("personal_test_unverified",has({draft:"我亲测这个项目跑通"},"first_person_test_unverified")));
+ tests.push(check("personal_test_verified_not_flagged",!has({draft:"我亲测这个项目跑通",test_status:"user_verified"},"first_person_test_unverified")));
+ tests.push(check("source_gap",has({draft:"工具不错",genre:"tool"},"source_gap")));
+ tests.push(check("scope_lock",has({draft:"已改正文",original:"未改正文",edit_scope:"title_only"},"edit_scope_changed_body")));
+ const ok=editorialPreflight({draft:"可靠论断前请核查原始证据。"});
+ tests.push(check("no_machine_approval",ok.approved===false&&ok.claim_verified===false&&ok.virality_prediction===null));
+ return{pass:tests.every(x=>x.pass),passed:tests.filter(x=>x.pass).length,total:tests.length,tests,publication_approved:false,scope:"nonblocking editorial preflight hints"};
+}
+
 async function persist(env,src,row,now){
  const ekey=entityIdentity(row);const prev=await env.DB.prepare("SELECT source_ids_json FROM entities WHERE entity_key=?").bind(ekey).first();
  let families=[];try{families=JSON.parse(prev?.source_ids_json||"[]");if(!Array.isArray(families))families=[]}catch{families=[]}
@@ -326,6 +366,8 @@ export default{
 
  if(u.pathname==="/readiness")return json({full_parity:false,runtime:"CF_only",configured_source_categories:["24 originally configured RSS sources; one paused after invalid 404","11 original public community, hot and video metadata adapters","six free Google News indirect site-index discovery feeds (not original posts)","three Hugging Face first-party AICG model/Spaces metadata streams","38 X creator/AICG website seeds disabled unless legally verified"],implemented:["persistent D1 source/evidence/entity datasets","per-source HTTP success, empty and failure receipts","canonical URL and project-level across-day dedup","private queryable editorial review queue","structural nine-reader-value and four-score gate with manual veto","original X 280 weighted-char conservative format check","positive, negative, incomplete and visual-unviewed fixture tests"],missing:["global original X keyword and AICG author content collector","original media playback and visual quality acceptance","original native Douyin and Xiaohongshu search/comments","full 119 original Python quality regressions inside CF","original copy P0 full release gate running on CF rather than ChatGPT editorial skill","actual human-reviewed and approved content delivery"],publication_approved:0,production_autopublish:false,capability_status:"partial_functionality_validated_not_full_parity"});
  if(u.pathname==="/copy-release-self-test")return json(copyReleaseSelfTest());
+ if(u.pathname==="/editorial-preflight-self-test")return json(editorialPreflightSelfTest());
+ if(u.pathname==="/editorial-preflight-contract")return json({source:"Original editorial_preflight.py",mode:"nonblocking hints only",stored_drafts:false,external_submission:false,can_approve:false,can_publish:false,codes:["duplicate_paragraph","required_facts_missing","protected_phrase_changed","generic_promo_phrase","absolute_claim_check","first_person_test_unverified","source_gap","edit_scope_changed_body"]});
  if(u.pathname==="/copy-release-contract")return json({source:"Original delivery_release_gate.py v3.1.0",required_p0_gates:COPY_P0_GATES,external_genres:[...COPY_EXTERNAL],platforms:[...COPY_PLATFORMS],x_forms:[...COPY_X_FORMS],human_signoff_required:true,format_only:false,users_must_publish_manually:true,draft_submit_api:"not_publicly_exposed_without_authentication",mode:"synthetic_test_and_private_function_only"});
  if(u.pathname==="/quality-contract")return json({status:"metadata_and_human_gated",score_caps:LEGACY_SCORE_CAPS,score_minima:LEGACY_SCORE_MINS,total_required:85,dimensions:LEGACY_VALUE_LABELS,required_primary_count:1,original_source_required:true,social_pitch_required:true,human_editorial_approval:true,visual_originals_must_be_seen:true,copy_delivery_10_p0_gate:"ChatGPT ai-copy-production v3.1 original skill / release_gate.py; not executed on Cloudflare",automatic_publishing:false});
  if(u.pathname==="/coverage"){const data=(await env.DB.prepare("SELECT kind,enabled,COUNT(*) AS n,SUM(CASE WHEN last_result='retrieved' THEN 1 ELSE 0 END) AS last_success,SUM(CASE WHEN last_result='failed' THEN 1 ELSE 0 END) AS last_failed FROM sources GROUP BY kind,enabled ORDER BY kind").all()).results;return json({basis:"registered sources, not all verified accessible",sources:data,metric_scope:METRIC_SCOPE});}
