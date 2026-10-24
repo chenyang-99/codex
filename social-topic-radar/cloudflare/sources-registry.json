@@ -1,0 +1,673 @@
+{
+  "description": "Cloudflare D1 source registry non-sensitive configuration backup; sources enabled=1 are only scheduled targets, not necessarily successfully fetched",
+  "snapshot_date": "2026-10-25",
+  "cloudflare_worker": "ai30-original-radar-v32",
+  "baseline_git_commit": "24a8413586fdc58276df2fb5e2b8a6b769161c3c",
+  "source_count": 82,
+  "active_count": 43,
+  "disabled_count": 39,
+  "notes": [
+    "indexed_rss are indirect Google News site-query leads, not target-platform-native posts or verified heat",
+    "x_creator_seed_only and aicg_site_seed_only are disabled registry entries",
+    "Only data and source health from actual CF runs establish access; no paid/private capture",
+    "Human quality gates and manual publication remain required"
+  ],
+  "sources": [
+    {
+      "source_id": "aicg_hf_image_models",
+      "name": "Hugging Face public text-to-image model metadata",
+      "feed_url": "https://huggingface.co/api/models?pipeline_tag=text-to-image&sort=lastModified&direction=-1&limit=40",
+      "kind": "hf_models_json",
+      "priority": 4,
+      "enabled": 1
+    },
+    {
+      "source_id": "aicg_hf_recent_spaces",
+      "name": "Hugging Face visual Spaces createdRecently (metadata)",
+      "feed_url": "https://huggingface.co/api/spaces?sort=createdAt&direction=-1&limit=100",
+      "kind": "hf_spaces_recent_json",
+      "priority": 4,
+      "enabled": 1
+    },
+    {
+      "source_id": "aicg_hf_video_models",
+      "name": "Hugging Face public image-to-video model metadata",
+      "feed_url": "https://huggingface.co/api/models?pipeline_tag=image-to-video&sort=lastModified&direction=-1&limit=40",
+      "kind": "hf_models_json",
+      "priority": 8,
+      "enabled": 1
+    },
+    {
+      "source_id": "aicg_site_1",
+      "name": "Krea Community Apps",
+      "feed_url": "https://www.krea.ai/apps/community",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_10",
+      "name": "Hugging Face Spaces",
+      "feed_url": "https://huggingface.co/spaces?sort=trending",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_11",
+      "name": "Replicate Collections",
+      "feed_url": "https://replicate.com/collections",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_12",
+      "name": "Runway AI Festival",
+      "feed_url": "https://aif.runwayml.com/",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_13",
+      "name": "Curious Refuge",
+      "feed_url": "https://curiousrefuge.com/",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_14",
+      "name": "Ideogram",
+      "feed_url": "https://ideogram.ai/",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_15",
+      "name": "Civitai",
+      "feed_url": "https://civitai.com/",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_16",
+      "name": "Recraft Blog",
+      "feed_url": "https://www.recraft.ai/blog",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_17",
+      "name": "Google DeepMind Blog",
+      "feed_url": "https://deepmind.google/blog/",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_18",
+      "name": "Black Forest Labs Blog",
+      "feed_url": "https://bfl.ai/blog/",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_2",
+      "name": "Midjourney Explore",
+      "feed_url": "https://www.midjourney.com/explore",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_3",
+      "name": "Higgsfield Community",
+      "feed_url": "https://higgsfield.ai/community",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_4",
+      "name": "Google Flow TV",
+      "feed_url": "https://labs.google/flow/tv",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_5",
+      "name": "ComfyUI Workflows",
+      "feed_url": "https://comfy.org/workflows",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_6",
+      "name": "Adobe Firefly Gallery",
+      "feed_url": "https://firefly.adobe.com",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_7",
+      "name": "Runway Academy",
+      "feed_url": "https://academy.runway.com/courses",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_8",
+      "name": "Luma Learning Center",
+      "feed_url": "https://lumalabs.ai/learning-center",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_site_9",
+      "name": "Behance AI Advertising",
+      "feed_url": "https://www.behance.net/search/projects/ai%20generated%20advertising",
+      "kind": "aicg_site_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_aitrepreneur",
+      "name": "AICG X @Aitrepreneur",
+      "feed_url": "https://x.com/Aitrepreneur",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_aiwarper",
+      "name": "AICG X @AIWarper",
+      "feed_url": "https://x.com/AIWarper",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_aiwithsynthia",
+      "name": "AICG X @AIwithSynthia",
+      "feed_url": "https://x.com/AIwithSynthia",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_amirmushich",
+      "name": "AICG X @AmirMushich",
+      "feed_url": "https://x.com/AmirMushich",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_azealter",
+      "name": "AICG X @AzeAlter",
+      "feed_url": "https://x.com/AzeAlter",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_azed_ai",
+      "name": "AICG X @azed_ai",
+      "feed_url": "https://x.com/azed_ai",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_bydarinstewart",
+      "name": "AICG X @bydarinstewart",
+      "feed_url": "https://x.com/bydarinstewart",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_charaspowerai",
+      "name": "AICG X @CharaspowerAI",
+      "feed_url": "https://x.com/CharaspowerAI",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_diesol",
+      "name": "AICG X @Diesol",
+      "feed_url": "https://x.com/Diesol",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_donalleniii",
+      "name": "AICG X @DonAllenIII",
+      "feed_url": "https://x.com/DonAllenIII",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_egeberkina",
+      "name": "AICG X @egeberkina",
+      "feed_url": "https://x.com/egeberkina",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_fofrai",
+      "name": "AICG X @fofrAI",
+      "feed_url": "https://x.com/fofrAI",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_gossip_goblin",
+      "name": "AICG X @Gossip_Goblin",
+      "feed_url": "https://x.com/Gossip_Goblin",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_kavanthekid",
+      "name": "AICG X @Kavanthekid",
+      "feed_url": "https://x.com/Kavanthekid",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_mickmumpitz",
+      "name": "AICG X @mickmumpitz",
+      "feed_url": "https://x.com/mickmumpitz",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_neuralviz",
+      "name": "AICG X @NeuralViz",
+      "feed_url": "https://x.com/NeuralViz",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_paultrillo",
+      "name": "AICG X @paultrillo",
+      "feed_url": "https://x.com/paultrillo",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_pjaccetturo",
+      "name": "AICG X @PJaccetturo",
+      "feed_url": "https://x.com/PJaccetturo",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_rgaudetteai",
+      "name": "AICG X @rgaudetteai",
+      "feed_url": "https://x.com/rgaudetteai",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "aicg_x_umesh_ai",
+      "name": "AICG X @umesh_ai",
+      "feed_url": "https://x.com/umesh_ai",
+      "kind": "x_creator_seed_only",
+      "priority": 2,
+      "enabled": 0
+    },
+    {
+      "source_id": "devto_top",
+      "name": "DEV top articles",
+      "feed_url": "https://dev.to/api/articles?top=7&per_page=20",
+      "kind": "devto_json",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "douyin_index",
+      "name": "Google News indirect index: douyin_index",
+      "feed_url": "https://news.google.com/rss/search?q=site%3Adouyin.com%2Fvideo%20AI%20%E5%B7%A5%E5%85%B7%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
+      "kind": "indexed_rss",
+      "priority": 9,
+      "enabled": 1
+    },
+    {
+      "source_id": "github_trending_mirror",
+      "name": "Third-party GitHub Trending daily mirror",
+      "feed_url": "https://cdn.jsdelivr.net/gh/Hyraze/trending-collection@main/api/daily/all.json",
+      "kind": "github_mirror_json",
+      "priority": 2,
+      "enabled": 1
+    },
+    {
+      "source_id": "hf_spaces",
+      "name": "Hugging Face trending Spaces",
+      "feed_url": "https://huggingface.co/api/spaces?sort=trendingScore&direction=-1&limit=20",
+      "kind": "hf_json",
+      "priority": 4,
+      "enabled": 1
+    },
+    {
+      "source_id": "hn_show",
+      "name": "Hacker News Show HN",
+      "feed_url": "https://hacker-news.firebaseio.com/v0/showstories.json",
+      "kind": "hn_json",
+      "priority": 4,
+      "enabled": 1
+    },
+    {
+      "source_id": "hn_top",
+      "name": "Hacker News top stories",
+      "feed_url": "https://hacker-news.firebaseio.com/v0/topstories.json",
+      "kind": "hn_json",
+      "priority": 4,
+      "enabled": 1
+    },
+    {
+      "source_id": "instagram_index",
+      "name": "Google News indirect index: instagram_index",
+      "feed_url": "https://news.google.com/rss/search?q=site%3Ainstagram.com%2Freel%20AI%20generated%20video%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
+      "kind": "indexed_rss",
+      "priority": 9,
+      "enabled": 1
+    },
+    {
+      "source_id": "lobsters_hot",
+      "name": "Lobsters hottest (native)",
+      "feed_url": "https://lobste.rs/hottest.json",
+      "kind": "lobsters_json",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "ph_official_rss",
+      "name": "Product Hunt official launch RSS",
+      "feed_url": "https://www.producthunt.com/feed",
+      "kind": "rss",
+      "priority": 4,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_1",
+      "name": "OpenAI News",
+      "feed_url": "https://openai.com/news/rss.xml",
+      "kind": "official",
+      "priority": 5,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_10",
+      "name": "Google DeepMind",
+      "feed_url": "https://deepmind.google/blog/rss.xml",
+      "kind": "official",
+      "priority": 4,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_11",
+      "name": "Latent Space",
+      "feed_url": "https://www.latent.space/feed",
+      "kind": "creator",
+      "priority": 4,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_12",
+      "name": "Replicate Blog",
+      "feed_url": "https://replicate.com/blog/rss",
+      "kind": "creator",
+      "priority": 5,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_13",
+      "name": "TechCrunch AI",
+      "feed_url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+      "kind": "media",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_14",
+      "name": "The Verge AI",
+      "feed_url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+      "kind": "media",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_15",
+      "name": "MIT Technology Review",
+      "feed_url": "https://www.technologyreview.com/feed/",
+      "kind": "media",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_16",
+      "name": "DEV AI",
+      "feed_url": "https://dev.to/feed/tag/ai",
+      "kind": "community",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_17",
+      "name": "DEV Prompt Engineering",
+      "feed_url": "https://dev.to/feed/tag/promptengineering",
+      "kind": "community",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_18",
+      "name": "Hacker News Show",
+      "feed_url": "https://hnrss.org/show",
+      "kind": "community",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_19",
+      "name": "Hacker News Front",
+      "feed_url": "https://hnrss.org/frontpage",
+      "kind": "community",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_2",
+      "name": "Google AI Blog",
+      "feed_url": "https://blog.google/technology/ai/rss/",
+      "kind": "official",
+      "priority": 5,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_20",
+      "name": "Lobsters",
+      "feed_url": "https://lobste.rs/rss",
+      "kind": "community",
+      "priority": 2,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_21",
+      "name": "arXiv Computer Vision",
+      "feed_url": "https://rss.arxiv.org/rss/cs.CV",
+      "kind": "research",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_22",
+      "name": "arXiv Artificial Intelligence",
+      "feed_url": "https://rss.arxiv.org/rss/cs.AI",
+      "kind": "research",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_23",
+      "name": "YouTube OpenAI Channel",
+      "feed_url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCXZCJLdBC09xxGZ6gcdrc6A",
+      "kind": "video",
+      "priority": 5,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_24",
+      "name": "Product Hunt",
+      "feed_url": "https://www.producthunt.com/feed",
+      "kind": "community",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_3",
+      "name": "GitHub Blog",
+      "feed_url": "https://github.blog/feed/",
+      "kind": "official",
+      "priority": 4,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_4",
+      "name": "Google Research",
+      "feed_url": "https://research.google/blog/rss/",
+      "kind": "official",
+      "priority": 4,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_5",
+      "name": "Microsoft Research",
+      "feed_url": "https://www.microsoft.com/en-us/research/feed/",
+      "kind": "official",
+      "priority": 4,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_6",
+      "name": "Hugging Face Blog",
+      "feed_url": "https://huggingface.co/blog/feed.xml",
+      "kind": "community",
+      "priority": 5,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_7",
+      "name": "Simon Willison",
+      "feed_url": "https://simonwillison.net/atom/everything/",
+      "kind": "creator",
+      "priority": 5,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_8",
+      "name": "Cloudflare Blog",
+      "feed_url": "https://blog.cloudflare.com/rss/",
+      "kind": "official",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "rss_9",
+      "name": "Anthropic News",
+      "feed_url": "https://www.anthropic.com/news/rss.xml",
+      "kind": "official",
+      "priority": 5,
+      "enabled": 0
+    },
+    {
+      "source_id": "tiktok_index",
+      "name": "Google News indirect index: tiktok_index",
+      "feed_url": "https://news.google.com/rss/search?q=site%3Atiktok.com%20AI%20video%20editing%20tools%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
+      "kind": "indexed_rss",
+      "priority": 9,
+      "enabled": 1
+    },
+    {
+      "source_id": "v2ex_hot",
+      "name": "V2EX latest hot topics",
+      "feed_url": "https://www.v2ex.com/api/topics/hot.json",
+      "kind": "v2ex_json",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "x_tool_index",
+      "name": "Google News indirect index: x_tool_index",
+      "feed_url": "https://news.google.com/rss/search?q=site%3Ax.com%20AI%20tools%20GitHub%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
+      "kind": "indexed_rss",
+      "priority": 9,
+      "enabled": 1
+    },
+    {
+      "source_id": "xiaohongshu_index",
+      "name": "Google News indirect index: xiaohongshu_index",
+      "feed_url": "https://news.google.com/rss/search?q=site%3Axiaohongshu.com%20AI%20%E5%B7%A5%E5%85%B7%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
+      "kind": "indexed_rss",
+      "priority": 9,
+      "enabled": 1
+    },
+    {
+      "source_id": "youtube_fireship",
+      "name": "Fireship uploads only",
+      "feed_url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCsBjURrPoezykLs9EqgamOA",
+      "kind": "rss",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "youtube_index",
+      "name": "Google News indirect index: youtube_index",
+      "feed_url": "https://news.google.com/rss/search?q=site%3Ayoutube.com%2Fwatch%20open%20source%20AI%20tools%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
+      "kind": "indexed_rss",
+      "priority": 9,
+      "enabled": 1
+    },
+    {
+      "source_id": "youtube_matt_wolfe",
+      "name": "Matt Wolfe uploads only",
+      "feed_url": "https://www.youtube.com/feeds/videos.xml?channel_id=UChpleBmo18P08aKCIgti38g",
+      "kind": "rss",
+      "priority": 3,
+      "enabled": 1
+    },
+    {
+      "source_id": "youtube_two_minute",
+      "name": "Two Minute Papers uploads only",
+      "feed_url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCbfYPyITQ-7l4upoX8nvctg",
+      "kind": "rss",
+      "priority": 3,
+      "enabled": 1
+    }
+  ]
+}
